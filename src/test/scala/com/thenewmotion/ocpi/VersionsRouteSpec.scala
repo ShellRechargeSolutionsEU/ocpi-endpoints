@@ -51,7 +51,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
       override val currentTime = mock[CurrentTime]
       currentTime.instance returns dateTime1
       val vdh = new VersionsDataHandler {
-        def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/")
+        def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
         def versionDetails(version: Version): \/[ListError, List[Endpoint]] =
           if (version == "2.0")  List(Endpoint(EndpointTypeEnum.Credentials, "2.0", "http://hardcoded.com/cpo/2" +
             ".0/credentials")).right

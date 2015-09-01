@@ -15,7 +15,7 @@ trait VersionsDataHandler {
   type VersionsMap = Map[Version, Url]
 
   def versionsPath: String = "versions"
-  def allVersions: VersionsMap
+  def allVersions: ListError \/ VersionsMap
 
   def versionDetails(version: Version): ListError \/ List[Endpoint]
 }

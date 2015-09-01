@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.versions
 
 import com.thenewmotion.ocpi.msgs.v2_0.GenericSuccess
-import com.thenewmotion.ocpi.{CurrentTimeComponent, UnknownVersion, UnknownVersionRejection}
+import com.thenewmotion.ocpi._
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.HttpService
 import scalaz.{\/-, -\/}
@@ -20,18 +20,22 @@ trait VersionsRoutes extends HttpService
     import com.thenewmotion.ocpi.msgs.v2_0.Versions._
     path(vdh.versionsPath) {
       get {
-        complete(VersionsResp(
-          GenericSuccess.code,
-          GenericSuccess.default_message,
-          currentTime.instance,
-          vdh.allVersions.map { case (ver, url) => Version(ver, url) }.toList)
-        )
+        vdh.allVersions match {
+          case \/-(versions) =>
+            complete(VersionsResp(
+            GenericSuccess.code,
+            GenericSuccess.default_message,
+            currentTime.instance,
+              versions.map { case (ver, url) => Version(ver, url) }.toList)
+          )
+          case -\/(NoVersionsAvailable) => reject(NoVersionsRejection())
+          case _ => reject()
+        }
       }
     } ~
     path(Segment) { version: String =>
       get {
         vdh.versionDetails(version)  match {
-          case -\/(UnknownVersion) => reject(UnknownVersionRejection(version))
           case \/-(endpoints) => complete(
             VersionDetailsResp(
               GenericSuccess.code,
@@ -41,6 +45,8 @@ trait VersionsRoutes extends HttpService
                 version, endpoints.map { e =>
                 Endpoint(EndpointIdentifierEnum.withName(e.endpointType.name).get,  e.url)}))
             )
+          case -\/(UnknownVersion) => reject(UnknownVersionRejection(version))
+          case _ => reject()
         }
       }
     }

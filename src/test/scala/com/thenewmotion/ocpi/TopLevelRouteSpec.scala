@@ -5,6 +5,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.BasicHttpCredentials
 import spray.testkit.Specs2RouteTest
+import scalaz.Scalaz._
 
 class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
@@ -23,7 +24,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
      val validCredentials = BasicHttpCredentials("beCharged", "123")
      val topLevelRoute = new TopLevelRoutes {
        val vdh = new VersionsDataHandler {
-         def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/")
+         def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
          def versionDetails(version: Version) = ???
        }
        val tldh = new TopLevelRouteDataHanlder {
