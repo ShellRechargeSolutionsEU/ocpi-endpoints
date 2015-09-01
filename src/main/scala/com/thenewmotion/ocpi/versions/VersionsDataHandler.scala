@@ -11,12 +11,11 @@ import scalaz.\/
 trait VersionsDataHandler {
 
   type Version = String
-  type VersionDetailUrl = String
-  type VersionsMap = Map[Version, VersionDetailUrl]
+  type Url = String
+  type VersionsMap = Map[Version, Url]
 
-  def versionsNamespace: String = "versions"
+  def versionsPath: String = "versions"
   def allVersions: VersionsMap
-  require(allVersions.nonEmpty)
 
   def versionDetails(version: Version): ListError \/ List[Endpoint]
 }

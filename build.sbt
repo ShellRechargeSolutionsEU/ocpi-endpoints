@@ -5,7 +5,7 @@ import tnm.LibPlugin
   lazy val commonSettings = Seq(
     name := "ocpi-endpoints",
     organization := "com.thenewmotion.ocpi",
-    version := "0.2-SNAPSHOT",
+    version := "0.3-SNAPSHOT",
     cancelable in Global := true,
     parallelExecution in Test := true
   )
@@ -16,7 +16,7 @@ import tnm.LibPlugin
       libraryDependencies  ++= Seq(
 
         "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
-        "com.typesafe.scala-logging"  %% "scala-logging-slf4j"      %   "2.1.2" withSources(),
+        "com.typesafe.scala-logging"  %% "scala-logging"            %   "3.1.0" withSources(),
         "org.slf4j"                    % "log4j-over-slf4j"         %   "1.7.7" % "test",
         "org.slf4j"                    % "slf4j-api"                %   "1.7.7" % "test",
 
