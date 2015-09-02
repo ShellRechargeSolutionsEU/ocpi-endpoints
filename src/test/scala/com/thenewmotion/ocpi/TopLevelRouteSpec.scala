@@ -3,17 +3,40 @@ package com.thenewmotion.ocpi
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import spray.http.BasicHttpCredentials
+import spray.http.HttpHeaders.RawHeader
+import spray.routing.AuthenticationFailedRejection.CredentialsRejected
+import spray.routing.{AuthenticationFailedRejection, MissingHeaderRejection}
 import spray.testkit.Specs2RouteTest
+
 import scalaz.Scalaz._
 
 class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
    "api" should {
-     "authenticate apiusers" in new TopLevelScope {
+     "extract the token value from the header value" in {
+       val auth = new Authenticator(adh = mock[AuthDataHandler])
+       auth.extractTokenValue("Basic 12345") must beNone
+       auth.extractTokenValue("Token 12345") mustEqual Some("12345")
+       auth.extractTokenValue("Token ") must beNone
+     }
+     "authenticate api calls with valid auth info" in new TopLevelScope {
        Get("/cpo/versions") ~>
-         addCredentials(validCredentials) ~> topLevelRoute.allRoutes ~> check {
+         addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
          handled must beTrue
+       }
+     }
+     "reject api calls without valid auth header" in new TopLevelScope {
+       Get("/cpo/versions") ~>
+         addHeader(invalidAuthTokenHeader) ~> topLevelRoute.allRoutes ~> check {
+         handled must beFalse
+         rejections must contain(MissingHeaderRejection("Authorization"))
+       }
+     }
+     "reject api calls without valid auth token" in new TopLevelScope {
+       Get("/cpo/versions") ~>
+         addHeader(invalidAuthToken) ~> topLevelRoute.allRoutes ~> check {
+         handled must beFalse
+         rejections must contain(AuthenticationFailedRejection(CredentialsRejected,List()))
        }
      }
    }
@@ -21,7 +44,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
    trait TopLevelScope extends Scope {
      import com.thenewmotion.ocpi.versions._
 
-     val validCredentials = BasicHttpCredentials("beCharged", "123")
+     val authTokenHeader = RawHeader("Authorization", "Token 12345")
+     val invalidAuthTokenHeader = RawHeader("Auth", "Token 12345")
+     val invalidAuthToken = RawHeader("Authorization", "Token letmein")
      val topLevelRoute = new TopLevelRoutes {
        val vdh = new VersionsDataHandler {
          def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
@@ -31,7 +56,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
          def namespace: String = "cpo"
        }
        val adh: AuthDataHandler = new AuthDataHandler {
-         def apiuser(token: String) = if (token == "123") Some(ApiUser("beCharged")) else None
+         def apiuser(token: String) = if (token == "12345") Some(ApiUser("beCharged")) else None
        }
        def actorRefFactory = system
      }

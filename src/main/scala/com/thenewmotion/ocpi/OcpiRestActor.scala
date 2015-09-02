@@ -1,67 +1,59 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.versions.VersionsRoutes
+import com.typesafe.scalalogging.LazyLogging
 import spray.routing._
-import spray.routing.authentication.{BasicAuth, UserPass}
+import spray.routing.authentication.{Authentication, BasicAuth, UserPass}
 import spray.routing.directives.AuthMagnet
 
 import scala.concurrent.{ExecutionContext, Future}
 
 abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
 
-  //implicit private val rejectionHandler: RejectionHandler = ???
+  implicit private val rejectionHandler: RejectionHandler = OcpiRejectionHandler.Default
 
   override def receive: Receive =
     runRoute(allRoutes )
 }
 
-trait TopLevelRoutes extends HttpService with VersionsRoutes with Authenticator with CurrentTimeComponent{
+trait TopLevelRoutes extends HttpService with VersionsRoutes with CurrentTimeComponent{
   import scala.concurrent.ExecutionContext.Implicits.global
   val tldh: TopLevelRouteDataHanlder
+  val adh: AuthDataHandler
+  lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
+
   def allRoutes =
-    authenticate(basicUserAuthenticator) { _ =>
-      pathPrefix(tldh.namespace) {
-//        wrapInRespObj {
+    headerValueByName("Authorization") { access_token =>
+      authenticate(auth.validate(access_token)) { _ =>
+        pathPrefix(tldh.namespace) {
           versionsRoute
-//        }
+        }
       }
     }
 }
 
-//case class Resp(status_message: String, data: String)
+class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
 
-//trait ResponseWrapper {
-//  import Directives.mapHttpResponseEntity
-//  import spray.json._
-//  import OcpiJsonProtocol._
-//  import spray.httpx.SprayJsonSupport._
-//
-//  implicit val respFormat = jsonFormat2(Resp)
-//  def wrapEntity(entity: HttpEntity): HttpEntity = {
-//    val resp = Resp(status_message = "success", data = entity.data.asString.parseJson.prettyPrint)
-//    HttpEntity(resp.toJson.toString())
-//  }
-//  val wrapInRespObj: Directive0 = mapHttpResponseEntity(wrapEntity)
-//}
-
-trait Authenticator {
-  val adh: AuthDataHandler
-  import adh._
-
-  def basicUserAuthenticator(implicit ec: ExecutionContext): AuthMagnet[ApiUser] = {
-    def validateUser(userPass: Option[UserPass]): Option[ApiUser] = {
-      for {
-        up <- userPass
-        au <- apiuser(up.pass)
-      } yield au
+  def validate(token: String): Future[Authentication[ApiUser]] = {
+    Future {
+      extractTokenValue(token) match {
+        case Some(tokenVal) => adh.apiuser(tokenVal)
+          .toRight(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
+        case None => Left(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
+      }
     }
-
-    def authenticator(userPass: Option[UserPass]): Future[Option[ApiUser]] =
-      Future { validateUser(userPass) }
-
-    BasicAuth(authenticator _, realm = "Private OCPI API")
   }
+
+  def extractTokenValue(token: String): Option[String] = {
+    val authScheme = "Token "
+    if (token.startsWith(authScheme)){
+      val tokenVal = token.substring(authScheme.length)
+      if (!tokenVal.isEmpty) Some(tokenVal) else None
+    }
+    else None
+  }
+
 }
 
 trait CurrentTimeComponent {
