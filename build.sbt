@@ -5,7 +5,7 @@ import tnm.LibPlugin
   lazy val commonSettings = Seq(
     name := "ocpi-endpoints",
     organization := "com.thenewmotion.ocpi",
-    version := "0.3-SNAPSHOT",
+    version := "0.4-SNAPSHOT",
     cancelable in Global := true,
     parallelExecution in Test := true
   )

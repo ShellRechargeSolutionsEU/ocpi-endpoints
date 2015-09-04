@@ -1,6 +1,5 @@
 package com.thenewmotion.ocpi.versions
 
-import com.thenewmotion.ocpi.msgs.v2_0.GenericSuccess
 import com.thenewmotion.ocpi._
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing.HttpService
@@ -12,6 +11,7 @@ trait VersionsRoutes extends HttpService
                        {
   val vdh: VersionsDataHandler
   import spray.httpx.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes._
 
 
 

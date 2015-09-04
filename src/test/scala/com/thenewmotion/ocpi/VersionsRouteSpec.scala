@@ -14,7 +14,7 @@ import scalaz._
 class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
   import OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_0.GenericSuccess._
+  import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess._
   import com.thenewmotion.ocpi.msgs.v2_0.Versions._
   import spray.httpx.SprayJsonSupport._
 

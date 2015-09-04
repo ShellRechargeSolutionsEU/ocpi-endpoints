@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.credentials.{Credentials, CredentialsDataHandler}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -9,6 +10,7 @@ import spray.routing.{AuthenticationFailedRejection, MissingHeaderRejection}
 import spray.testkit.Specs2RouteTest
 
 import scalaz.Scalaz._
+import scalaz.\/
 
 class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
@@ -48,6 +50,11 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
      val invalidAuthTokenHeader = RawHeader("Auth", "Token 12345")
      val invalidAuthToken = RawHeader("Authorization", "Token letmein")
      val topLevelRoute = new TopLevelRoutes {
+       val cdh = new CredentialsDataHandler {
+         def registerParty(creds: Credentials): \/[CreateError, Unit] = ???
+
+         def retrieveCredentials: \/[ListError, Credentials] = ???
+       }
        val vdh = new VersionsDataHandler {
          def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
          def versionDetails(version: Version) = ???
