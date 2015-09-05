@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi.versions
 
 import com.thenewmotion.ocpi._
 import com.typesafe.scalalogging.LazyLogging
+import org.joda.time.DateTime
 import spray.routing.HttpService
 import scalaz.{\/-, -\/}
 
@@ -13,8 +14,6 @@ trait VersionsRoutes extends HttpService
   import spray.httpx.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes._
 
-
-
   def versionsRoute = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import com.thenewmotion.ocpi.msgs.v2_0.Versions._
@@ -23,17 +22,21 @@ trait VersionsRoutes extends HttpService
         vdh.allVersions match {
           case \/-(versions) =>
             complete(VersionsResp(
-            GenericSuccess.code,
-            GenericSuccess.default_message,
-            currentTime.instance,
+              GenericSuccess.code,
+              GenericSuccess.default_message,
+              currentTime.instance,
               versions.map { case (ver, url) => Version(ver, url) }.toList)
-          )
+            )
           case -\/(NoVersionsAvailable) => reject(NoVersionsRejection())
           case _ => reject()
         }
       }
-    } ~
-    path(Segment) { version: String =>
+    }
+  }
+  def versionDetailsRoute(version: String) = {
+    import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+    import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+    pathEndOrSingleSlash {
       get {
         vdh.versionDetails(version)  match {
           case \/-(endpoints) => complete(

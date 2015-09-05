@@ -28,14 +28,14 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
   }
   "endpoint for a specific version" should {
     "return all endpoints for chosen version" in new VersionsRouteScope {
-      Get("/2.0") ~> versionsRoute.versionsRoute ~> check {
+      Get("/") ~> versionsRoute.versionDetailsRoute("2.0") ~> check {
         responseAs[VersionDetailsResp] === VersionDetailsResp(code, default_message,
           dateTime1, VersionDetails("2.0", List( Endpoint(EndpointIdentifierEnum.Credentials,
             "http://hardcoded.com/cpo/2.0/credentials"))))
       }
     }
     "reject unknown versions" in new VersionsRouteScope {
-      Get("/2.1") ~> versionsRoute.versionsRoute ~> check {
+      Get("/") ~> versionsRoute.versionDetailsRoute("2.1") ~> check {
         rejections must contain(UnknownVersionRejection("2.1"))
       }
     }

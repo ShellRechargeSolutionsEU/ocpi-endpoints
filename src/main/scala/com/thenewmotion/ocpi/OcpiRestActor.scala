@@ -28,7 +28,10 @@ trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRou
     headerValueByName("Authorization") { access_token =>
       authenticate(auth.validate(access_token)) { _ =>
         pathPrefix(tldh.namespace) {
-          versionsRoute ~ credentialsRoute
+          versionsRoute  ~
+          path(Segment) { version =>
+            versionDetailsRoute(version) ~ credentialsRoute(version, access_token)
+          }
         }
       }
     }

@@ -34,7 +34,7 @@ object Credentials {
 
 trait CredentialsDataHandler {
 
-  def registerParty(creds: Credentials): CreateError \/ Unit
+  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): CreateError \/ Unit
 
   def retrieveCredentials: ListError \/ Credentials
 
