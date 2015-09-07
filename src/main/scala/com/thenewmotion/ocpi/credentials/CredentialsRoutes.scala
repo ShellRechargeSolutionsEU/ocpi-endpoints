@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.credentials
 
-import com.thenewmotion.ocpi.{CouldNotRegisterParty, CurrentTimeComponent}
+import com.thenewmotion.ocpi.CurrentTimeComponent
 import com.typesafe.scalalogging.LazyLogging
 import spray.http.StatusCodes
 import spray.routing.HttpService

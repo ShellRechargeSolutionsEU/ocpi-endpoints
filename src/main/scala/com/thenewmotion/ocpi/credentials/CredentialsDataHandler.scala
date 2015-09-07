@@ -1,8 +1,6 @@
 package com.thenewmotion.ocpi.credentials
 
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds => OcpiCredentials}
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
-import com.thenewmotion.ocpi.{ListError, ApiUser, CreateError}
 
 import scalaz.\/
 
@@ -34,7 +32,7 @@ object Credentials {
 
 trait CredentialsDataHandler {
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): CreateError \/ Unit
+  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit
 
   def retrieveCredentials: ListError \/ Credentials
 

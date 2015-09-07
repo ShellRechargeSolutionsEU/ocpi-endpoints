@@ -52,7 +52,7 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
       currentTime.instance returns dateTime1
 
       val cdh: CredentialsDataHandler = new CredentialsDataHandler {
-        def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): CreateError \/ Unit =  \/-(Unit)
+        def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit =  \/-(Unit)
 
         def retrieveCredentials: ListError \/ Credentials = \/-(Credentials("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
           "https://example.com/ocpi/cpo/", BusinessDetails("Example Operator")))

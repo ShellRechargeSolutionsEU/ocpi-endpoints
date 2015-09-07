@@ -51,9 +51,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
      val invalidAuthToken = RawHeader("Authorization", "Token letmein")
      val topLevelRoute = new TopLevelRoutes {
        val cdh = new CredentialsDataHandler {
-         def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): \/[CreateError, Unit] = ???
+         def registerVersionsEndpoint(version: String, auth: String, creds: Credentials) = ???
 
-         def retrieveCredentials: \/[ListError, Credentials] = ???
+         def retrieveCredentials = ???
        }
        val vdh = new VersionsDataHandler {
          def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right

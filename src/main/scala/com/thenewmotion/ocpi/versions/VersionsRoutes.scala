@@ -28,7 +28,6 @@ trait VersionsRoutes extends HttpService
               versions.map { case (ver, url) => Version(ver, url) }.toList)
             )
           case -\/(NoVersionsAvailable) => reject(NoVersionsRejection())
-          case _ => reject()
         }
       }
     }
@@ -48,7 +47,7 @@ trait VersionsRoutes extends HttpService
                 version, endpoints.map { e =>
                 Endpoint(EndpointIdentifierEnum.withName(e.endpointType.name).get,  e.url)}))
             )
-          case -\/(UnknownVersion) => reject(UnknownVersionRejection(version))
+          case -\/(UnknownVersion) => reject(UnsupportedVersionRejection(version))
           case _ => reject()
         }
       }

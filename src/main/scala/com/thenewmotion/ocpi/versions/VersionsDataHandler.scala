@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.versions
 
-import com.thenewmotion.ocpi.{Enumerable, Nameable, ListError}
+import com.thenewmotion.ocpi.{Enumerable, Nameable}
 
 import scalaz.\/
 
@@ -28,9 +28,9 @@ trait VersionsDataHandler {
   type VersionsMap = Map[Version, Url]
 
   def versionsPath: String = "versions"
-  def allVersions: ListError \/ VersionsMap
+  def allVersions: ListAllError \/ VersionsMap
 
-  def versionDetails(version: Version): ListError \/ List[Endpoint]
+  def versionDetails(version: Version): ListDetailsError \/ List[Endpoint]
 }
 
 

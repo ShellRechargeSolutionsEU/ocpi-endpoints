@@ -36,7 +36,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
     }
     "reject unknown versions" in new VersionsRouteScope {
       Get("/") ~> versionsRoute.versionDetailsRoute("2.1") ~> check {
-        rejections must contain(UnknownVersionRejection("2.1"))
+        rejections must contain(UnsupportedVersionRejection("2.1"))
       }
     }
   }
@@ -52,7 +52,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
       currentTime.instance returns dateTime1
       val vdh = new VersionsDataHandler {
         def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
-        def versionDetails(version: Version): \/[ListError, List[Endpoint]] =
+        def versionDetails(version: Version): \/[ListDetailsError, List[Endpoint]] =
           if (version == "2.0")  List(Endpoint(EndpointTypeEnum.Credentials, "2.0", "http://hardcoded.com/cpo/2" +
             ".0/credentials")).right
           else UnknownVersion.left
