@@ -2,10 +2,12 @@ import sbt.Keys._
 import sbt._
 import tnm.LibPlugin
 
-  lazy val commonSettings = Seq(
+import java.io.File
+
+lazy val commonSettings = Seq(
     name := "ocpi-endpoints",
     organization := "com.thenewmotion.ocpi",
-    version := "0.4-SNAPSHOT",
+    version := "0.5-SNAPSHOT",
     cancelable in Global := true,
     parallelExecution in Test := true
   )
@@ -23,7 +25,6 @@ import tnm.LibPlugin
         "io.spray"                    %% "spray-json"               %   "1.3.2",
         "io.spray"                    %% "spray-routing-shapeless2" %   "1.3.3",
         "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test",
-        "com.thenewmotion"            %% "spray-ext"                %   "0.3.2",
 
         "com.typesafe.akka"           %% "akka-actor"               %   "2.3.12",
         "org.scalaz"                  %% "scalaz-core"              %   "7.1.3",

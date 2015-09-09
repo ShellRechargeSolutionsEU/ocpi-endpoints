@@ -59,11 +59,11 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
          def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
          def versionDetails(version: Version) = ???
        }
-       val tldh = new TopLevelRouteDataHanlder {
+       val tldh = new TopLevelRouteDataHandler {
          def namespace: String = "cpo"
        }
        val adh: AuthDataHandler = new AuthDataHandler {
-         def apiuser(token: String) = if (token == "12345") Some(ApiUser("beCharged")) else None
+         def authenticateApiUser(token: String) = if (token == "12345") Some(ApiUser("beCharged")) else None
        }
        def actorRefFactory = system
      }

@@ -11,7 +11,6 @@ import spray.http.{HttpCharsets, ContentType, HttpEntity}
 import spray.testkit.Specs2RouteTest
 
 import scalaz._
-import Scalaz._
 
 class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 

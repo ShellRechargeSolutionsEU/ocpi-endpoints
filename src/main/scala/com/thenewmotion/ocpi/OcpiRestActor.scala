@@ -19,7 +19,7 @@ abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
 
 trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRoutes with CurrentTimeComponent{
   import scala.concurrent.ExecutionContext.Implicits.global
-  val tldh: TopLevelRouteDataHanlder
+  val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
@@ -42,7 +42,7 @@ class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
   def validate(token: String): Future[Authentication[ApiUser]] = {
     Future {
       extractTokenValue(token) match {
-        case Some(tokenVal) => adh.apiuser(tokenVal)
+        case Some(tokenVal) => adh.authenticateApiUser(tokenVal)
           .toRight(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
         case None => Left(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
       }

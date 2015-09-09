@@ -1,13 +1,13 @@
 package com.thenewmotion.ocpi
 
-trait TopLevelRouteDataHanlder {
+trait TopLevelRouteDataHandler {
   def namespace: String
 }
 
 trait AuthDataHandler {
 
 
-  def apiuser(token: String): Option[ApiUser]
+  def authenticateApiUser(token: String): Option[ApiUser]
 }
 
 case class ApiUser(

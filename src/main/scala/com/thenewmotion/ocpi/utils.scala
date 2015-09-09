@@ -1,9 +1,9 @@
-package com.thenewmotion
+package com.thenewmotion.ocpi
 
 /**
  *
  */
-package object ocpi {
+
   trait Nameable {
     val name: String
   }
@@ -12,4 +12,4 @@ package object ocpi {
     def values: Seq[T]
     def withName(name: String): Option[T] = values.find(_.name equals name)
   }
-}
+
