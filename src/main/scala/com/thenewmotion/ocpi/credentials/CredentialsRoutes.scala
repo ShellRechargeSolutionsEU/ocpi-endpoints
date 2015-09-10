@@ -1,8 +1,10 @@
 package com.thenewmotion.ocpi.credentials
 
 import com.thenewmotion.ocpi.CurrentTimeComponent
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.typesafe.scalalogging.LazyLogging
-import spray.http.StatusCodes
+import org.joda.time.DateTime
 import spray.routing.HttpService
 import scalaz._
 
@@ -16,13 +18,13 @@ trait CredentialsRoutes extends HttpService with LazyLogging with CurrentTimeCom
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
     path("credentials") {
-      post {
-        entity(as[Creds]) {creds =>
-          cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(creds)) match {
-            case -\/(CouldNotRegisterParty) => reject()
-            case _ => complete(StatusCodes.OK)
+        post {
+          entity(as[Creds]) { creds =>
+            cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(creds)) match {
+              case -\/(CouldNotRegisterParty) => reject()
+              case _ => complete(SuccessResp(GenericSuccess.code,None, DateTime.now()))
+            }
           }
-        }
       }
     }
   }

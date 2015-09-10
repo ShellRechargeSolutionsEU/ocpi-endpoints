@@ -25,7 +25,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           HttpEntity(ContentTypes.`application/json`,
             ErrorResp(
               UnsupportedVersionError.code,
-              s"Version not known: $version",
+              Some(s"Version not known: $version"),
               DateTime.now()).toJson.compactPrint)
         )
       }
@@ -37,7 +37,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           HttpEntity(ContentTypes.`application/json`,
             ErrorResp(
               3010,
-              s"No versions registered",
+              Some(s"No versions registered"),
               DateTime.now()).toJson.compactPrint)
         )
       }
@@ -50,7 +50,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           HttpEntity(ContentTypes.`application/json`,
             ErrorResp(
               AuthenticationFailedError.code,
-              AuthenticationFailedError.default_message,
+              Some(AuthenticationFailedError.default_message),
               DateTime.now()).toJson.compactPrint)
         )
       }
@@ -62,7 +62,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           HttpEntity(ContentTypes.`application/json`,
             ErrorResp(
               MissingHeaderError.code,
-              s"Header not found: '$header'",
+              Some(s"Header not found: '$header'"),
               DateTime.now()).toJson.compactPrint)
         )
       }
@@ -73,7 +73,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         HttpEntity(ContentTypes.`application/json`,
           ErrorResp(
             GenericServerError.code,
-            GenericServerError.default_message,
+            Some(GenericServerError.default_message),
             DateTime.now()).toJson.compactPrint)
       )
     }

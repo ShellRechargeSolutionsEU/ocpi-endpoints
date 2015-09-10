@@ -11,5 +11,6 @@ trait AuthDataHandler {
 }
 
 case class ApiUser(
-  id: String
+  id: String,
+  token: String
   )

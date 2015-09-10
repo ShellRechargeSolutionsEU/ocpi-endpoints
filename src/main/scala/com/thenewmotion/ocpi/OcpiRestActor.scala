@@ -17,7 +17,7 @@ abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
     runRoute(allRoutes )
 }
 
-trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRoutes with CurrentTimeComponent{
+trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRoutes with CurrentTimeComponent {
   import scala.concurrent.ExecutionContext.Implicits.global
   val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
@@ -26,12 +26,16 @@ trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRou
 
   def allRoutes =
     headerValueByName("Authorization") { access_token =>
-      authenticate(auth.validate(access_token)) { _ =>
+      authenticate(auth.validate(access_token)) { apiUser: ApiUser =>
         pathPrefix(tldh.namespace) {
-          versionsRoute  ~
+          versionsRoute ~
+          pathPrefix(Segment){ version =>
+            credentialsRoute(version, apiUser.token)
+          } ~
           path(Segment) { version =>
-            versionDetailsRoute(version) ~ credentialsRoute(version, access_token)
+              versionDetailsRoute(version)
           }
+
         }
       }
     }
@@ -57,7 +61,6 @@ class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
     }
     else None
   }
-
 }
 
 trait CurrentTimeComponent {
