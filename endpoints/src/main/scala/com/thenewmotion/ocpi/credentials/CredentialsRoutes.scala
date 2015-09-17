@@ -22,7 +22,7 @@ trait CredentialsRoutes extends HttpService with LazyLogging with CurrentTimeCom
           entity(as[Creds]) { clientCreds =>
             cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds)) match {
               case -\/(CouldNotRegisterParty) => reject()
-              case \/-(newCreds) => complete(CredsResp(GenericSuccess.code,GenericSuccess.default_message,
+              case \/-(newCreds) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
                 currentTime.instance, newCreds))
             }
           }

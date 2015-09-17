@@ -23,7 +23,7 @@ trait VersionsRoutes extends HttpService
           case \/-(versions) =>
             complete(VersionsResp(
               GenericSuccess.code,
-              GenericSuccess.default_message,
+              Some(GenericSuccess.default_message),
               currentTime.instance,
               versions.map { case (ver, url) => Version(ver, url) }.toList)
             )
@@ -41,7 +41,7 @@ trait VersionsRoutes extends HttpService
           case \/-(endpoints) => complete(
             VersionDetailsResp(
               GenericSuccess.code,
-              GenericSuccess.default_message,
+              Some(GenericSuccess.default_message),
               currentTime.instance,
               VersionDetails(
                 version, endpoints.map { e =>
