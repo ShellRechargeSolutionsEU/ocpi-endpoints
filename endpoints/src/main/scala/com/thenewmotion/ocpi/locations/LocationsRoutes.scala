@@ -11,11 +11,12 @@ import spray.routing.HttpService
 
 trait LocationsRoutes extends HttpService with LazyLogging with CurrentTimeComponent {
 
+  val ldh: LocationsDataHandler
 
   def locationsRoute(version: String) = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import spray.httpx.SprayJsonSupport._
-    path("locations") {
+    path(ldh.endpoint) {
       get {
         complete(LocationResp(GenericSuccess.code, None, currentTime.instance,
           LocationsData(List(TestLocation.location1))))

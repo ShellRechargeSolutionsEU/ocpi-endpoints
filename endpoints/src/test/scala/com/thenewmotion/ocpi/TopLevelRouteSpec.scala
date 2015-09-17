@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.credentials.BusinessDetails
 import com.thenewmotion.ocpi.credentials.{BusinessDetails, Credentials, CredentialsDataHandler}
+import com.thenewmotion.ocpi.locations.LocationsDataHandler
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import org.specs2.mock.Mockito
@@ -107,8 +108,11 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        val tldh = new TopLevelRouteDataHandler {
          def namespace: String = "cpo"
        }
-       val adh: AuthDataHandler = new AuthDataHandler {
+       val adh = new AuthDataHandler {
          def authenticateApiUser(token: String) = if (token == "12345") Some(ApiUser("beCharged","12345")) else None
+       }
+       val ldh = new LocationsDataHandler {
+         def endpoint = "locations"
        }
        def actorRefFactory = system
      }
@@ -128,6 +132,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     _vdh.versionDetails(any) returns List().right
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
     _cdh.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
+    _cdh.endpoint returns "credentials"
 
     val topLevelRoute = new TopLevelRoutes {
       val cdh = _cdh
@@ -138,7 +143,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       val adh = new AuthDataHandler {
         def authenticateApiUser(token: String) = if (token == "12345") Some(ApiUser("beCharged","12345")) else None
       }
-
+      val ldh = new LocationsDataHandler {
+        def endpoint = "locations"
+      }
 
       def actorRefFactory = system
     }

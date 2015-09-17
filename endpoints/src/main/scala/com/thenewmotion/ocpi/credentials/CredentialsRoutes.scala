@@ -17,7 +17,7 @@ trait CredentialsRoutes extends HttpService with LazyLogging with CurrentTimeCom
     import spray.httpx.SprayJsonSupport._
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
-    path("credentials") {
+    path(cdh.endpoint) {
         post {
           entity(as[Creds]) { clientCreds =>
             cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds)) match {

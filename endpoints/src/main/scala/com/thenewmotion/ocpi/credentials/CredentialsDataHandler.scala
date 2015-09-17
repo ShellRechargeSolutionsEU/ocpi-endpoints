@@ -33,5 +33,5 @@ object Credentials {
 trait CredentialsDataHandler {
 
   def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ OcpiCredentials
-
+  def endpoint: String = "credentials"
 }

@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.credentials.CredentialsRoutes
-import com.thenewmotion.ocpi.locations.LocationsRoutes
+import com.thenewmotion.ocpi.locations.{LocationsDataHandler, LocationsRoutes}
 import com.thenewmotion.ocpi.versions.VersionsRoutes
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing._
@@ -25,6 +25,7 @@ trait TopLevelRoutes extends HttpService
 
   val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
+
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
 
