@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.credentials.CredentialsRoutes
+import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.versions.VersionsRoutes
 import com.typesafe.scalalogging.LazyLogging
 import spray.routing._
@@ -17,8 +18,11 @@ abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
     runRoute(allRoutes )
 }
 
-trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRoutes with CurrentTimeComponent {
+trait TopLevelRoutes extends HttpService
+  with VersionsRoutes with CredentialsRoutes
+  with LocationsRoutes with CurrentTimeComponent {
   import scala.concurrent.ExecutionContext.Implicits.global
+
   val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
   lazy val auth = new Authenticator(adh)
@@ -30,7 +34,7 @@ trait TopLevelRoutes extends HttpService with VersionsRoutes with CredentialsRou
         pathPrefix(tldh.namespace) {
           versionsRoute ~
           pathPrefix(Segment){ version =>
-            credentialsRoute(version, apiUser.token)
+            credentialsRoute(version, apiUser.token) ~ locationsRoute(version)
           } ~
           path(Segment) { version =>
               versionDetailsRoute(version)

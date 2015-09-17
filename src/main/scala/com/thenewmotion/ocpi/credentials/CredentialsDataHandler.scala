@@ -24,16 +24,14 @@ object Credentials {
     versions_url = crds.url,
     business_details = BusinessDetails(
       name = crds.business_details.name,
-      logo = Some(crds.business_details.logo),
-      website = Some(crds.business_details.website)
+      logo = crds.business_details.logo,
+      website = crds.business_details.website
     )
   )
 }
 
 trait CredentialsDataHandler {
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit
-
-  def retrieveCredentials: ListError \/ Credentials
+  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ OcpiCredentials
 
 }

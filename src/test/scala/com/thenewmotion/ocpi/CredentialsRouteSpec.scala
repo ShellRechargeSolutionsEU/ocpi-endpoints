@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import org.joda.time.format.ISODateTimeFormat
@@ -51,11 +52,8 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
       currentTime.instance returns dateTime1
 
       val cdh: CredentialsDataHandler = new CredentialsDataHandler {
-        def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit =  \/-(Unit)
-
-        def retrieveCredentials: ListError \/ Credentials = \/-(Credentials("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
-          "https://example.com/ocpi/cpo/", BusinessDetails("Example Operator")))
-
+        val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+        def registerVersionsEndpoint(version: String, auth: String, creds: Credentials) =  \/-(creds1)
       }
 
       def actorRefFactory = system
@@ -66,8 +64,8 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
       url = "https://example.com/ocpi/cpo/",
       business_details = OcpiBusinessDetails(
         "Example Operator",
-        "http://example.com/images/logo.png",
-        "http://example.com"
+        Some("http://example.com/images/logo.png"),
+        Some("http://example.com")
       )
     )
   }

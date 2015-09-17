@@ -19,10 +19,11 @@ trait CredentialsRoutes extends HttpService with LazyLogging with CurrentTimeCom
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
     path("credentials") {
         post {
-          entity(as[Creds]) { creds =>
-            cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(creds)) match {
+          entity(as[Creds]) { clientCreds =>
+            cdh.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds)) match {
               case -\/(CouldNotRegisterParty) => reject()
-              case _ => complete(SuccessResp(GenericSuccess.code,None, DateTime.now()))
+              case \/-(newCreds) => complete(CredsResp(GenericSuccess.code,GenericSuccess.default_message,
+                currentTime.instance, newCreds))
             }
           }
       }

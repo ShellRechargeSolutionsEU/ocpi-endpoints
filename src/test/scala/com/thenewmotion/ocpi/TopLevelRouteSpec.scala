@@ -1,8 +1,9 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.credentials.BusinessDetails
 import com.thenewmotion.ocpi.credentials.{BusinessDetails, Credentials, CredentialsDataHandler}
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -48,23 +49,33 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        }
      }
 
-//     "route calls to versions correctly" in new RoutingScope {
-//       Get("/cpo/versions") ~>
-//         addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
-//         handled must beTrue
-//         there was one(_vdh).allVersions
-//       }
-//     }
+     // ----------------------------------------------------------------
 
-//     "route calls to version details correctly" in new RoutingScope {
-//       Get("/cpo/2.0") ~>
-//         addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
-//         handled must beTrue
-//         there was one(_vdh).versionDetails(any)
-//       }
-//     }
+     "route calls to versions endpoint" in new RoutingScope {
+       Get("/cpo/versions") ~>
+         addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
+         handled must beTrue
+         there was one(_vdh).allVersions
+       }
+     }
 
-     "route calls to credentials endpoint correctly" in new RoutingScope {
+     "route calls to version details" in new RoutingScope {
+       Get("/cpo/2.0") ~>
+         addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
+         handled must beTrue
+         there was one(_vdh).versionDetails(any)
+       }
+     }
+
+      "route calls to version details when terminated by slash" in new RoutingScope {
+        Get("/cpo/2.0/") ~>
+          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
+          handled must beTrue
+          there was one(_vdh).versionDetails(any)
+        }
+      }
+
+     "route calls to credentials endpoint" in new RoutingScope {
        import spray.http._
        import spray.http.MediaTypes._
        val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = "{}")
@@ -115,9 +126,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     _vdh.versionsPath returns "versions"
     _vdh.allVersions returns Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
     _vdh.versionDetails(any) returns List().right
-
-    _cdh.registerVersionsEndpoint(any, any, any) returns \/-(Unit)
-    _cdh.retrieveCredentials returns \/-(Credentials("","",BusinessDetails("")))
+    val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+    _cdh.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
     val topLevelRoute = new TopLevelRoutes {
       val cdh = _cdh
