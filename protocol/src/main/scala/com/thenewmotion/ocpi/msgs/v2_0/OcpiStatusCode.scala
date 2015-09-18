@@ -19,22 +19,22 @@ abstract class ErrorCode(code: Int, default_message: String)
 }
 
 abstract class ClientErrorCode(code: Int, default_message: String)
-  extends StatusCode(code, default_message)
+  extends ErrorCode(code, default_message)
 {require(code >= 2000 && code <= 2999, "Code not in client error range.")}
 
 abstract class ServerErrorCode(code: Int, default_message: String)
-  extends StatusCode(code, default_message)
+  extends ErrorCode(code, default_message)
 {require(code >= 3000 && code <= 3999, "Code not in server error range.")}
 
 object OcpiStatusCodes {
   case object GenericSuccess extends SuccessCode(1000, "Success")
 
-  case object GenericClientError extends ErrorCode(2000, "Client error")
-  case object InvalidOrMissingParametersError extends ErrorCode(2001, "Invalid or missing parameters")
-  case object AuthenticationFailedError extends ErrorCode(2010, "Invalid authentication token")
-  case object MissingHeaderError extends ErrorCode(2011, "Header not found")
+  case object GenericClientFailure extends ClientErrorCode(2000, "Client error")
+  case object InvalidOrMissingParameters extends ClientErrorCode(2001, "Invalid or missing parameters")
+  case object AuthenticationFailed extends ClientErrorCode(2010, "Invalid authentication token")
+  case object MissingHeader extends ClientErrorCode(2011, "Header not found")
 
-  case object GenericServerError extends ErrorCode(3000, "Server error")
-  case object UnableToUseApiError extends ErrorCode(3001, "Unable to use the client's API.")
-  case object UnsupportedVersionError extends ErrorCode(3002, "Unsupported version.")
+  case object GenericServerFailure extends ServerErrorCode(3000, "Server error")
+  case object UnableToUseApi extends ServerErrorCode(3001, "Unable to use the client's API.")
+  case object UnsupportedVersion extends ServerErrorCode(3002, "Unsupported version.")
 }
