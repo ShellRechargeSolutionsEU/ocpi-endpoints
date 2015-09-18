@@ -1,12 +1,10 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.credentials.CredentialsRoutes
-import com.thenewmotion.ocpi.locations.{LocationsDataHandler, LocationsRoutes}
+import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.versions.VersionsRoutes
-import com.typesafe.scalalogging.LazyLogging
 import spray.routing._
-import spray.routing.authentication.{Authentication, BasicAuth, UserPass}
-import spray.routing.directives.AuthMagnet
+import spray.routing.authentication.Authentication
 
 import scala.concurrent.{ExecutionContext, Future}
 
