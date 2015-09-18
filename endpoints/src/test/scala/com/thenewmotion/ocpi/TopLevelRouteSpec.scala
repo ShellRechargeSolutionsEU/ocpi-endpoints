@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.BusinessDetails
-import com.thenewmotion.ocpi.credentials.{BusinessDetails, Credentials, CredentialsDataHandler}
+import com.thenewmotion.ocpi.credentials.{Credentials, CredentialsDataHandler}
 import com.thenewmotion.ocpi.locations.LocationsDataHandler
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
@@ -12,6 +11,7 @@ import spray.http.HttpHeaders.RawHeader
 import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import spray.routing.{AuthenticationFailedRejection, MissingHeaderRejection}
 import spray.testkit.Specs2RouteTest
+
 import scalaz.Scalaz._
 import scalaz._
 
@@ -77,9 +77,20 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
 
      "route calls to credentials endpoint" in new RoutingScope {
-       import spray.http._
        import spray.http.MediaTypes._
-       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = "{}")
+       import spray.http._
+       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string =
+         """
+           |{
+           |    "token": "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
+           |    "url": "https://example.com/ocpi/cpo/",
+           |    "business_details": {
+           |        "name": "Example Operator",
+           |        "logo": "http://example.com/images/logo.png",
+           |        "website": "http://example.com"
+           |    }
+           |}
+         """.stripMargin)
 
        Post("/cpo/2.0/credentials", body) ~>
          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {

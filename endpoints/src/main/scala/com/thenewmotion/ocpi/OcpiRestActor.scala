@@ -32,13 +32,11 @@ trait TopLevelRoutes extends HttpService
       authenticate(auth.validate(access_token)) { apiUser: ApiUser =>
         pathPrefix(tldh.namespace) {
           versionsRoute ~
-          pathPrefix(Segment){ version =>
-            credentialsRoute(version, apiUser.token) ~ locationsRoute(version)
-          } ~
-          path(Segment) { version =>
+          pathPrefix(Segment) { version =>
+            pathEndOrSingleSlash{
               versionDetailsRoute(version)
-          }
-
+            } ~
+              credentialsRoute(version, apiUser.token) ~ locationsRoute(version)         }
         }
       }
     }
