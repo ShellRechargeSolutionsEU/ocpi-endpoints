@@ -36,7 +36,8 @@ trait TopLevelRoutes extends HttpService
             pathEndOrSingleSlash{
               versionDetailsRoute(version)
             } ~
-              credentialsRoute(version, apiUser.token) ~ locationsRoute(version)         }
+            credentialsRoute(version, apiUser.token) ~ locationsRoute(version)
+          }
         }
       }
     }

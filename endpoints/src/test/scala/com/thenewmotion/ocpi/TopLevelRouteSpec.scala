@@ -1,8 +1,11 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.{Credentials, CredentialsDataHandler}
+import akka.actor.ActorSystem
+import akka.testkit.TestKit
+import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
+import com.thenewmotion.ocpi.credentials.{CredentialsConfig, Credentials, CredentialsDataHandler}
 import com.thenewmotion.ocpi.locations.LocationsDataHandler
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -95,22 +98,28 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        Post("/cpo/2.0/credentials", body) ~>
          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
          handled must beTrue
-         there was one(_cdh).registerVersionsEndpoint(any, any, any)
+         there was one(_cdh).persistClientPrefs(any, any, any)
        }
      }
    }
 
-   trait TopLevelScope extends Scope {
+   trait TopLevelScope extends Scope{
      import com.thenewmotion.ocpi.versions._
 
      val authTokenHeader = RawHeader("Authorization", "Token 12345")
      val invalidAuthTokenHeader = RawHeader("Auth", "Token 12345")
      val invalidAuthToken = RawHeader("Authorization", "Token letmein")
-     val topLevelRoute = new TopLevelRoutes {
-       val cdh = new CredentialsDataHandler {
-         def registerVersionsEndpoint(version: String, auth: String, creds: Credentials) = ???
 
-         def retrieveCredentials = ???
+     val topLevelRoute = new TopLevelRoutes {
+       val client = mock[OcpiClient]
+       val cdh = new CredentialsDataHandler {
+         def persistClientPrefs(version: String, auth: String, creds: Credentials) = ???
+
+         def persistNewToken(auth: String, newToken: String) = ???
+
+         def config: CredentialsConfig = CredentialsConfig("",0,"","","","")
+
+         def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
        }
        val vdh = new VersionsDataHandler {
          def allVersions = Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
@@ -137,15 +146,15 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     val authTokenHeader = RawHeader("Authorization", "Token 12345")
 
     val _cdh = mock[CredentialsDataHandler]
+    _cdh.config returns CredentialsConfig("",0,"","","","credentials")
     val _vdh = mock[VersionsDataHandler]
     _vdh.versionsPath returns "versions"
     _vdh.allVersions returns Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
     _vdh.versionDetails(any) returns List().right
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
-    _cdh.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
-    _cdh.endpoint returns "credentials"
 
     val topLevelRoute = new TopLevelRoutes {
+      val client = mock[OcpiClient]
       val cdh = _cdh
       val vdh = _vdh
       val tldh = new TopLevelRouteDataHandler {

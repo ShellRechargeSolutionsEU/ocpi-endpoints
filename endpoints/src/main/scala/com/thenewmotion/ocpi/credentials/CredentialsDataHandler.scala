@@ -1,5 +1,7 @@
 package com.thenewmotion.ocpi.credentials
 
+import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.Url
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds => OcpiCredentials}
 
 import scalaz.\/
@@ -31,7 +33,20 @@ object Credentials {
 }
 
 trait CredentialsDataHandler {
+  def persistClientPrefs(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ OcpiCredentials
-  def endpoint: String = "credentials"
+  def persistNewToken(auth: String, newToken: String): RegistrationError \/ Unit
+
+  def persistEndpoint(version: String,  auth: String, name: String, url: Url): RegistrationError \/ Unit
+
+  def config: CredentialsConfig
 }
+
+case class CredentialsConfig (
+  host: String,
+  port: Int,
+  partyname: String,
+  namespace: String,
+  externalBaseUrl: String,
+  endpoint: String
+  )

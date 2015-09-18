@@ -1,8 +1,10 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
 import com.thenewmotion.ocpi.locations.LocationsRoutes
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Versions.{Version, VersionsResp}
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -11,6 +13,7 @@ import spray.http.MediaTypes._
 import spray.http.{HttpCharsets, ContentType, HttpEntity}
 import spray.testkit.Specs2RouteTest
 
+import scala.concurrent.Future
 import scalaz._
 
 class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -50,10 +53,19 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
     val credentialsRoutes = new CredentialsRoutes {
       override val currentTime = mock[CurrentTime]
       currentTime.instance returns dateTime1
+      override val client = mock[OcpiClient]
+      client.getVersions(any, any) returns Future(\/-(VersionsResp(1000,None,currentTime.instance,List(Version("2.0","http://")))))
 
       val cdh: CredentialsDataHandler = new CredentialsDataHandler {
         val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
-        def registerVersionsEndpoint(version: String, auth: String, creds: Credentials) =  \/-(creds1)
+
+        def persistClientPrefs(version: String, auth: String, creds: Credentials) = \/-(Unit)
+
+        def persistNewToken(auth: String, newToken: String) = ???
+
+        def config: CredentialsConfig =  CredentialsConfig("",0,"","","","credentials")
+
+        def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
       }
 
       def actorRefFactory = system

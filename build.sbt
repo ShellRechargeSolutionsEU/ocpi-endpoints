@@ -1,6 +1,5 @@
 import sbt.Keys._
 import sbt._
-import tnm.LibPlugin
 
 
 
@@ -15,7 +14,8 @@ val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
 val spray = Seq(
 
   "io.spray"                    %% "spray-routing-shapeless2" %   "1.3.3",
-  "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test")
+  "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test",
+  "io.spray"                    %% "spray-client"             %   "1.3.3")
 
 val akka = Seq("com.typesafe.akka"   %% "akka-actor"          %   "2.3.12")
 
@@ -36,7 +36,7 @@ val commonSettings = Seq(
 )
 
 val protocol = project
-  .enablePlugins(OssLibPlugin)
+  .enablePlugins(LibPlugin)
   .settings(
     commonSettings,
     description := "OCPI serialization library",
@@ -44,7 +44,7 @@ val protocol = project
     libraryDependencies :=`spray-json` ++ misc ++ testing )
 
 val endpoints = project
-  .enablePlugins(OssLibPlugin)
+  .enablePlugins(LibPlugin)
   .dependsOn(protocol)
   .settings(
     commonSettings,
@@ -53,7 +53,7 @@ val endpoints = project
     libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ misc ++ testing
   )
 
-enablePlugins(OssLibPlugin)
+enablePlugins(LibPlugin)
 
 
 
