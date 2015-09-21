@@ -1,4 +1,4 @@
-package com.thenewmotion.ocpi
+package com.thenewmotion.ocpi.handshake
 
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
@@ -39,7 +39,6 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait CredentialsTestScope extends Scope {
-    import com.thenewmotion.ocpi.handshake._
 
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val dateTime1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
