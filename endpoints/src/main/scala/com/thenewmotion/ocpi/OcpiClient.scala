@@ -6,7 +6,6 @@ import com.thenewmotion.ocpi.credentials.CredentialsErrors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
-import com.typesafe.scalalogging.LazyLogging
 import spray.http._
 import spray.httpx.unmarshalling._
 import spray.client.pipelining._
@@ -15,10 +14,12 @@ import scala.concurrent.duration._
 import scalaz.Scalaz._
 import scalaz._
 
-class OcpiClient( val system: ActorSystem) extends LazyLogging {
+class OcpiClient( val system: ActorSystem) {
 
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
   import spray.httpx.SprayJsonSupport._
+
+  private val logger = Logger(getClass)
 
   // setup request/response logging
   val logRequest: HttpRequest => HttpRequest = { r => logger.debug(r.toString); r }

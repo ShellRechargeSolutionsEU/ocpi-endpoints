@@ -1,12 +1,11 @@
 package com.thenewmotion.ocpi.credentials
 
 
-import com.thenewmotion.ocpi.OcpiClient
+import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.credentials.CredentialsErrors._
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
-import com.typesafe.scalalogging.LazyLogging
 import spray.http.Uri
 
 import scala.concurrent.{Await, Future}
@@ -15,9 +14,10 @@ import scalaz._
 
 
 class HandshakeService(client: OcpiClient, cdh: CredentialsDataHandler)
-  extends LazyLogging with FutureEitherUtils {
+  extends FutureEitherUtils {
 
   import scala.concurrent.duration._
+  private val logger = Logger(getClass)
 
   def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Creds = {
     logger.info(s"register endpoint: $version, $auth, $creds")

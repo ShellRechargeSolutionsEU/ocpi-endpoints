@@ -5,11 +5,10 @@ import com.thenewmotion.ocpi.CurrentTimeComponent
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.LocalizedText
 import com.thenewmotion.ocpi.msgs.v2_0.Locations._
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
-import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.format.ISODateTimeFormat
 import spray.routing.HttpService
 
-trait LocationsRoutes extends HttpService with LazyLogging with CurrentTimeComponent {
+trait LocationsRoutes extends HttpService  with CurrentTimeComponent {
 
   val ldh: LocationsDataHandler
 

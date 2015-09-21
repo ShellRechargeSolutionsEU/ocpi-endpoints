@@ -4,12 +4,11 @@ import com.thenewmotion.ocpi.{OcpiClient, CurrentTimeComponent}
 import com.thenewmotion.ocpi.credentials.CredentialsErrors.CouldNotRegisterParty
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
-import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import spray.routing.HttpService
 import scalaz._
 
-trait CredentialsRoutes extends HttpService with LazyLogging with CurrentTimeComponent {
+trait CredentialsRoutes extends HttpService with CurrentTimeComponent {
 
   def cdh: CredentialsDataHandler
   def client: OcpiClient

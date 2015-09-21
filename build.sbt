@@ -5,9 +5,7 @@ import sbt._
 
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
-  "com.typesafe.scala-logging"  %% "scala-logging"            %   "3.1.0" withSources(),
-  "org.slf4j"                    % "log4j-over-slf4j"         %   "1.7.7" % "test",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.7" % "test")
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.7")
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
 
@@ -32,11 +30,12 @@ val testing = Seq(
   "org.specs2"                  %% "specs2-mock"              %   "2.4.17" % "test")
 
 val commonSettings = Seq(
-  organization := "com.thenewmotion.ocpi"
+  organization := "com.thenewmotion.ocpi",
+  version := "0.7-SNAPSHOT"
 )
 
 val protocol = project
-  .enablePlugins(LibPlugin)
+  .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     description := "OCPI serialization library",
@@ -44,7 +43,7 @@ val protocol = project
     libraryDependencies :=`spray-json` ++ misc ++ testing )
 
 val endpoints = project
-  .enablePlugins(LibPlugin)
+  .enablePlugins(OssLibPlugin)
   .dependsOn(protocol)
   .settings(
     commonSettings,
@@ -53,7 +52,7 @@ val endpoints = project
     libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ misc ++ testing
   )
 
-enablePlugins(LibPlugin)
+enablePlugins(OssLibPlugin)
 
 
 
