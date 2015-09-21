@@ -9,7 +9,7 @@ See http://github.com/ocpi/ocpi
 
 # Usage
 * add to your dependencies like this:
-`"com.thenewmotion.ocpi" %% "ocpi-endpoints" % "0.6-SNAPSHOT"`
+`"com.thenewmotion.ocpi" %% "ocpi-endpoints" % "0.8-SNAPSHOT"`
 * subclass `OcpiHttpService` and implement all it's abstract `*DataHandler` interfaces 
 
 
