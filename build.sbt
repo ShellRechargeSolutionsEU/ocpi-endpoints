@@ -52,6 +52,7 @@ val endpoints = project
     libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ misc ++ testing
   )
 
+licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 enablePlugins(OssLibPlugin)
 
 
