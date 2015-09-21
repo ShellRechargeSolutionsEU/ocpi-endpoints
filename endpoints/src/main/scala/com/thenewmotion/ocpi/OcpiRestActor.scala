@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
 
+import akka.actor.ActorSystem
 import com.thenewmotion.ocpi.handshake.{HandshakeClient, HandshakeDataHandler, HandshakeService, HandshakeRoutes}
 import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.versions.VersionsRoutes
@@ -22,12 +23,13 @@ trait TopLevelRoutes extends HttpService
   with StatusRoute {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val tldh: TopLevelRouteDataHandler
-  val adh: AuthDataHandler
-  val client: HandshakeClient
-  val hdh: HandshakeDataHandler
-  val handshakeService = new HandshakeService(client, hdh)
-  val checks: List[StatusCheck]
+  def tldh: TopLevelRouteDataHandler
+  def adh: AuthDataHandler
+  def system: ActorSystem
+  def client = new HandshakeClient(system)
+  def hdh: HandshakeDataHandler
+  def handshakeService = new HandshakeService(client, hdh)
+  def statusChecks: List[StatusCheck]
 
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
@@ -45,7 +47,7 @@ trait TopLevelRoutes extends HttpService
           }
         }
       }
-    } ~ statusRoute(checks)
+    } ~ statusRoute(statusChecks)
 }
 
 class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
