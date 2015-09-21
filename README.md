@@ -1,4 +1,4 @@
-# OCPI endpoints
+# OCPI endpoints [![Build Status](https://travis-ci.org/thenewmotion/ocpi-endpoints.png?branch=master)](https://travis-ci.org/thenewmotion/ocpi-endpoints)
 
 ATTENTION! As of the 30th of September 2015, expect breaking API changes with every commit!
 
