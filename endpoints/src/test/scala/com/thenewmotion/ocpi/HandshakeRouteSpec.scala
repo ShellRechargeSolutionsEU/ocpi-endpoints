@@ -12,7 +12,7 @@ import spray.testkit.Specs2RouteTest
 
 import scalaz._
 
-class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mockito {
+class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
     "accept client credentials" in new CredentialsTestScope {
@@ -32,19 +32,19 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
 
-      Post("/credentials", body) ~> credentialsRoutes.credentialsRoute("2.0", "123") ~> check {
+      Post("/credentials", body) ~> credentialsRoutes.handshakeRoute("2.0", "123") ~> check {
         handled must beTrue
       }
     }
   }
 
   trait CredentialsTestScope extends Scope {
-    import com.thenewmotion.ocpi.credentials._
+    import com.thenewmotion.ocpi.handshake._
 
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val dateTime1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
 
-    val credentialsRoutes = new CredentialsRoutes {
+    val credentialsRoutes = new HandshakeRoutes {
       override val currentTime = mock[CurrentTime]
       currentTime.instance returns dateTime1
       val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
@@ -52,14 +52,14 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
       override val handshakeService = mock[HandshakeService]
       handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
-      val cdh: CredentialsDataHandler = new CredentialsDataHandler {
+      val hdh: HandshakeDataHandler = new HandshakeDataHandler {
         val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
 
         def persistClientPrefs(version: String, auth: String, creds: Credentials) = \/-(Unit)
 
         def persistNewToken(auth: String, newToken: String) = ???
 
-        def config: CredentialsConfig =  CredentialsConfig("",0,"","","","credentials")
+        def config: HandshakeConfig =  HandshakeConfig("",0,"","","","credentials")
 
         def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
       }

@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.{CredentialsDataHandler, HandshakeService, CredentialsRoutes}
+import com.thenewmotion.ocpi.handshake.{HandshakeClient, HandshakeDataHandler, HandshakeService, HandshakeRoutes}
 import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.versions.VersionsRoutes
 import spray.routing._
@@ -17,15 +17,15 @@ abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
 }
 
 trait TopLevelRoutes extends HttpService
-  with VersionsRoutes with CredentialsRoutes
+  with VersionsRoutes with HandshakeRoutes
   with LocationsRoutes with CurrentTimeComponent {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
-  val client: OcpiClient
-  val cdh: CredentialsDataHandler
-  val handshakeService = new HandshakeService(client, cdh)
+  val client: HandshakeClient
+  val hdh: HandshakeDataHandler
+  val handshakeService = new HandshakeService(client, hdh)
 
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
@@ -39,7 +39,7 @@ trait TopLevelRoutes extends HttpService
             pathEndOrSingleSlash{
               versionDetailsRoute(version)
             } ~
-            credentialsRoute(version, apiUser.token) ~ locationsRoute(version)
+            handshakeRoute(version, apiUser.token) ~ locationsRoute(version)
           }
         }
       }

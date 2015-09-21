@@ -1,20 +1,22 @@
-package com.thenewmotion.ocpi
+package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import com.thenewmotion.ocpi.credentials.CredentialsErrors._
+import com.thenewmotion.ocpi._
+import com.thenewmotion.ocpi.handshake.Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+import spray.client.pipelining._
 import spray.http._
 import spray.httpx.unmarshalling._
-import spray.client.pipelining._
+
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scalaz.Scalaz._
 import scalaz._
 
-class OcpiClient( val system: ActorSystem) {
+class HandshakeClient( val system: ActorSystem) {
 
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
   import spray.httpx.SprayJsonSupport._
@@ -45,27 +47,20 @@ class OcpiClient( val system: ActorSystem) {
     }
   }
 
-  def getVersions(uri: Uri, auth: String): Future[RegistrationError \/ VersionsResp] = {
+  def getVersions(uri: Uri, auth: String): Future[HandshakeError \/ VersionsResp] = {
     val pipeline = request(auth) ~> unmarshalToOption[VersionsResp]
     pipeline(Get(uri)) map { toRight(_)(VersionsRetrievalFailed) }
   }
 
-  def getVersionDetails(uri: Uri, auth: String): Future[RegistrationError \/ VersionDetailsResp] = {
+  def getVersionDetails(uri: Uri, auth: String): Future[HandshakeError \/ VersionDetailsResp] = {
     val pipeline = request(auth) ~> unmarshalToOption[VersionDetailsResp]
     pipeline(Get(uri)) map { toRight(_)(VersionDetailsRetrievalFailed) }
   }
 
-  def sendCredentials(uri: Uri, auth: String, creds: Creds): Future[RegistrationError \/ SuccessResp] = {
+  def sendCredentials(uri: Uri, auth: String, creds: Creds): Future[HandshakeError \/ SuccessResp] = {
     val pipeline = request(auth) ~> unmarshalToOption[SuccessResp]
     pipeline(Post(uri, creds)) map { toRight(_)(SendingCredentialsFailed) }
   }
 
 }
 
-//object OcpiClient {
-//
-//  def apply(implicit system: ActorSystem) = {
-//    new OcpiClient()
-//  }
-//
-//}

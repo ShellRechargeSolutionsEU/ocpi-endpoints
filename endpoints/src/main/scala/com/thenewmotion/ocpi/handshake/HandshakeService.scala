@@ -1,8 +1,8 @@
-package com.thenewmotion.ocpi.credentials
+package com.thenewmotion.ocpi.handshake
 
 
 import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.credentials.CredentialsErrors._
+import com.thenewmotion.ocpi.handshake.Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
@@ -13,13 +13,13 @@ import scalaz.Scalaz._
 import scalaz._
 
 
-class HandshakeService(client: OcpiClient, cdh: CredentialsDataHandler)
+class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
   extends FutureEitherUtils {
 
   import scala.concurrent.duration._
   private val logger = Logger(getClass)
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): RegistrationError \/ Creds = {
+  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): HandshakeError \/ Creds = {
     logger.info(s"register endpoint: $version, $auth, $creds")
     val result = for {
       commPrefs <- cdh.persistClientPrefs(version, auth, creds)
@@ -35,23 +35,21 @@ class HandshakeService(client: OcpiClient, cdh: CredentialsDataHandler)
   }
 
 
-  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri): RegistrationError \/ VersionDetailsResp = {
+  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri): HandshakeError \/ VersionDetailsResp = {
     import client.system.dispatcher
 
-    def findVersion(versionResp: Versions.VersionsResp): Future[RegistrationError \/ Versions.Version] = {
+    def findVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None => Future.successful(-\/(SelectedVersionNotHosted))
       }
     }
-logger.info(String.valueOf(client.getVersions(uri, auth)))
     val res = (for {
        vers <- result(client.getVersions(uri, auth))
       ver <- result(findVersion(vers))
       verDetails <- result(client.getVersionDetails(ver.url, auth))
       unit = verDetails.data.endpoints.map(ep => cdh.persistEndpoint(version, auth, ep.identifier.name, ep.url))
     } yield verDetails).run
-    logger.info("before await")
     Await.result(res, 5.seconds)
   }
 

@@ -1,6 +1,6 @@
-package com.thenewmotion.ocpi.credentials
+package com.thenewmotion.ocpi.handshake
 
-import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
+import com.thenewmotion.ocpi.handshake.Errors.HandshakeError
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.Url
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds => OcpiCredentials}
 
@@ -32,17 +32,17 @@ object Credentials {
   )
 }
 
-trait CredentialsDataHandler {
-  def persistClientPrefs(version: String, auth: String, creds: Credentials): RegistrationError \/ Unit
+trait HandshakeDataHandler {
+  def persistClientPrefs(version: String, auth: String, creds: Credentials): HandshakeError \/ Unit
 
-  def persistNewToken(auth: String, newToken: String): RegistrationError \/ Unit
+  def persistNewToken(auth: String, newToken: String): HandshakeError \/ Unit
 
-  def persistEndpoint(version: String,  auth: String, name: String, url: Url): RegistrationError \/ Unit
+  def persistEndpoint(version: String,  auth: String, name: String, url: Url): HandshakeError \/ Unit
 
-  def config: CredentialsConfig
+  def config: HandshakeConfig
 }
 
-case class CredentialsConfig (
+case class HandshakeConfig (
   host: String,
   port: Int,
   partyname: String,

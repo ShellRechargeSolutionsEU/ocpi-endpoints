@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.{HandshakeService, Credentials, CredentialsConfig, CredentialsDataHandler}
+import com.thenewmotion.ocpi.handshake._
 import com.thenewmotion.ocpi.locations.LocationsDataHandler
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
@@ -111,17 +111,17 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
      val invalidAuthToken = RawHeader("Authorization", "Token letmein")
 
      val topLevelRoute = new TopLevelRoutes {
-       val client = mock[OcpiClient]
+       val client = mock[HandshakeClient]
        val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
        override val handshakeService = mock[HandshakeService]
        handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
-       val cdh = new CredentialsDataHandler {
+       val hdh = new HandshakeDataHandler {
          def persistClientPrefs(version: String, auth: String, creds: Credentials) = ???
 
          def persistNewToken(auth: String, newToken: String) = ???
 
-         def config: CredentialsConfig = CredentialsConfig("",0,"","","","")
+         def config: HandshakeConfig = HandshakeConfig("",0,"","","","")
 
          def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
        }
@@ -149,8 +149,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     val authTokenHeader = RawHeader("Authorization", "Token 12345")
 
-    val _cdh = mock[CredentialsDataHandler]
-    _cdh.config returns CredentialsConfig("",0,"","","","credentials")
+    val _cdh = mock[HandshakeDataHandler]
+    _cdh.config returns HandshakeConfig("",0,"","","","credentials")
     _cdh.persistClientPrefs(any, any, any) returns \/-(Unit)
 
     val _vdh = mock[VersionsDataHandler]
@@ -163,9 +163,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     val topLevelRoute = new TopLevelRoutes {
       override val handshakeService = _hss
-      val client = mock[OcpiClient]
+      val client = mock[HandshakeClient]
       client.getVersions(any, any) returns Future(\/-(VersionsResp(1000, None, DateTime.now(),List())))
-      val cdh = _cdh
+      val hdh = _cdh
       val vdh = _vdh
       val tldh = new TopLevelRouteDataHandler {
         def namespace: String = "cpo"
