@@ -18,7 +18,8 @@ abstract class OcpiRestActor extends HttpServiceActor with TopLevelRoutes {
 
 trait TopLevelRoutes extends HttpService
   with VersionsRoutes with HandshakeRoutes
-  with LocationsRoutes with CurrentTimeComponent {
+  with LocationsRoutes with CurrentTimeComponent
+  with StatusRoute {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val tldh: TopLevelRouteDataHandler
@@ -43,7 +44,7 @@ trait TopLevelRoutes extends HttpService
           }
         }
       }
-    }
+    } ~ statusRoute
 }
 
 class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
