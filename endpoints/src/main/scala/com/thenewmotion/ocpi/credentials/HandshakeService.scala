@@ -44,13 +44,14 @@ class HandshakeService(client: OcpiClient, cdh: CredentialsDataHandler)
         case None => Future.successful(-\/(SelectedVersionNotHosted))
       }
     }
-
+logger.info(String.valueOf(client.getVersions(uri, auth)))
     val res = (for {
-      vers <- result(client.getVersions(uri, auth))
+       vers <- result(client.getVersions(uri, auth))
       ver <- result(findVersion(vers))
       verDetails <- result(client.getVersionDetails(ver.url, auth))
       unit = verDetails.data.endpoints.map(ep => cdh.persistEndpoint(version, auth, ep.identifier.name, ep.url))
     } yield verDetails).run
+    logger.info("before await")
     Await.result(res, 5.seconds)
   }
 

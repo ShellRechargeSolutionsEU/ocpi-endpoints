@@ -1,24 +1,18 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
-import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.{Version, VersionsResp}
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.MediaTypes._
-import spray.http.{HttpCharsets, ContentType, HttpEntity}
+import spray.http.{ContentType, HttpCharsets, HttpEntity}
 import spray.testkit.Specs2RouteTest
 
-import scala.concurrent.Future
 import scalaz._
 
 class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mockito {
-
-  import spray.httpx.SprayJsonSupport._
 
   "credentials endpoint" should {
     "accept client credentials" in new CredentialsTestScope {
@@ -53,8 +47,10 @@ class CredentialsRouteSpec extends Specification with Specs2RouteTest with Mocki
     val credentialsRoutes = new CredentialsRoutes {
       override val currentTime = mock[CurrentTime]
       currentTime.instance returns dateTime1
-      override val client = mock[OcpiClient]
-      client.getVersions(any, any) returns Future(\/-(VersionsResp(1000,None,currentTime.instance,List(Version("2.0","http://")))))
+      val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+
+      override val handshakeService = mock[HandshakeService]
+      handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
       val cdh: CredentialsDataHandler = new CredentialsDataHandler {
         val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))

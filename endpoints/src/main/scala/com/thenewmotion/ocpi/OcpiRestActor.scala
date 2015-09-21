@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.credentials.CredentialsRoutes
+import com.thenewmotion.ocpi.credentials.{CredentialsDataHandler, HandshakeService, CredentialsRoutes}
 import com.thenewmotion.ocpi.locations.LocationsRoutes
 import com.thenewmotion.ocpi.versions.VersionsRoutes
 import spray.routing._
@@ -23,6 +23,9 @@ trait TopLevelRoutes extends HttpService
 
   val tldh: TopLevelRouteDataHandler
   val adh: AuthDataHandler
+  val client: OcpiClient
+  val cdh: CredentialsDataHandler
+  val handshakeService = new HandshakeService(client, cdh)
 
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime

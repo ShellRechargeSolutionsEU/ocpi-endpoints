@@ -1,12 +1,11 @@
 package com.thenewmotion.ocpi
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
-import com.thenewmotion.ocpi.credentials.CredentialsErrors.RegistrationError
-import com.thenewmotion.ocpi.credentials.{CredentialsConfig, Credentials, CredentialsDataHandler}
+import com.thenewmotion.ocpi.credentials.{HandshakeService, Credentials, CredentialsConfig, CredentialsDataHandler}
 import com.thenewmotion.ocpi.locations.LocationsDataHandler
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionsResp
+import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -15,6 +14,7 @@ import spray.routing.AuthenticationFailedRejection.CredentialsRejected
 import spray.routing.{AuthenticationFailedRejection, MissingHeaderRejection}
 import spray.testkit.Specs2RouteTest
 
+import scala.concurrent.Future
 import scalaz.Scalaz._
 import scalaz._
 
@@ -98,7 +98,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        Post("/cpo/2.0/credentials", body) ~>
          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
          handled must beTrue
-         there was one(_cdh).persistClientPrefs(any, any, any)
+         there was one(_hss).registerVersionsEndpoint(any, any, any)
        }
      }
    }
@@ -112,6 +112,10 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
      val topLevelRoute = new TopLevelRoutes {
        val client = mock[OcpiClient]
+       val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+       override val handshakeService = mock[HandshakeService]
+       handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
+
        val cdh = new CredentialsDataHandler {
          def persistClientPrefs(version: String, auth: String, creds: Credentials) = ???
 
@@ -147,14 +151,20 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     val _cdh = mock[CredentialsDataHandler]
     _cdh.config returns CredentialsConfig("",0,"","","","credentials")
+    _cdh.persistClientPrefs(any, any, any) returns \/-(Unit)
+
     val _vdh = mock[VersionsDataHandler]
     _vdh.versionsPath returns "versions"
     _vdh.allVersions returns Map("2.0" -> "http://hardcoded.com/cpo/2.0/").right
     _vdh.versionDetails(any) returns List().right
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+    val _hss = mock[HandshakeService]
+    _hss.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
     val topLevelRoute = new TopLevelRoutes {
+      override val handshakeService = _hss
       val client = mock[OcpiClient]
+      client.getVersions(any, any) returns Future(\/-(VersionsResp(1000, None, DateTime.now(),List())))
       val cdh = _cdh
       val vdh = _vdh
       val tldh = new TopLevelRouteDataHandler {
