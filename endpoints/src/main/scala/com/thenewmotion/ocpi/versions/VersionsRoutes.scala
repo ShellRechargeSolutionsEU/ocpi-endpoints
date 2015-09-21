@@ -34,7 +34,6 @@ trait VersionsRoutes extends HttpService
   def versionDetailsRoute(version: String) = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import com.thenewmotion.ocpi.msgs.v2_0.Versions._
-//    pathEndOrSingleSlash {
       get {
         vdh.versionDetails(version)  match {
           case \/-(endpoints) => complete(
@@ -50,7 +49,6 @@ trait VersionsRoutes extends HttpService
           case _ => reject()
         }
       }
-//    }
   }
   
 }

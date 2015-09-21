@@ -27,6 +27,7 @@ trait TopLevelRoutes extends HttpService
   val client: HandshakeClient
   val hdh: HandshakeDataHandler
   val handshakeService = new HandshakeService(client, hdh)
+  val checks: List[StatusCheck]
 
   lazy val auth = new Authenticator(adh)
   val currentTime = new CurrentTime
@@ -44,7 +45,7 @@ trait TopLevelRoutes extends HttpService
           }
         }
       }
-    } ~ statusRoute
+    } ~ statusRoute(checks)
 }
 
 class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {

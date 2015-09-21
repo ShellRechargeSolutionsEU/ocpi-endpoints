@@ -113,6 +113,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
      val topLevelRoute = new TopLevelRoutes {
        val client = mock[HandshakeClient]
        val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
+       val checks = List()
        override val handshakeService = mock[HandshakeService]
        handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
@@ -162,6 +163,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     _hss.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
 
     val topLevelRoute = new TopLevelRoutes {
+      val checks = List()
       override val handshakeService = _hss
       val client = mock[HandshakeClient]
       client.getVersions(any, any) returns Future(\/-(VersionsResp(1000, None, DateTime.now(),List())))
