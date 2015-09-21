@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi.handshake
 
 object Errors{
   sealed trait HandshakeError
+  sealed trait PersistenceError extends HandshakeError
 
   case object VersionsRetrievalFailed extends HandshakeError
   case object VersionDetailsRetrievalFailed extends HandshakeError
@@ -13,4 +14,7 @@ object Errors{
   case object CouldNotInsertEndpoint extends HandshakeError
   case object CouldNotRegisterParty extends HandshakeError
 
+  case class CouldNotPersistPreferences() extends PersistenceError
+  case class CouldNotPersistNewToken() extends PersistenceError
+  case class CouldNotPersistEndpoint() extends PersistenceError
 }

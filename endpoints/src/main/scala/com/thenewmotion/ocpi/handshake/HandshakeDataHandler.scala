@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.handshake
 
-import com.thenewmotion.ocpi.handshake.Errors.HandshakeError
+import com.thenewmotion.ocpi.handshake.Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.Url
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds => OcpiCredentials}
 
@@ -33,11 +33,11 @@ object Credentials {
 }
 
 trait HandshakeDataHandler {
-  def persistClientPrefs(version: String, auth: String, creds: Credentials): HandshakeError \/ Unit
+  def persistClientPrefs(version: String, auth: String, creds: Credentials): CouldNotPersistPreferences \/ Unit
 
-  def persistNewToken(auth: String, newToken: String): HandshakeError \/ Unit
+  def persistNewToken(auth: String, newToken: String): CouldNotPersistNewToken \/ Unit
 
-  def persistEndpoint(version: String,  auth: String, name: String, url: Url): HandshakeError \/ Unit
+  def persistEndpoint(version: String,  auth: String, name: String, url: Url): CouldNotPersistEndpoint \/ Unit
 
   def config: HandshakeConfig
 }
