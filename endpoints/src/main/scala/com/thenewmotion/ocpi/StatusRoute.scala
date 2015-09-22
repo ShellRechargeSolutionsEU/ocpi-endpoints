@@ -6,6 +6,12 @@ import spray.routing._
 import scala.concurrent._
 import scala.concurrent.duration._
 
+/**
+ * This is not OCPI but a TNM extensions for monitoring purposes,
+ * which has been put here with the other route definitions for now
+ * so it can be easily composed with the OCPI routes.
+ * It might be moved out of this library again in the future.
+ */
 trait StatusRoute extends HttpService {
 
   import scala.concurrent.ExecutionContext.Implicits.global
