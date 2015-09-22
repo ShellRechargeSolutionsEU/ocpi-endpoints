@@ -8,7 +8,7 @@ import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
 import spray.http.Uri
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
 
@@ -16,16 +16,15 @@ import scalaz._
 class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
   extends FutureEitherUtils {
 
-  import scala.concurrent.duration._
   private val logger = Logger(getClass)
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials): HandshakeError \/ Creds = {
+  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials)(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
     logger.info(s"register endpoint: $version, $auth, $creds")
     val result = for {
-      commPrefs <- cdh.persistClientPrefs(version, auth, creds)
+      commPrefs <- Future.successful(cdh.persistClientPrefs(version, auth, creds))
       res <- completeRegistration(version, auth, Uri(creds.versions_url))
     } yield res
-    result match {
+    result.map {
       case -\/(_) => -\/(CouldNotRegisterParty)
       case _ =>
         val newToken = ApiTokenGenerator.generateToken
@@ -35,8 +34,7 @@ class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
   }
 
 
-  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri): HandshakeError \/ VersionDetailsResp = {
-    import client.system.dispatcher
+  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
@@ -44,18 +42,18 @@ class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
         case None => Future.successful(-\/(SelectedVersionNotHosted))
       }
     }
-    val res = (for {
-       vers <- result(client.getVersions(uri, auth))
+
+    (for {
+      vers <- result(client.getVersions(uri, auth))
       ver <- result(findVersion(vers))
       verDetails <- result(client.getVersionDetails(ver.url, auth))
       unit = verDetails.data.endpoints.map(ep => cdh.persistEndpoint(version, auth, ep.identifier.name, ep.url))
     } yield verDetails).run
-    Await.result(res, 5.seconds)
   }
 
 
   private[ocpi] def newCredentials(token: String): Creds = {
-    val versionsUrl = s"http://${cdh.config.host}:${cdh.config.port}/${cdh.config.namespace}"
+    val versionsUrl = s"http://${cdh.config.host}:${cdh.config.port}/${cdh.config.namespace}/${cdh.config.versionsEndpoint}"
     import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
     Creds(token, versionsUrl, BusinessDetails(cdh.config.partyname, None, None))
   }

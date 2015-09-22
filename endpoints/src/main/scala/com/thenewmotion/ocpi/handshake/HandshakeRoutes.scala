@@ -15,11 +15,12 @@ trait HandshakeRoutes extends HttpService with CurrentTimeComponent {
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import spray.httpx.SprayJsonSupport._
+    import scala.concurrent.ExecutionContext.Implicits.global
 
-    path(hdh.config.endpoint) {
+    path(hdh.config.credentialsEndpoint) {
         post {
           entity(as[Creds]) { clientCreds =>
-            handshakeService.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds)) match {
+            onSuccess(handshakeService.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds))) {
               case -\/(_) => reject()
               case \/-(newCreds) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
                 currentTime.instance, newCreds))

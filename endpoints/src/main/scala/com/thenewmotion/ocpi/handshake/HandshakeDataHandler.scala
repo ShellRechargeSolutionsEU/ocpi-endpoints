@@ -48,5 +48,6 @@ case class HandshakeConfig (
   partyname: String,
   namespace: String,
   externalBaseUrl: String,
-  endpoint: String
+  credentialsEndpoint: String,
+  versionsEndpoint: String
   )

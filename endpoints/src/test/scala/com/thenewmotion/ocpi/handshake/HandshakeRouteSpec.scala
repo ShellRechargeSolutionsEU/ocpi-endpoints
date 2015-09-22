@@ -10,6 +10,7 @@ import spray.http.MediaTypes._
 import spray.http.{ContentType, HttpCharsets, HttpEntity}
 import spray.testkit.Specs2RouteTest
 
+import scala.concurrent.Future
 import scalaz._
 
 class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -49,7 +50,8 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
 
       override val handshakeService = mock[HandshakeService]
-      handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
+      handshakeService.registerVersionsEndpoint(any, any, any)(any) returns
+        Future.successful(\/-(creds1))
 
       val hdh: HandshakeDataHandler = new HandshakeDataHandler {
         val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
@@ -58,7 +60,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
         def persistNewToken(auth: String, newToken: String) = ???
 
-        def config: HandshakeConfig =  HandshakeConfig("",0,"","","","credentials")
+        def config: HandshakeConfig =  HandshakeConfig("",0,"","","","credentials","versions")
 
         def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
       }

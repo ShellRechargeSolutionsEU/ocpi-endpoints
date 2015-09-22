@@ -99,7 +99,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        Post("/cpo/2.0/credentials", body) ~>
          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
          handled must beTrue
-         there was one(_hss).registerVersionsEndpoint(any, any, any)
+         there was one(_hss).registerVersionsEndpoint(any, any, any)(any)
        }
      }
    }
@@ -117,14 +117,15 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
        val statusChecks = List()
        override val handshakeService = mock[HandshakeService]
-       handshakeService.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
+       handshakeService.registerVersionsEndpoint(any, any, any)(any) returns
+         Future.successful(\/-(creds1))
 
        val hdh = new HandshakeDataHandler {
          def persistClientPrefs(version: String, auth: String, creds: Credentials) = ???
 
          def persistNewToken(auth: String, newToken: String) = ???
 
-         def config: HandshakeConfig = HandshakeConfig("",0,"","","","")
+         def config: HandshakeConfig = HandshakeConfig("",0,"","","","","")
 
          def persistEndpoint(version: String, auth: String, name: String, url: Url) = ???
        }
@@ -153,7 +154,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     val authTokenHeader = RawHeader("Authorization", "Token 12345")
 
     val _cdh = mock[HandshakeDataHandler]
-    _cdh.config returns HandshakeConfig("",0,"","","","credentials")
+    _cdh.config returns HandshakeConfig("",0,"","","","credentials","versions")
     _cdh.persistClientPrefs(any, any, any) returns \/-(Unit)
 
     val _vdh = mock[VersionsDataHandler]
@@ -162,7 +163,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     _vdh.versionDetails(any) returns List().right
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
     val _hss = mock[HandshakeService]
-    _hss.registerVersionsEndpoint(any, any, any) returns \/-(creds1)
+    _hss.registerVersionsEndpoint(any, any, any)(any) returns
+      Future.successful(\/-(creds1))
 
     val topLevelRoute = new TopLevelRoutes {
       val statusChecks = List()
