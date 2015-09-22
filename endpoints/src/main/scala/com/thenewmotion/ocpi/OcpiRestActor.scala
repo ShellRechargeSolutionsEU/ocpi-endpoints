@@ -52,6 +52,8 @@ trait TopLevelRoutes extends HttpService
 
 class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
 
+  val logger = Logger(getClass)
+
   def validate(token: String): Future[Authentication[ApiUser]] = {
     Future {
       extractTokenValue(token) match {
@@ -68,7 +70,10 @@ class Authenticator(adh: AuthDataHandler)(implicit ec: ExecutionContext) {
       val tokenVal = token.substring(authScheme.length)
       if (!tokenVal.isEmpty) Some(tokenVal) else None
     }
-    else None
+    else {
+      logger.debug(s"Auth failed for token beginning with ${token.substring(0,2)}")
+      None
+    }
   }
 }
 

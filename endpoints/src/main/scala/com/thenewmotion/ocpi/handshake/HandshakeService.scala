@@ -28,6 +28,7 @@ class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
       case -\/(_) => -\/(CouldNotRegisterParty)
       case _ =>
         val newToken = ApiTokenGenerator.generateToken
+        logger.debug(s"issuing new token for party '${creds.business_details.name}'")
         cdh.persistNewToken(auth, newToken)
         \/-(newCredentials(newToken))
     }
