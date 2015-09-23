@@ -99,7 +99,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        Post("/cpo/2.0/credentials", body) ~>
          addHeader(authTokenHeader) ~> topLevelRoute.allRoutes ~> check {
          handled must beTrue
-         there was one(_hss).registerVersionsEndpoint(any, any, any)(any)
+         there was one(_hss).startHandshake(any, any, any)(any)
        }
      }
    }
@@ -117,7 +117,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
        val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
        val statusChecks = List()
        override val handshakeService = mock[HandshakeService]
-       handshakeService.registerVersionsEndpoint(any, any, any)(any) returns
+       handshakeService.startHandshake(any, any, any)(any) returns
          Future.successful(\/-(creds1))
 
        val hdh = new HandshakeDataHandler {
@@ -163,7 +163,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     _vdh.versionDetails(any) returns List().right
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
     val _hss = mock[HandshakeService]
-    _hss.registerVersionsEndpoint(any, any, any)(any) returns
+    _hss.startHandshake(any, any, any)(any) returns
       Future.successful(\/-(creds1))
 
     val topLevelRoute = new TopLevelRoutes {

@@ -18,11 +18,11 @@ class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
 
   private val logger = Logger(getClass)
 
-  def registerVersionsEndpoint(version: String, auth: String, creds: Credentials)(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+  def startHandshake(version: String, auth: String, creds: Credentials)(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
     logger.info(s"register endpoint: $version, $auth, $creds")
     val result = for {
       commPrefs <- Future.successful(cdh.persistClientPrefs(version, auth, creds))
-      res <- completeRegistration(version, auth, Uri(creds.versions_url))
+      res <- completeRegistration(version, creds.token, Uri(creds.versions_url))
     } yield res
     result.map {
       case -\/(_) => -\/(CouldNotRegisterParty)

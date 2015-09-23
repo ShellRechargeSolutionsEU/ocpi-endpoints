@@ -18,7 +18,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
   "HandshakeService should" should {
     "return credentials with new token if the initiating partie's endpoints returned correct data" in new HandshakeTestScope {
-      val result = handshakeService.registerVersionsEndpoint(selectedVersion,
+      val result = handshakeService.startHandshake(selectedVersion,
         currentAuth, clientCreds)
 
       result must beLike[\/[HandshakeError, OcpiCredentials]] {
@@ -30,7 +30,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     "return error if there was an error getting versions" in new HandshakeTestScope {
       client.getVersions(clientCreds.versions_url, currentAuth) returns Future.successful(-\/(VersionsRetrievalFailed))
-      val result = handshakeService.registerVersionsEndpoint(selectedVersion,
+      val result = handshakeService.startHandshake(selectedVersion,
         currentAuth, clientCreds)
 
       result must be_-\/.await
@@ -39,7 +39,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     "return error if no versions were returned" in new HandshakeTestScope {
       client.getVersions(clientCreds.versions_url, currentAuth) returns Future.successful(\/-(VersionsResp(1000, None, dateTime1,
         List())))
-      val result = handshakeService.registerVersionsEndpoint(selectedVersion,
+      val result = handshakeService.startHandshake(selectedVersion,
         currentAuth, clientCreds)
 
       result must be_-\/.await
@@ -49,7 +49,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       client.getVersionDetails(clientVersionDetailsUrl, currentAuth) returns Future.successful(
         -\/(VersionDetailsRetrievalFailed))
 
-      val result = handshakeService.registerVersionsEndpoint(selectedVersion,
+      val result = handshakeService.startHandshake(selectedVersion,
         currentAuth, clientCreds)
 
       result must be_-\/.await

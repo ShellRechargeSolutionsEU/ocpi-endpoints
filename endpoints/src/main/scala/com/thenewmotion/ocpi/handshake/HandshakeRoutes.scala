@@ -20,7 +20,7 @@ trait HandshakeRoutes extends HttpService with CurrentTimeComponent {
     path(hdh.config.credentialsEndpoint) {
         post {
           entity(as[Creds]) { clientCreds =>
-            onSuccess(handshakeService.registerVersionsEndpoint(version, auth, Credentials.fromOcpiClass(clientCreds))) {
+            onSuccess(handshakeService.startHandshake(version, auth, Credentials.fromOcpiClass(clientCreds))) {
               case -\/(_) => reject()
               case \/-(newCreds) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
                 currentTime.instance, newCreds))

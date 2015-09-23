@@ -50,7 +50,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
 
       override val handshakeService = mock[HandshakeService]
-      handshakeService.registerVersionsEndpoint(any, any, any)(any) returns
+      handshakeService.startHandshake(any, any, any)(any) returns
         Future.successful(\/-(creds1))
 
       val hdh: HandshakeDataHandler = new HandshakeDataHandler {
