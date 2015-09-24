@@ -27,7 +27,8 @@ val misc = Seq(
 val testing = Seq(
   "org.specs2"                  %% "specs2-core"              %   "2.4.17" % "test",
   "org.specs2"                  %% "specs2-junit"             %   "2.4.17" % "test",
-  "org.specs2"                  %% "specs2-mock"              %   "2.4.17" % "test")
+  "org.specs2"                  %% "specs2-mock"              %   "2.4.17" % "test",
+  "net.virtual-void"            %% "json-lenses"              %   "0.6.0"  % "test")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",

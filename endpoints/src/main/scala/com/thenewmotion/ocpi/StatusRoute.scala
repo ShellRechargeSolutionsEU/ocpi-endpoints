@@ -12,16 +12,12 @@ import scala.concurrent.duration._
  * so it can be easily composed with the OCPI routes.
  * It might be moved out of this library again in the future.
  */
-trait StatusRoute extends HttpService {
+class StatusRoute(checks: List[StatusCheck]) extends JsonApi {
 
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  def statusRoute(checks: List[StatusCheck]): Route = get {
-    (path("status") & pathEnd) {
-      complete {
-        val res: HttpResponse = Await.result(StatusService(checks), 3.seconds)
-        res
-      }
+  def route(implicit ec: ExecutionContext): Route = get {
+    complete {
+      val res: HttpResponse = Await.result(StatusService(checks), 3.seconds)
+      res
     }
   }
 }

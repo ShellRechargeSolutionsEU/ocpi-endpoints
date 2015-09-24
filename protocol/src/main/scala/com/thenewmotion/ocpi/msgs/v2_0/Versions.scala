@@ -13,7 +13,7 @@ object Versions {
     )
 
   case class Endpoint(
-    identifier: EndpointIdentifierType,
+    identifier: EndpointIdentifier,
     url: Url
     )
 
@@ -37,10 +37,10 @@ object Versions {
     data: List[Version]
     ) extends OcpiResponse
 
-  sealed trait EndpointIdentifierType extends Nameable
-  object EndpointIdentifierEnum extends Enumerable[EndpointIdentifierType] {
-    case object Locations extends EndpointIdentifierType {val name = "locations"}
-    case object Credentials extends EndpointIdentifierType {val name = "credentials"}
+  sealed trait EndpointIdentifier extends Nameable
+  object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
+    case object Locations extends EndpointIdentifier {val name = "locations"}
+    case object Credentials extends EndpointIdentifier {val name = "credentials"}
 
     val values = List(Locations, Credentials)
   }

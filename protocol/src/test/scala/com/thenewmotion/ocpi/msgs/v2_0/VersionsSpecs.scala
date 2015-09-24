@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifierEnum
+import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier$
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.{VersionDetailsResp, VersionsResp}
 import OcpiJsonProtocol._
 import Versions._
@@ -49,11 +49,11 @@ class VersionsSpecs extends SpecificationWithJUnit {
       date1, List(version19, version20))
 
     val credentialsEndpoint = Endpoint(
-      EndpointIdentifierEnum.Credentials,
+      EndpointIdentifier.Credentials,
       "https://example.com/ocpi/cpo/2.0/credentials/")
 
     val locationsEndpoint = Endpoint(
-      EndpointIdentifierEnum.Locations,
+      EndpointIdentifier.Locations,
       "https://example.com/ocpi/cpo/2.0/locations/")
 
     val version20Details = VersionDetails(

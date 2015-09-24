@@ -1,28 +1,22 @@
-package com.thenewmotion.ocpi.locations
+package com.thenewmotion.ocpi
+package locations
 
 import com.thenewmotion.money.CurrencyUnit
-import com.thenewmotion.ocpi.CurrentTimeComponent
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.LocalizedText
 import com.thenewmotion.ocpi.msgs.v2_0.Locations._
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import spray.routing.HttpService
+import spray.routing.Route
 
-trait LocationsRoutes extends HttpService  with CurrentTimeComponent {
-
-  val ldh: LocationsDataHandler
-
-  def locationsRoute(version: String) = {
+class LocationsRoute(currentTime: => DateTime = DateTime.now) extends JsonApi {
+  def route(version: Version, authToken: AuthToken): Route = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-    import spray.httpx.SprayJsonSupport._
-    path(ldh.endpoint) {
-      get {
-        complete(LocationResp(GenericSuccess.code, None, currentTime.instance,
-          LocationsData(List(TestLocation.location1))))
-      }
+    get {
+      complete(LocationResp(GenericSuccess.code, None, currentTime,
+        LocationsData(List(TestLocation.location1))))
     }
   }
-
 }
 
 object TestLocation{

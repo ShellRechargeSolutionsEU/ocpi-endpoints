@@ -121,7 +121,7 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val versionsRespFormat = jsonFormat4(VersionsResp)
 
   implicit val endpointIdentifierFormat =
-    new SimpleStringEnumSerializer[EndpointIdentifierType](EndpointIdentifierEnum).enumFormat
+    new SimpleStringEnumSerializer[EndpointIdentifier](EndpointIdentifier).enumFormat
   implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
   implicit val versionDetailsRespFormat = jsonFormat4(VersionDetailsResp)

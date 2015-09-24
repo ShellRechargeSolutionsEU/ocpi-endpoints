@@ -1,41 +1,41 @@
 package com.thenewmotion.ocpi.handshake
 
-
 import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.handshake.Errors._
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import Errors._
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import spray.http.Uri
-
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
 
-
-class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
-  extends FutureEitherUtils {
+abstract class HandshakeService(client: HandshakeClient) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
-  def startHandshake(version: String, auth: String, creds: Credentials)(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+  def startHandshake(version: String, auth: String, creds: Creds, uri: Uri)
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+
     logger.info(s"register endpoint: $version, $auth, $creds")
     val result = for {
-      commPrefs <- Future.successful(cdh.persistClientPrefs(version, auth, creds))
-      res <- completeRegistration(version, creds.token, Uri(creds.versions_url))
+      commPrefs <- Future.successful(persistClientPrefs(version, auth, creds))
+      res <- completeRegistration(version, creds.token, Uri(creds.url))
     } yield res
     result.map {
       case -\/(_) => -\/(CouldNotRegisterParty)
       case _ =>
         val newToken = ApiTokenGenerator.generateToken
         logger.debug(s"issuing new token for party '${creds.business_details.name}'")
-        cdh.persistNewToken(auth, newToken)
-        \/-(newCredentials(newToken))
+        persistNewToken(auth, newToken)
+        \/-(newCredentials(newToken, uri))
     }
   }
 
 
-  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
+  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri)
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
@@ -48,16 +48,26 @@ class HandshakeService(client: HandshakeClient, cdh: HandshakeDataHandler)
       vers <- result(client.getVersions(uri, auth))
       ver <- result(findVersion(vers))
       verDetails <- result(client.getVersionDetails(ver.url, auth))
-      unit = verDetails.data.endpoints.map(ep => cdh.persistEndpoint(version, auth, ep.identifier.name, ep.url))
+      unit = verDetails.data.endpoints.map(ep => persistEndpoint(version, auth, ep.identifier.name, ep.url))
     } yield verDetails).run
   }
 
 
-  private[ocpi] def newCredentials(token: String): Creds = {
-    val versionsUrl = s"http://${cdh.config.host}:${cdh.config.port}/${cdh.config.namespace}/${cdh.config.versionsEndpoint}"
+  private[ocpi] def newCredentials(token: String, uri: Uri): Creds = {
     import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
-    Creds(token, versionsUrl, BusinessDetails(cdh.config.partyname, None, None))
+
+    val versionsUri = uri.withPath(uri.path)
+
+    Creds(token, versionsUri.toString(), BusinessDetails(partyname, None, None))
   }
+
+  def persistClientPrefs(version: String, auth: String, creds: Creds): CouldNotPersistPreferences \/ Unit
+
+  def persistNewToken(auth: String, newToken: String): CouldNotPersistNewToken \/ Unit
+
+  def persistEndpoint(version: String, auth: String, name: String, url: Url): CouldNotPersistEndpoint \/ Unit
+
+  def partyname: String
 }
 
 object ApiTokenGenerator {
@@ -78,7 +88,6 @@ object ApiTokenGenerator {
       generateToken(tokenLength - 1)
 
 }
-
 
 trait FutureEitherUtils {
   type Result[E, T] = EitherT[Future, E, T]
