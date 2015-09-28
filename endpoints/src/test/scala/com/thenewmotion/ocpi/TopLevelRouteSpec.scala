@@ -109,8 +109,6 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       ) {
         token => if (token == "12345") Some(ApiUser("beCharged","12345")) else None
       }
-
-      override def statusRoute = complete((StatusCodes.OK, "status"))
     }
   }
 }

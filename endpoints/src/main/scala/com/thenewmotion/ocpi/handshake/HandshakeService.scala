@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi.handshake
 
+import akka.actor.ActorRefFactory
 import com.thenewmotion.ocpi._
 import Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
@@ -11,11 +12,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
 
-abstract class HandshakeService(client: HandshakeClient) extends FutureEitherUtils {
+abstract class HandshakeService(implicit system: ActorRefFactory) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
-  def startHandshake(version: String, auth: String, creds: Creds, uri: Uri)
+  def client: HandshakeClient = new HandshakeClient
+
+  def startHandshake(version: String, auth: String, creds: Creds, versionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"register endpoint: $version, $auth, $creds")
@@ -29,7 +32,7 @@ abstract class HandshakeService(client: HandshakeClient) extends FutureEitherUti
         val newToken = ApiTokenGenerator.generateToken
         logger.debug(s"issuing new token for party '${creds.business_details.name}'")
         persistNewToken(auth, newToken)
-        \/-(newCredentials(newToken, uri))
+        \/-(newCredentials(newToken, versionsUrl))
     }
   }
 

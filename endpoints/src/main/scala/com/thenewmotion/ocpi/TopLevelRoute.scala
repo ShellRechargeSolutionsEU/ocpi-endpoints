@@ -14,8 +14,6 @@ trait TopLevelRoute extends JsonApi {
 
   def routingConfig: OcpiRoutingConfig
 
-  def statusRoute: Route
-
   def currentTime = DateTime.now
 
   lazy val auth = new Authenticator(routingConfig.authenticateApiUser)
@@ -80,9 +78,6 @@ trait TopLevelRoute extends JsonApi {
           }
         }
       }
-    } ~
-    (path("status") & pathEnd) {
-      statusRoute
     }
 
 }
