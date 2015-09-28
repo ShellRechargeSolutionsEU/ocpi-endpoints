@@ -18,7 +18,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
   with DisjunctionMatchers{
 
   "HandshakeService should" should {
-    "return credentials with new token if the initiating partie's endpoints returned correct data" in new HandshakeTestScope {
+    "return credentials with new token if the initiating party's endpoints returned correct data" in new HandshakeTestScope {
       val result = handshakeService.startHandshake(selectedVersion,
         currentAuth, clientCreds, uri)
 

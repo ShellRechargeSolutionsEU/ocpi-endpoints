@@ -8,5 +8,6 @@ case class OcpiVersionConfig(
 
 case class OcpiRoutingConfig(
   namespace: String,
+  versionsEndpoint: String,
   versions: Map[String, OcpiVersionConfig]
 )(val authenticateApiUser: String => Option[ApiUser])
