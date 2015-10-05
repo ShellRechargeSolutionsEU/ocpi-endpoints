@@ -13,7 +13,7 @@ class HandshakeRoute(service: HandshakeService, namespace: String, versionsEndpo
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
 
     (post & extract(_.request.uri)) { credentialsUrl =>
-      //FIXME:
+      //FIXME: extract baseUrl properly here:
       val versionsUrl = spray.http.Uri(credentialsUrl.toString().replaceAll("2.0/credentials", "versions"))
       entity(as[Creds]) { clientCreds =>
         onSuccess(service.startHandshake(version, auth, clientCreds, versionsUrl)) {
