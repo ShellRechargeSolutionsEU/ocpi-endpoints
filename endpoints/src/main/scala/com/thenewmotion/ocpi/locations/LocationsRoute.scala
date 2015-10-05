@@ -78,7 +78,8 @@ object TestLocation{
     price_schemes = Some(List(priceScheme1,priceScheme2)),
     CurrentTypeEnum.AC3Phases,
     220,
-    16
+    16,
+    None
   )
 
   val connector2 = Connector(
@@ -88,7 +89,8 @@ object TestLocation{
     price_schemes = Some(List(priceScheme1)),
     CurrentTypeEnum.AC3Phases,
     220,
-    16
+    16,
+    None
   )
 
   val evse1 = Evse(
@@ -110,7 +112,7 @@ object TestLocation{
     country = "NL",
     coordinates = GeoLocation("4.891792500000065", "52.3642069"),
     evses = Some(List(evse1)),
-    directions = Some("left, left, left, right, left")
+    directions = Some("left, left, left, right, left"), None, None, None, None
 
   )
 }

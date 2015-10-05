@@ -118,7 +118,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
         price_schemes = Some(List(priceScheme1,priceScheme2)),
         CurrentTypeEnum.AC3Phases,
         220,
-        16
+        16,
+        None
      )
 
     val connector2 = Connector(
@@ -128,7 +129,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
       price_schemes = Some(List(priceScheme1)),
       CurrentTypeEnum.AC3Phases,
       220,
-      16
+      16,
+      None
     )
 
     val evse1 = Evse(
@@ -171,7 +173,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       country = "BE",
       coordinates = GeoLocation("3.72994", "51.04759"),
       evses = Some(List(evse1)),
-      directions = Some("left, left, left, right, left")
+      directions = Some("left, left, left, right, left"), None, None, None, None
 
     )
 
@@ -185,7 +187,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       country = "BE",
       coordinates = GeoLocation("3.72995", "51.04760"),
       evses = Some(List(evse2,evse3)),
-      directions = Some("left, left, left, right, left")
+      directions = Some("left, left, left, right, left"), None, None, None, None
 
     )
 
