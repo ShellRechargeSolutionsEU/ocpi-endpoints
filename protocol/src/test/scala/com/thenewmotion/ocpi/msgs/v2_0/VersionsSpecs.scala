@@ -1,9 +1,6 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier$
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.{VersionDetailsResp, VersionsResp}
-import OcpiJsonProtocol._
-import Versions._
+import com.thenewmotion.ocpi.msgs.v2_0.Versions.{VersionDetailsResp, VersionsResp, _}
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
@@ -11,6 +8,7 @@ import spray.json._
 
 class VersionsSpecs extends SpecificationWithJUnit {
 
+  import OcpiJsonProtocol._
 
   "VersionsResp" should {
     "deserialize" in new VersionsTestScope {
