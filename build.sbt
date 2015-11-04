@@ -32,7 +32,7 @@ val testing = Seq(
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
-  version := "0.8-SNAPSHOT"
+  version := "0.9-SNAPSHOT"
 )
 
 val protocol = project
