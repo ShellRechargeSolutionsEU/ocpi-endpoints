@@ -48,7 +48,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     handshakeService.startHandshake(any, any, any, any)(any) returns
       Future.successful(\/-(creds1))
 
-    val credentialsRoutes = new HandshakeRoute(handshakeService, "cpo", "versions", dateTime1)
+    val credentialsRoutes = new HandshakeRoute(handshakeService, dateTime1)
 
     val credentials1 = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",

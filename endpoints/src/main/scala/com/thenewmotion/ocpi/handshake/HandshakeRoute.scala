@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 import scalaz._
 
-class HandshakeRoute(service: HandshakeService, namespace: String, versionsEndpoint: String, currentTime: => DateTime = DateTime.now) extends JsonApi {
+class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
 
   def route(version: Version, auth: AuthToken)(implicit ec: ExecutionContext) = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
