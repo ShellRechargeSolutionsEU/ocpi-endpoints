@@ -14,7 +14,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
 
     (post & extract(_.request.uri)) { credentialsUrl =>
       //FIXME: extract baseUrl properly here:
-      val versionsUrl = spray.http.Uri(credentialsUrl.toString().replaceAll("2.0/credentials", "versions"))
+      val versionsUrl = spray.http.Uri(credentialsUrl.toString().replaceAll("""/\d+.\d+/credentials""", ""))
       entity(as[Creds]) { clientCreds =>
         onSuccess(service.startHandshake(version, auth, clientCreds, versionsUrl)) {
           case -\/(_) => reject()
