@@ -61,7 +61,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     }
 
     "route calls to version details" in new TopLevelScope {
-      Get("/cpo/2.0") ~>
+      Get("/cpo/versions/2.0") ~>
         addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
         handled must beTrue
 
@@ -69,12 +69,12 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         json.extract[Int]('status_code) mustEqual 1000
         json.extract[String]('data / 'version) mustEqual "2.0"
         json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("locations")
-        json.extract[String]('data / 'endpoints / * / 'url) mustEqual List("http://example.com/cpo/2.0/locations")
+        json.extract[String]('data / 'endpoints / * / 'url) mustEqual List("http://example.com/cpo/versions/2.0/locations")
       }
     }
 
     "route calls to version details when terminated by slash" in new TopLevelScope {
-      Get("/cpo/2.0/") ~>
+      Get("/cpo/versions/2.0/") ~>
         addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
         handled must beTrue
 
@@ -82,7 +82,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         json.extract[Int]('status_code) mustEqual 1000
         json.extract[String]('data / 'version) mustEqual "2.0"
         json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("locations")
-        json.extract[String]('data / 'endpoints / * / 'url) mustEqual List("http://example.com/cpo/2.0/locations")
+        json.extract[String]('data / 'endpoints / * / 'url) mustEqual List("http://example.com/cpo/versions/2.0/locations")
       }
     }
   }

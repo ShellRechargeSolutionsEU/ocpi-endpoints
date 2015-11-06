@@ -67,13 +67,15 @@ trait TopLevelRoute extends JsonApi {
     headerValueByName("Authorization") { access_token =>
       authenticate(auth.validate(access_token)) { apiUser: ApiUser =>
         (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
-          path(routingConfig.versionsEndpoint) {
-            versionsRoute(uri)
-          } ~
-          pathPrefix(Segment) { version =>
-            routingConfig.versions.get(version) match {
-              case None => reject
-              case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
+          pathPrefix(routingConfig.versionsEndpoint) {
+            pathEnd{
+              versionsRoute(uri)
+            } ~
+            pathPrefix(Segment) { version =>
+              routingConfig.versions.get(version) match {
+                case None => reject
+                case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
+              }
             }
           }
         }
