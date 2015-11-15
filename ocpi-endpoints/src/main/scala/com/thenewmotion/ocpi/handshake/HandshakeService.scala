@@ -1,11 +1,12 @@
 package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorRefFactory
+import com.thenewmotion.ocpi
 import com.thenewmotion.ocpi._
 import Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_0.Versions
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.VersionDetailsResp
+import com.thenewmotion.ocpi.msgs.v2_0.Versions.{EndpointIdentifier, VersionDetailsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import spray.http.Uri
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,7 +19,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def client: HandshakeClient = new HandshakeClient
 
-  def startHandshake(version: String, auth: String, creds: Creds, versionsUrl: Uri)
+  def reactToHandshakeRequest(version: String, auth: String, creds: Creds, versionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Handshake initiated: client's auth is $auth, chosen version: $version.\nCredentials for us: $creds")
@@ -26,7 +27,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
       res <- completeRegistration(version, auth, creds.token, Uri(creds.url))
     } yield res
     result.map {
-      case -\/(_) => -\/(CouldNotRegisterParty)
+      case -\/(_) => -\/(CouldNotRegisterParty)  //why do you send back a different error to the registered one?
       case _ =>
         val newToken = ApiTokenGenerator.generateToken
         logger.debug(s"issuing new token for party '${creds.business_details.name}'")
@@ -36,9 +37,30 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     }
   }
 
+  def initiateHandshakeProcess(auth: String, clientVersionsUrl: Uri)
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+    logger.info(s"initiate handshake process with: $clientVersionsUrl, $auth")
+    val tokenForClient = ApiTokenGenerator.generateToken
+    logger.debug(s"issuing new token for party with initial authorization token: '$auth'")
 
-  private[ocpi] def completeRegistration(version: String, auth_for_server_api: String, auth_for_client_api: String, uri: Uri)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
+    getHostedVersionsUrl match {
+      case -\/(error) => Future.successful(-\/(error))
+      case \/-(hostedVersionsUri) =>
+
+        (for {
+          persistence <- result(Future.successful(persistNewToken(auth, tokenForClient)))
+          versionDet <- result(completeRegistration(ocpi.version ,auth, tokenForClient, clientVersionsUrl))
+          credEndpoint = versionDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
+          credentials <- result(client.sendCredentials(credEndpoint.url, auth, newCredentials(tokenForClient, hostedVersionsUri)))
+        } yield credentials).run
+    }
+  }
+
+  /** Get versions, choose the one that match with the 'version' parameter, request the details of this version,
+  * persist them (the how is defined in the application is making use of the library)
+  * and return them if no error happened, otherwise return the error
+  */
+  private[ocpi] def completeRegistration(version: String, auth_for_server_api: String, auth_for_client_api: String, versionsUri: Uri)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
@@ -48,7 +70,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     }
 
     (for {
-      vers <- result(client.getVersions(uri, auth_for_client_api))
+      vers <- result(client.getVersions(versionsUri, auth_for_client_api))
       ver <- result(findVersion(vers))
       verDetails <- result(client.getVersionDetails(ver.url, auth_for_client_api))
       unit = verDetails.data.endpoints.map(ep => persistEndpoint(version, auth_for_server_api, auth_for_client_api, ep.identifier.name, ep.url))
@@ -56,12 +78,10 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   }
 
 
-  private[ocpi] def newCredentials(token: String, uri: Uri): Creds = {
+  private[ocpi] def newCredentials(token: String, versionsUri: Uri): Creds = {
     import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
 
-    val versionsUri = uri.withPath(uri.path)
-
-    Creds(token, versionsUri.toString(), BusinessDetails(partyname, None, None))
+    Creds(token, versionsUri.toString(), BusinessDetails(partyname, logo, website))
   }
 
   def persistClientPrefs(version: String, auth: String, creds: Creds): PersistenceError \/ Unit
@@ -71,6 +91,12 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   def persistEndpoint(version: String, auth_for_server_api: String, auth_for_client_api: String, name: String, url: Url): PersistenceError \/ Unit
 
   def partyname: String
+
+  def logo: Option[Url]
+
+  def website: Option[Url]
+
+  def getHostedVersionsUrl: PersistenceError \/ Uri
 }
 
 object ApiTokenGenerator {

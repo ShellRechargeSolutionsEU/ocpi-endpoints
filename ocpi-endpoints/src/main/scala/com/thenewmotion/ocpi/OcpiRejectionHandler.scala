@@ -42,8 +42,19 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         )
       }
 
+    case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders)) :: _ =>
+      complete {
+        HttpResponse(
+          BadRequest,
+          HttpEntity(ContentTypes.`application/json`,
+            ErrorResp(
+              AuthenticationFailed.code,
+              Some(AuthenticationFailed.default_message),
+              DateTime.now()).toJson.compactPrint)
+        )
+      }
 
-    case (r@AuthenticationFailedRejection(cause, challengeHeaders)) :: _ =>
+    case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, challengeHeaders)) :: _ =>
       complete {
         HttpResponse(
           BadRequest,

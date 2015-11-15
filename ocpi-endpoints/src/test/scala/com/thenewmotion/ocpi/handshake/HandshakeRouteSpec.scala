@@ -36,6 +36,25 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
         handled must beTrue
       }
     }
+
+    "initiateHandshake endpoint" should {
+      "send the credentials" in new CredentialsTestScope {
+        val data =
+          s"""
+             |{
+             |"auth": "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
+             |"url": "https://example.com/ocpi/cpo/versions"
+             |}
+          """.stripMargin
+
+        val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
+
+        Post("/initiateHandshake", body) ~> credentialsRoutes.route("2.0", "123") ~> check {
+          handled must beTrue
+        }
+
+      }
+    }
   }
 
   trait CredentialsTestScope extends Scope {
@@ -45,7 +64,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
 
     val handshakeService = mock[HandshakeService]
-    handshakeService.startHandshake(any, any, any, any)(any) returns
+    handshakeService.reactToHandshakeRequest(any, any, any, any)(any) returns
       Future.successful(\/-(creds1))
 
     val credentialsRoutes = new HandshakeRoute(handshakeService, "https://example.com/ocpi/cpo/", dateTime1)

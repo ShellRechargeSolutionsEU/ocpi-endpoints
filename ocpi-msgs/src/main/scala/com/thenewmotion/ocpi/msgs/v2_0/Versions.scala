@@ -17,6 +17,11 @@ object Versions {
     url: Url
     )
 
+  case class VersionsRequest(
+    auth: String,
+    url: Url
+  )
+
   case class VersionDetails(
     version: String,
     endpoints: List[Endpoint]
@@ -27,7 +32,10 @@ object Versions {
     status_message: Option[String],
     timestamp: DateTime,
     data: VersionDetails
-    ) extends OcpiResponse
+    ) extends OcpiResponse {
+    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
+    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Locations), "Missing locations endpoint type details")
+  }
 
 
   case class VersionsResp(

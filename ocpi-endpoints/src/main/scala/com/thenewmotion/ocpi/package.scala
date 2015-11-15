@@ -10,4 +10,6 @@ package object ocpi {
   type AuthToken = String
 
   type GuardedRoute = (Version, AuthToken) => Route
+
+  val version: Version = "2.0"
 }

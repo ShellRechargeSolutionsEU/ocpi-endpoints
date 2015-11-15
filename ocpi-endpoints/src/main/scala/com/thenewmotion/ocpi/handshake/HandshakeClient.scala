@@ -4,7 +4,7 @@ import akka.actor.ActorRefFactory
 import akka.util.Timeout
 import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.handshake.Errors._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Url, SuccessResp}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.client.pipelining._
@@ -55,11 +55,12 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     pipeline(Get(uri)) map { toRight(_)(VersionDetailsRetrievalFailed) }
   }
 
-  def sendCredentials(uri: Uri, auth: String, creds: Creds)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessResp] = {
-    val pipeline = request(auth) ~> unmarshalToOption[SuccessResp]
+  def sendCredentials(uri: Url, auth: String, creds: Creds)
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+    val pipeline = request(auth) ~> unmarshalToOption[Creds]
     pipeline(Post(uri, creds)) map { toRight(_)(SendingCredentialsFailed) }
   }
+
 
 }
 
