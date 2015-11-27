@@ -64,11 +64,11 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     Creds(token, versionsUri.toString(), BusinessDetails(partyname, None, None))
   }
 
-  def persistClientPrefs(version: String, auth: String, creds: Creds): CouldNotPersistPreferences \/ Unit
+  def persistClientPrefs(version: String, auth: String, creds: Creds): PersistenceError \/ Unit
 
-  def persistNewToken(auth: String, newToken: String): CouldNotPersistNewToken \/ Unit
+  def persistNewToken(auth: String, newToken: String): PersistenceError \/ Unit
 
-  def persistEndpoint(version: String, auth: String, name: String, url: Url): CouldNotPersistEndpoint \/ Unit
+  def persistEndpoint(version: String, auth: String, name: String, url: Url): PersistenceError \/ Unit
 
   def partyname: String
 }

@@ -94,16 +94,13 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     val handshakeService = new HandshakeService {
       override def client = _client
-      override def persistClientPrefs(version: String, auth: String, creds: Creds):
-        Disjunction[CouldNotPersistPreferences, Unit] = \/-(Unit)
+      override def persistClientPrefs(version: String, auth: String, creds: Creds) = \/-(Unit)
 
-      override def persistNewToken(auth: String, newToken: String): Disjunction[CouldNotPersistNewToken, Unit] =
-        \/-(Unit)
+      override def persistNewToken(auth: String, newToken: String) = \/-(Unit)
 
       override def partyname: String = "TNM (CPO)"
 
-      override def persistEndpoint(version: String, auth: String, name: String, url: Url):
-        Disjunction[CouldNotPersistEndpoint, Unit] = \/-(Unit)
+      override def persistEndpoint(version: String, auth: String, name: String, url: Url) = \/-(Unit)
     }
 
   }

@@ -14,7 +14,7 @@ object Errors{
   case object CouldNotInsertEndpoint extends HandshakeError
   case object CouldNotRegisterParty extends HandshakeError
 
-  case class CouldNotPersistPreferences() extends PersistenceError
-  case class CouldNotPersistNewToken() extends PersistenceError
-  case class CouldNotPersistEndpoint() extends PersistenceError
+  case object CouldNotPersistPreferences extends PersistenceError
+  case object CouldNotPersistNewToken extends PersistenceError
+  case object CouldNotPersistEndpoint extends PersistenceError
 }
