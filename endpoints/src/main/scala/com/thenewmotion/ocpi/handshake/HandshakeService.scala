@@ -24,7 +24,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     logger.info(s"register endpoint: $version, $auth, $creds")
     val result = for {
       commPrefs <- Future.successful(persistClientPrefs(version, auth, creds))
-      res <- completeRegistration(version, creds.token, Uri(creds.url))
+      res <- completeRegistration(version, auth, creds.token, Uri(creds.url))
     } yield res
     result.map {
       case -\/(_) => -\/(CouldNotRegisterParty)
@@ -37,7 +37,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   }
 
 
-  private[ocpi] def completeRegistration(version: String, auth: String, uri: Uri)
+  private[ocpi] def completeRegistration(version: String, auth_for_server_api: String, auth_for_client_api: String, uri: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
@@ -48,10 +48,10 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     }
 
     (for {
-      vers <- result(client.getVersions(uri, auth))
+      vers <- result(client.getVersions(uri, auth_for_client_api))
       ver <- result(findVersion(vers))
-      verDetails <- result(client.getVersionDetails(ver.url, auth))
-      unit = verDetails.data.endpoints.map(ep => persistEndpoint(version, auth, ep.identifier.name, ep.url))
+      verDetails <- result(client.getVersionDetails(ver.url, auth_for_client_api))
+      unit = verDetails.data.endpoints.map(ep => persistEndpoint(version, auth_for_server_api, auth_for_client_api, ep.identifier.name, ep.url))
     } yield verDetails).run
   }
 
@@ -68,7 +68,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def persistNewToken(auth: String, newToken: String): PersistenceError \/ Unit
 
-  def persistEndpoint(version: String, auth: String, name: String, url: Url): PersistenceError \/ Unit
+  def persistEndpoint(version: String, auth_for_server_api: String, auth_for_client_api: String, name: String, url: Url): PersistenceError \/ Unit
 
   def partyname: String
 }
