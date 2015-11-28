@@ -100,7 +100,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
       override def partyname: String = "TNM (CPO)"
 
-      override def persistEndpoint(version: String, auth: String, name: String, url: Url) = \/-(Unit)
+      override def persistEndpoint(version: String, auth_for_server_api: String, auth_for_client_api: String, name: String, url: Url) = \/-(Unit)
     }
 
   }
