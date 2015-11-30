@@ -21,7 +21,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   def startHandshake(version: String, auth: String, creds: Creds, versionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
-    logger.info(s"register endpoint: $version, $auth, $creds")
+    logger.info(s"Handshake initiated: client's auth is $auth, chosen version: $version.\nCredentials for us: $creds")
     val result = for {
       commPrefs <- Future.successful(persistClientPrefs(version, auth, creds))
       res <- completeRegistration(version, auth, creds.token, Uri(creds.url))
