@@ -54,5 +54,5 @@ val `ocpi-endpoints` = project
 
 enablePlugins(OssLibPlugin)
 
-publishTo := None
+publish := {}
 
