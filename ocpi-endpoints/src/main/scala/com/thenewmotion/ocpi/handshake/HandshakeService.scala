@@ -23,7 +23,6 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
     logger.info(s"Handshake initiated: client's auth is $auth, chosen version: $version.\nCredentials for us: $creds")
     val result = for {
-      commPrefs <- Future.successful(persistClientPrefs(version, auth, creds))
       res <- completeRegistration(version, auth, creds.token, Uri(creds.url))
     } yield res
     result.map {
@@ -31,6 +30,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
       case _ =>
         val newToken = ApiTokenGenerator.generateToken
         logger.debug(s"issuing new token for party '${creds.business_details.name}'")
+        persistClientPrefs(version, auth, creds)
         persistNewToken(auth, newToken)
         \/-(newCredentials(newToken, versionsUrl))
     }
