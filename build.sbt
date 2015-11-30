@@ -32,29 +32,27 @@ val testing = Seq(
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
-  version := "0.10-SNAPSHOT"
+  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+
 )
 
-val protocol = project
+val `ocpi-msgs` = project
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     description := "OCPI serialization library",
-    name := "ocpi-msgs",
     libraryDependencies :=`spray-json` ++ misc ++ testing )
 
-val endpoints = project
+val `ocpi-endpoints` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(protocol)
+  .dependsOn(`ocpi-msgs`)
   .settings(
     commonSettings,
     description := "OCPI endpoints",
-    name := "ocpi-endpoints",
     libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ misc ++ testing
   )
 
-licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 enablePlugins(OssLibPlugin)
 
-
+publishTo := None
 
