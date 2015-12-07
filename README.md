@@ -7,6 +7,10 @@ The New Motion implementation of common endpoints of the OCPI protocol.
 
 See http://github.com/ocpi/ocpi
 
+# Notions
+To make clear when the parameters are about the application making use of the application or the party the application is
+connecting to they are referred as: `our`/`us` or `theirs`/`them`
+
 # Usage
 * add to your dependencies like this:
 `"com.thenewmotion.ocpi" %% "ocpi-endpoints" % "0.8-SNAPSHOT"`

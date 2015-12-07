@@ -28,8 +28,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
 
   implicit val timeout = Timeout(10.seconds)
 
-  def request(auth: String)(implicit ec: ExecutionContext) = (
-    addCredentials(GenericHttpCredentials("Token", auth, Map()))
+  def request(tokenToConnectToThem: String)(implicit ec: ExecutionContext) = (
+    addCredentials(GenericHttpCredentials("Token", tokenToConnectToThem, Map()))
       ~> logRequest
       ~> sendReceive
       ~> logResponse
@@ -44,21 +44,21 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     }
   }
 
-  def getVersions(uri: Uri, auth: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionsResp] = {
-    val pipeline = request(auth) ~> unmarshalToOption[VersionsResp]
+  def getTheirVersions(uri: Uri, token: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionsResp] = {
+    val pipeline = request(token) ~> unmarshalToOption[VersionsResp]
     pipeline(Get(uri)) map { toRight(_)(VersionsRetrievalFailed) }
   }
 
-  def getVersionDetails(uri: Uri, auth: String)
+  def getTheirVersionDetails(uri: Uri, token: String)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
-    val pipeline = request(auth) ~> unmarshalToOption[VersionDetailsResp]
+    val pipeline = request(token) ~> unmarshalToOption[VersionDetailsResp]
     pipeline(Get(uri)) map { toRight(_)(VersionDetailsRetrievalFailed) }
   }
 
-  def sendCredentials(uri: Url, auth: String, creds: Creds)
+  def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: String, credToConnectToUs: Creds)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
-    val pipeline = request(auth) ~> unmarshalToOption[Creds]
-    pipeline(Post(uri, creds)) map { toRight(_)(SendingCredentialsFailed) }
+    val pipeline = request(tokenToConnectToThem) ~> unmarshalToOption[Creds]
+    pipeline(Post(theirCredUrl, credToConnectToUs)) map { toRight(_)(SendingCredentialsFailed) }
   }
 
 

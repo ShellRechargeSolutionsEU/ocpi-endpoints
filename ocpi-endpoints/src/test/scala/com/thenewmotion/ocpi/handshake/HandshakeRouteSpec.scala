@@ -15,7 +15,7 @@ import scalaz._
 class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
-    "accept client credentials" in new CredentialsTestScope {
+    "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
 
       val data =
         s"""
@@ -32,13 +32,13 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
 
-      Post("/credentials", body) ~> credentialsRoutes.route("2.0", "123") ~> check {
+      Post("/credentials", body) ~> credentialsRoute.route("2.0", "123") ~> check {
         handled must beTrue
       }
     }
 
     "initiateHandshake endpoint" should {
-      "send the credentials" in new CredentialsTestScope {
+      "send the credentials to them to connect to us" in new CredentialsTestScope {
         val data =
           s"""
              |{
@@ -49,7 +49,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
         val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
 
-        Post("/initiateHandshake", body) ~> credentialsRoutes.route("2.0", "123") ~> check {
+        Post("/initiateHandshake", body) ~> credentialsRoute.route("2.0", "123") ~> check {
           handled must beTrue
         }
 
@@ -60,16 +60,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
   trait CredentialsTestScope extends Scope {
 
     val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
-
-    val creds1 = Creds("", "", OcpiBusinessDetails("", None, None))
-
-    val handshakeService = mock[HandshakeService]
-    handshakeService.reactToHandshakeRequest(any, any, any, any)(any) returns
-      Future.successful(\/-(creds1))
-
-    val credentialsRoutes = new HandshakeRoute(handshakeService, "https://example.com/ocpi/cpo/", dateTime1)
-
-    val credentials1 = Creds(
+    val theirCredentials = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
       url = "https://example.com/ocpi/cpo/",
       business_details = OcpiBusinessDetails(
@@ -78,5 +69,11 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
         Some("http://example.com")
       )
     )
+
+    val handshakeService = mock[HandshakeService]
+    handshakeService.reactToHandshakeRequest(any, any, any, any)(any) returns
+      Future.successful(\/-(theirCredentials))
+
+    val credentialsRoute = new HandshakeRoute(handshakeService, "https://example.com/ocpi/cpo/", dateTime1)
   }
 }

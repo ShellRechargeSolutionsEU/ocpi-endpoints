@@ -18,7 +18,7 @@ object Versions {
     )
 
   case class VersionsRequest(
-    auth: String,
+    token: String,
     url: Url
   )
 

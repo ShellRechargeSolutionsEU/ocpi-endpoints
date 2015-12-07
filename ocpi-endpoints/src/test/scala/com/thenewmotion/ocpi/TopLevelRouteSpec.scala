@@ -23,24 +23,24 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       auth.extractTokenValue("Token ") must beNone
     }
 
-    "authenticate api calls with valid auth info" in new TopLevelScope {
+    "authenticate api calls with valid token info" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.route ~> check {
         handled must beTrue
       }
     }
 
-    "reject api calls without valid auth header" in new TopLevelScope {
+    "reject api calls without Authorization header" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(invalidAuthTokenHeader) ~> topLevelRoute.route ~> check {
+        addHeader(invalidHeaderName) ~> topLevelRoute.route ~> check {
         handled must beFalse
         rejections must contain(MissingHeaderRejection("Authorization"))
       }
     }
 
-    "reject api calls without valid auth token" in new TopLevelScope {
+    "reject api calls without valid token" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(invalidAuthToken) ~> topLevelRoute.route ~> check {
+        addHeader(invalidToken) ~> topLevelRoute.route ~> check {
         handled must beFalse
         rejections must contain(AuthenticationFailedRejection(CredentialsRejected,List()))
       }
@@ -48,9 +48,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     // ----------------------------------------------------------------
 
-    "route calls to versions endpoint" in new TopLevelScope {
+    "route calls to our versions endpoint" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.route ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson
@@ -60,9 +60,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
     }
 
-    "route calls to version details" in new TopLevelScope {
+    "route calls to our version details" in new TopLevelScope {
       Get("/cpo/versions/2.0") ~>
-        addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.route ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson
@@ -74,9 +74,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
     }
 
-    "route calls to version details when terminated by slash" in new TopLevelScope {
+    "route calls to our version details when terminated by slash" in new TopLevelScope {
       Get("/cpo/versions/2.0/") ~>
-        addHeader(authTokenHeader) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.route ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson
@@ -90,12 +90,12 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
   }
 
   trait TopLevelScope extends Scope with JsonApi {
-    val authTokenHeader = RawHeader("Authorization", "Token 12345")
-    val invalidAuthTokenHeader = RawHeader("Auth", "Token 12345")
-    val invalidAuthToken = RawHeader("Authorization", "Token letmein")
+    val validToken = RawHeader("Authorization", "Token 12345")
+    val invalidHeaderName = RawHeader("Auth", "Token 12345")
+    val invalidToken = RawHeader("Authorization", "Token letmein")
 
-    val credentialsRoute = (version: String, token: String) => complete((StatusCodes.OK, s"credentials: $version"))
-    val locationRoute = (version: String, token: String) => complete((StatusCodes.OK, s"locations: $version"))
+    val ourCredentialsRoute = (version: String, token: String) => complete((StatusCodes.OK, s"credentials: $version"))
+    val ourLocationsRoute = (version: String, token: String) => complete((StatusCodes.OK, s"locations: $version"))
 
     val topLevelRoute = new TopLevelRoute {
 
@@ -105,8 +105,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         Map (
           "2.0" -> OcpiVersionConfig(
             endPoints = Map(
-              EndpointIdentifier.Credentials -> credentialsRoute,
-              EndpointIdentifier.Locations -> locationRoute
+              EndpointIdentifier.Credentials -> ourCredentialsRoute,
+              EndpointIdentifier.Locations -> ourLocationsRoute
             )
           )
         )
