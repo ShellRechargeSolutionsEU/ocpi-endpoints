@@ -7,7 +7,7 @@ val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
   "org.slf4j"                    % "slf4j-api"                %   "1.7.7")
 
-val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
+val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.1")
 
 val spray = Seq(
 
