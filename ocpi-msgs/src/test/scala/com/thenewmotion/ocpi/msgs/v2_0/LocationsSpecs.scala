@@ -140,7 +140,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       Some(List("RESERVABLE")),
       List(connector1,connector2),
       floor_level = Some("-1"),
-      physical_number = Some(1)
+      physical_number = Some("1")
     )
 
     val evse2 = Evse(
@@ -150,7 +150,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       Some(List("RESERVABLE")),
       List(connector1),
       floor_level = Some("-1"),
-      physical_number = Some(1)
+      physical_number = Some("1")
     )
 
     val evse3 = Evse(
@@ -160,7 +160,28 @@ class LocationsSpecs extends SpecificationWithJUnit {
       Some(List("RESERVABLE")),
       List(connector1),
       floor_level = Some("-1"),
-      physical_number = Some(1)
+      physical_number = Some("1")
+    )
+
+    val excp_open_begin = formatter.parseDateTime("2014-06-21T09:00:00+02:00")
+    val excp_open_end = formatter.parseDateTime("2014-06-21T12:00:00+02:00")
+    val excp_close_begin = formatter.parseDateTime("2014-06-24T00:00:00+02:00")
+    val excp_close_end = formatter.parseDateTime("2014-06-25T00:00:00+02:00")
+
+    val hours1 = Hours(
+      regular_hours = List(
+        RegularHours(1, "08:00", "20:00"),
+        RegularHours(2, "08:00", "20:00"),
+        RegularHours(3, "08:00", "20:00"),
+        RegularHours(4, "08:00", "20:00"),
+        RegularHours(5, "08:00", "20:00")
+      ),
+      twentyfourseven = false,
+      exceptional_openings = List(
+        ExceptionalPeriod(excp_open_begin, excp_open_end)),
+      exceptional_closings = List(
+        ExceptionalPeriod(excp_close_begin, excp_close_end)
+      )
     )
 
     val location1 = Location(
@@ -173,7 +194,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
       country = "BE",
       coordinates = GeoLocation("3.72994", "51.04759"),
       evses = Some(List(evse1)),
-      directions = Some("left, left, left, right, left"), None, None, None, None
+      directions = Some("left, left, left, right, left"), None,
+      opening_times = Some(hours1),  None, None
 
     )
 
@@ -349,7 +371,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |          ]
          |        }
          |      ],
-         |      "physical_number": 1,
+         |      "physical_number": "1",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -444,7 +466,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |          ]
          |        }
          |      ],
-         |      "physical_number": 1,
+         |      "physical_number": "1",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -536,7 +558,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |          ]
          |        }
          |      ],
-         |      "physical_number": 1,
+         |      "physical_number": "1",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -555,7 +577,49 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "postal_code": "9000",
          |      "country": "BE",
          |      "coordinates": $geoLocationJson1,
-         |      "directions": "left, left, left, right, left"
+         |      "directions": "left, left, left, right, left",
+         |      "opening_times": {
+         |		    "regular_hours": [
+         |		      {
+         |		        "weekday": 1,
+         |		        "period_begin": "08:00",
+         |		        "period_end": "20:00"
+         |		      },
+         |		      {
+         |		        "weekday": 2,
+         |		        "period_begin": "08:00",
+         |		        "period_end": "20:00"
+         |		      },
+         |		      {
+         |		        "weekday": 3,
+         |		        "period_begin": "08:00",
+         |		        "period_end": "20:00"
+         |		      },
+         |		      {
+         |		        "weekday": 4,
+         |		        "period_begin": "08:00",
+         |		        "period_end": "20:00"
+         |		      },
+         |		      {
+         |		        "weekday": 5,
+         |		        "period_begin": "08:00",
+         |		        "period_end": "20:00"
+         |		      }
+         |		    ],
+         |        "twentyfourseven": false,
+         |		    "exceptional_openings": [
+         |		      {
+         |		        "period_begin": "2014-06-21T07:00:00Z",
+         |		        "period_end": "2014-06-21T10:00:00Z"
+         |		      }
+         |		    ],
+         |		    "exceptional_closings": [
+         |		      {
+         |		        "period_begin": "2014-06-23T22:00:00Z",
+         |		        "period_end": "2014-06-24T22:00:00Z"
+         |		      }
+         |		    ]
+         |		  }
          |    }
    """.stripMargin.parseJson
 

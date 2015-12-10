@@ -20,7 +20,7 @@ object Locations {
     evses: Option[List[Evse]],
     directions:	Option[String] = None,
     operator: Option[BusinessDetails] = None,
-    opening_times: Option[List[Hours]] = None,
+    opening_times: Option[Hours] = None,
     charging_when_closed: Option[Boolean] = None,
     images: Option[List[Image]] = None
 
@@ -37,7 +37,27 @@ object Locations {
     val values = List(OnStreet, ParkingGarage, UndergroundGarage,
       ParkingLot, Other, Unknown)
   }
-  case class Hours()
+
+  case class RegularHours(
+    weekday: Int,
+    period_begin: String,
+    period_end: String
+  )
+
+  case class ExceptionalPeriod(
+    period_begin: DateTime,
+    period_end: DateTime
+  )
+
+  case class Hours(
+    regular_hours: List[RegularHours],
+    twentyfourseven: Boolean,
+    exceptional_openings: List[ExceptionalPeriod],
+    exceptional_closings: List[ExceptionalPeriod]
+  ) {
+    require(regular_hours.nonEmpty && !twentyfourseven
+      || regular_hours.isEmpty && twentyfourseven)
+  }
 
 
   case class Operator(
@@ -130,7 +150,7 @@ object Locations {
     connectors: List[Connector],
     floor_level:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
-    physical_number:	Option[Int] = None,
+    physical_number:	Option[String] = None,
     directions: Option[String] = None,
     parking_restrictions:	Option[ParkingRestriction] = None,
     images: Option[Image] = None
