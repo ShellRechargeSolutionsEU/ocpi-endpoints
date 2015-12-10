@@ -24,7 +24,9 @@ object Locations {
     charging_when_closed: Option[Boolean] = None,
     images: Option[List[Image]] = None
 
-    )
+    ) {
+    require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
+  }
 
   sealed trait LocationType extends Nameable
   object LocationTypeEnum extends Enumerable[LocationType] {

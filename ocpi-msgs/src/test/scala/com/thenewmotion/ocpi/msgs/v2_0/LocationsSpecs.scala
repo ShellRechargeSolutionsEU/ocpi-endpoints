@@ -575,7 +575,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "address": "F.Rooseveltlaan 3A",
          |      "city": "Gent",
          |      "postal_code": "9000",
-         |      "country": "BE",
+         |      "country": "BEL",
          |      "coordinates": $geoLocationJson1,
          |      "directions": "left, left, left, right, left",
          |      "opening_times": {
