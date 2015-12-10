@@ -191,7 +191,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       address = "F.Rooseveltlaan 3A",
       city = "Gent",
       postal_code = "9000",
-      country = "BE",
+      country = "BEL",
       coordinates = GeoLocation("3.72994", "51.04759"),
       evses = Some(List(evse1)),
       directions = Some("left, left, left, right, left"), None,
@@ -206,7 +206,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       address = "F.Rooseveltlaan 30",
       city = "Gent",
       postal_code = "9000",
-      country = "BE",
+      country = "BEL",
       coordinates = GeoLocation("3.72995", "51.04760"),
       evses = Some(List(evse2,evse3)),
       directions = Some("left, left, left, right, left"), None, None, None, None
@@ -632,7 +632,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "address": "F.Rooseveltlaan 30",
          |      "city": "Gent",
          |      "postal_code": "9000",
-         |      "country": "BE",
+         |      "country": "BEL",
          |      "coordinates": $geoLocationJson2,
          |      "directions": "left, left, left, right, left"
          |    }
