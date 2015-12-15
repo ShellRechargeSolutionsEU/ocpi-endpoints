@@ -98,11 +98,17 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
 
 
   implicit val connectorFormat = jsonFormat9(Connector)
+  implicit val connectorPatchFormat = jsonFormat9(ConnectorPatch)
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
   implicit val evseFormat = jsonFormat12(Evse)
+  implicit val evsePatchFormat = jsonFormat12(EvsePatch)
   implicit val operatorFormat = jsonFormat3(Operator)
   implicit val locationFormat = jsonFormat16(Location)
+  implicit val locationPatchFormat = jsonFormat16(LocationPatch)
+  implicit val locationsRespFormat = jsonFormat4(LocationsResp)
   implicit val locationRespFormat = jsonFormat4(LocationResp)
+  implicit val evseRespFormat = jsonFormat4(EvseResp)
+  implicit val connectorRespFormat = jsonFormat4(ConnectorResp)
   implicit val versionFormat = jsonFormat2(Version)
   implicit val versionsRespFormat = jsonFormat4(VersionsResp)
   implicit val versionsReqFormat = jsonFormat5(VersionsRequest)

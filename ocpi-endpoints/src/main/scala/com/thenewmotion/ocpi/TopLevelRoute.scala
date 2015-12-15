@@ -80,7 +80,7 @@ trait TopLevelRoute extends JsonApi {
       versionInfo.endPoints.get(path) match {
         case None => reject
         case Some(Left(extUri)) => reject // implemented externally
-        case Some(Right(route)) => route(version, apiUser.token)
+        case Some(Right(route)) => route(version, apiUser)
       }
     }
 

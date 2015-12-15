@@ -29,6 +29,26 @@ object Locations {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
+  case class LocationPatch(
+    id: String,
+    `type`: Option[LocationType] = None,
+    name: Option[String] = None,
+    address: Option[String] = None,
+    city: Option[String] = None,
+    postal_code: Option[String] = None,
+    country: Option[String] = None,
+    coordinates: Option[GeoLocation] = None,
+    related_locations: Option[List[AdditionalGeoLocation]] = None,
+    evses: Option[List[Evse]] = None,
+    directions: Option[String] = None,
+    operator: Option[BusinessDetails] = None,
+    suboperator: Option[BusinessDetails] = None,
+    opening_times: Option[Hours] = None,
+    charging_when_closed: Option[Boolean] = None,
+    images: Option[List[Image]] = None) {
+    require(country.foldLeft(true) { (_, country) => country.length == 3}, "Location needs 3-letter, ISO 3166-1 country code!")
+  }
+
   sealed trait LocationType extends Nameable
   object LocationType extends Enumerable[LocationType] {
     case object OnStreet extends LocationType {val name = "ON_STREET"}
@@ -94,13 +114,6 @@ object Locations {
     val values = List(Charging, Parking)
   }
 
-  // not in OCPP 2.0
-//
-//  case class Validity(
-//    period_type: Option[PeriodType],
-//    time: Option[String]
-//    )
-
   case class Tariff(
     tariff_id: String,
     price_taxed: Option[Double],
@@ -108,7 +121,6 @@ object Locations {
     pricing_unit: PricingUnit,
     tax_pct: Option[Double],
     currency: CurrencyUnit,
-    //    validity_rule: Option[Validity],  // not in OCPP 2.0
     condition: Option[String],
     display_text: List[DisplayText]
     )
@@ -129,6 +141,18 @@ object Locations {
     power_type:	PowerType,
     voltage: Int,
     amperage: Int,
+    tariff_id: Option[String],
+    terms_and_conditions: Option[Url] = None
+  )
+
+  case class ConnectorPatch(
+    id: String,
+    status: Option[ConnectorStatus],
+    standard: Option[ConnectorType],
+    format: Option[ConnectorFormat],
+    power_type:	Option[PowerType],
+    voltage: Option[Int],
+    amperage: Option[Int],
     tariff_id: Option[String],
     terms_and_conditions: Option[Url] = None
     )
@@ -158,8 +182,23 @@ object Locations {
     parking_restrictions:	List[ParkingRestriction] = List(),
     images: List[Image] = List()
     ){
-    require(connectors.nonEmpty, "Cardinality of connectors given as '+'")
+    require(connectors.nonEmpty, "List of connector can't be empty!")
   }
+
+  case class EvsePatch(
+    id: String,
+    status: Option[ConnectorStatus] = None,
+    connectors: Option[List[Connector]] = None,
+    status_schedule: Option[List[StatusSchedule]] = None,
+    capabilities: Option[List[Capability]] = None,
+    evse_id: Option[String] = None,
+    floor_level: Option[String] = None,
+    coordinates: Option[GeoLocation] = None,
+    physical_reference: Option[String] = None,
+    directions: Option[List[DisplayText]] = None,
+    parking_restrictions: Option[List[ParkingRestriction]] = None,
+    images: Option[List[Image]] = None
+  )
 
   val LatRegex = """-?[0-9]{1,2}\.[0-9]{6}"""
   val LonRegex = """-?[0-9]{1,3}\.[0-9]{6}"""
@@ -265,11 +304,31 @@ object Locations {
     val values = List(AC1Phase, AC3Phase, DC)
   }
 
-  case class LocationResp(
+  case class LocationsResp(
     status_code: Int,
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: List[Location]
     ) extends SuccessResp
 
+  case class LocationResp(
+    status_code: Int,
+    status_message: Option[String] = None,
+    timestamp: DateTime = DateTime.now(),
+    data: Location
+  ) extends OcpiResponse
+
+  case class EvseResp(
+    status_code: Int,
+    status_message: Option[String] = None,
+    timestamp: DateTime = DateTime.now(),
+    data: Evse
+  ) extends OcpiResponse
+
+  case class ConnectorResp(
+    status_code: Int,
+    status_message: Option[String] = None,
+    timestamp: DateTime = DateTime.now(),
+    data: Connector
+  ) extends OcpiResponse
 }

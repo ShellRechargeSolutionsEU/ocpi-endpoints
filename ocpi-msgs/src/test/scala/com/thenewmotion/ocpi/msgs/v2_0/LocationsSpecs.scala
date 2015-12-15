@@ -24,7 +24,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
    "LocationResp" should {
       "deserialize" in new LocationsTestScope {
-         locationRespJson1.convertTo[LocationResp] mustEqual locationResp1
+         locationRespJson1.convertTo[LocationsResp] mustEqual locationResp1
       }
       "serialize" in new LocationsTestScope {
          locationResp1.toJson.toString mustEqual locationRespJson1.compactPrint
@@ -219,7 +219,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       images = List.empty
     )
 
-    val locationResp1 = LocationResp(
+    val locationResp1 = LocationsResp(
       1000,
       Some("OK"),
       timestamp = date1,
