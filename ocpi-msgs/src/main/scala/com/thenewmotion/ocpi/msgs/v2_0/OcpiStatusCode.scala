@@ -37,4 +37,5 @@ object OcpiStatusCodes {
   case object GenericServerFailure extends ServerErrorCode(3000, "Server error")
   case object UnableToUseApi extends ServerErrorCode(3001, "Unable to use the client's API.")
   case object UnsupportedVersion extends ServerErrorCode(3002, "Unsupported version.")
+  case object MissingExpectedEndpoints extends ServerErrorCode(3003, "Missing expected endpoints.") //TODO: TNM-2013
 }

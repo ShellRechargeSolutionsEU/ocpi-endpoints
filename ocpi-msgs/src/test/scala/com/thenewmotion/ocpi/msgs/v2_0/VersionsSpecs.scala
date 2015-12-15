@@ -21,11 +21,14 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
 
   "VersionDetailsResp" should {
-    "deserialize" in new VersionsTestScope {
-      version20DetailsRespJson1.convertTo[VersionDetailsResp] mustEqual version20DetailsResp
+    "succeed to deserialize if minimum expected endpoints included" in new VersionsTestScope {
+      version20DetailsRespJson.convertTo[VersionDetailsResp] mustEqual version20DetailsResp
     }
     "serialize" in new VersionsTestScope {
-      version20DetailsResp.toJson.toString mustEqual version20DetailsRespJson1.compactPrint
+      version20DetailsResp.toJson.toString mustEqual version20DetailsRespJson.compactPrint
+    }
+    "fail to deserialize if missing some expected endpoints" in new VersionsTestScope {
+      version20DetailsIncompleteRespJson.convertTo[VersionDetailsResp] must throwA[IllegalArgumentException]
     }
   }
 
@@ -85,7 +88,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
      """.stripMargin.parseJson
 
 
-    val version20DetailsRespJson1 =
+    val version20DetailsRespJson =
       s"""
          |{
          |  "status_code": 1000,
@@ -108,6 +111,23 @@ class VersionsSpecs extends SpecificationWithJUnit {
      """.stripMargin.parseJson
 
 
+    lazy val version20DetailsIncompleteRespJson =
+      s"""
+         |{
+         |  "status_code": 1000,
+         |  "status_message": "Success",
+         |  "timestamp": "2010-01-01T00:00:00Z",
+         |  "data":{
+         |    "version": "2.0",
+         |    "endpoints": [
+         |        {
+         |            "identifier": "credentials",
+         |            "url": "https://example.com/ocpi/cpo/2.0/credentials/"
+         |        }
+         |    ]
+         |  }
+         |}
+     """.stripMargin.parseJson
 
   }
 }

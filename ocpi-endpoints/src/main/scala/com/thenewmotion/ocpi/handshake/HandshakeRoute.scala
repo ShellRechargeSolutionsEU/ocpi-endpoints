@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 import scalaz._
 
-class HandshakeRoute(service: HandshakeService, ourVersionsUrl: String, currentTime: => DateTime = DateTime.now) extends JsonApi {
+class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
 
   def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
@@ -15,7 +15,7 @@ class HandshakeRoute(service: HandshakeService, ourVersionsUrl: String, currentT
 
     (post & extract(_.request.uri)) { ourCredentialsUrl =>
       entity(as[Creds]) { credsToConnectToThem =>
-        onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem, ourVersionsUrl)) {
+        onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
           case -\/(_) => reject()
           case \/-(ourNewCredsForThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
             currentTime, ourNewCredsForThem))
@@ -24,10 +24,11 @@ class HandshakeRoute(service: HandshakeService, ourVersionsUrl: String, currentT
     } ~
       path("initiateHandshake"){
         post {
-          entity(as[VersionsRequest]) { theirVersionDetails =>
-            onSuccess(service.initiateHandshakeProcess(theirVersionDetails.token, theirVersionDetails.url)) {
+          entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
+            onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
               case -\/(_) => reject()
-              case \/-(credsToConnectToUs) => complete(credsToConnectToUs)
+              case \/-(credsToConnectToUs) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+                currentTime, credsToConnectToUs))
             }
           }
         }

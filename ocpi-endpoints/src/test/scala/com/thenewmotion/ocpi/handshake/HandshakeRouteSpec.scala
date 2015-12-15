@@ -1,13 +1,14 @@
 package com.thenewmotion.ocpi.handshake
 
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.MediaTypes._
-import spray.http.{ContentType, HttpCharsets, HttpEntity}
+import spray.http.{StatusCodes, ContentType, HttpCharsets, HttpEntity}
 import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
@@ -15,42 +16,50 @@ import scalaz._
 class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
+    //FIXME: This test should be changed together with the route since it is routing to http://host:port/credentials
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
 
-      val data =
+      val theirCredsData =
         s"""
            |{
-           |    "token": "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
-           |    "url": "https://example.com/ocpi/cpo/",
+           |    "token": "${credsToConnectToThem.token}",
+           |    "url": "${credsToConnectToThem.url}",
            |    "business_details": {
-           |        "name": "Example Operator",
-           |        "logo": "http://example.com/images/logo.png",
-           |        "website": "http://example.com"
+           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "logo": "${credsToConnectToThem.business_details.logo}",
+           |        "website": "${credsToConnectToThem.business_details.website}"
            |    }
            |}
            |""".stripMargin
 
-      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
+      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirCredsData)
 
-      Post("/credentials", body) ~> credentialsRoute.route("2.0", "123") ~> check {
+      Post("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
         handled must beTrue
+        status.isSuccess === true
+        responseAs[String] must contain(GenericSuccess.code.toString)
+        responseAs[String] must contain(credsToConnectToUs.token)
       }
     }
 
     "initiateHandshake endpoint" should {
       "send the credentials to them to connect to us" in new CredentialsTestScope {
-        val data =
+        import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol.credentialsRespFormat
+        val theirVersData =
           s"""
              |{
-             |"auth": "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
-             |"url": "https://example.com/ocpi/cpo/versions"
+             |"token": "${credsToConnectToThem.token}",
+             |"url": "${credsToConnectToThem.url}"
              |}
           """.stripMargin
 
-        val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = data)
+        val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
 
-        Post("/initiateHandshake", body) ~> credentialsRoute.route("2.0", "123") ~> check {
+        Post("/initiateHandshake", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
           handled must beTrue
+          status.isSuccess === true
+          responseAs[String] must contain(GenericSuccess.code.toString)
+          responseAs[String] must contain(credsToConnectToThem.token)
         }
 
       }
@@ -58,22 +67,33 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait CredentialsTestScope extends Scope {
+    val dateTime = DateTime.parse("2010-01-01T00:00:00Z")
 
-    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
-    val theirCredentials = Creds(
+    // their details
+    val credsToConnectToThem = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
-      url = "https://example.com/ocpi/cpo/",
+      url = "https://them.com/ocpi/cpo/versions",
       business_details = OcpiBusinessDetails(
         "Example Operator",
-        Some("http://example.com/images/logo.png"),
-        Some("http://example.com")
-      )
-    )
+        Some("http://them.com/images/logo.png"),
+        Some("http://them.com")))
 
+    // our details
+    val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
+    val selectedVersion = "2.0"
+    val tokenToConnectToUs = "aaa3b399-779f-4497-9b9d-ac6ad3cc44aa"
+    val credsToConnectToUs = Creds(
+      token = tokenToConnectToUs,
+      url = ourVersionsUrl,
+      business_details = OcpiBusinessDetails("Us", None, Some("http://us.com")))
+
+    // mock
     val handshakeService = mock[HandshakeService]
-    handshakeService.reactToHandshakeRequest(any, any, any, any)(any) returns
-      Future.successful(\/-(theirCredentials))
+    handshakeService.reactToHandshakeRequest(any, any, any)(any) returns
+      Future.successful(\/-(credsToConnectToUs))
+    handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url) returns
+      Future.successful(\/-(credsToConnectToThem))
 
-    val credentialsRoute = new HandshakeRoute(handshakeService, "https://example.com/ocpi/cpo/", dateTime1)
+    val credentialsRoute = new HandshakeRoute(handshakeService, dateTime)
   }
 }

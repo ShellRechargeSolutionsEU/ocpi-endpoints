@@ -16,5 +16,8 @@ object Errors{
 
   case object CouldNotPersistPreferences extends HandshakeError
   case object CouldNotPersistNewToken extends HandshakeError
-  case object CouldNotPersistEndpoint extends HandshakeError
+  case object CouldNotPersistNewEndpoint extends HandshakeError
+  case object CouldNotPersistNewParty extends HandshakeError
+  case object AlreadyExistingParty extends HandshakeError
+  case object UnknownPartyToken extends HandshakeError
 }

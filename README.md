@@ -7,6 +7,9 @@ The New Motion implementation of common endpoints of the OCPI protocol.
 
 See http://github.com/ocpi/ocpi
 
+# Version
+The version of ocpi the library implements is hardcoded in `ocpi.ourVersion`
+
 # Notions
 To make clear when the parameters are about the application making use of the application or the party the application is
 connecting to they are referred as: `our`/`us` or `theirs`/`them`

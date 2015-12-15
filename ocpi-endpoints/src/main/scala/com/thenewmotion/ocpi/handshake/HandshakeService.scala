@@ -9,7 +9,7 @@ import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.{EndpointIdentifier, VersionDetailsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import spray.http.Uri
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 import scalaz.Scalaz._
 import scalaz._
 
@@ -19,7 +19,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def client: HandshakeClient = new HandshakeClient
 
-  def reactToHandshakeRequest(version: String, existingTokenToConnectToUs: String, credsToConnectToThem: Creds, ourVersionsUrl: Uri)
+  def reactToHandshakeRequest(version: String, existingTokenToConnectToUs: String, credsToConnectToThem: Creds)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Handshake initiated: token for party to connect to us is $existingTokenToConnectToUs, " +
@@ -28,7 +28,9 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
       res <- getTheirDetails(version, credsToConnectToThem.token, Uri(credsToConnectToThem.url))
     } yield res
     result.map {
-      case -\/(error) => -\/(error)
+      case -\/(error) =>
+        logger.error(s"error getting versions information: $error")
+        -\/(error)
       case \/-(verDetails) =>
         verDetails.data.endpoints.map(ep =>
           persistTheirEndpoint(version, existingTokenToConnectToUs, credsToConnectToThem.token, ep.identifier.name, ep.url))
@@ -40,41 +42,50 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     }
   }
 
+  /** Returns the new credentials to connect to them */
   def initiateHandshakeProcess(tokenToConnectToThem: String, theirVersionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
     logger.info(s"initiate handshake process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
 
-    ourVersionsUrl match {
-      case -\/(error) => Future.successful(-\/(error))
-      case \/-(ourVersUrl) =>
+    //TODO: It should all be abstract method of the library so applications have more freedon - TNM-1986
+    def persist(newCredToConnectToThem: Creds, theirVerDet: VersionDetailsResp): HandshakeError \/ Creds = {
+      // register their new token and the party
+      val pToken = persistTokenForNewParty(newCredToConnectToThem.business_details.name, newTokenToConnectToUs, ourVersion)
+      // persist their credentials
+      lazy val pPrefs = persistTheirPrefs (ocpi.ourVersion, newTokenToConnectToUs, newCredToConnectToThem)
+      // persist their endpoints (theirVerDet)
+      lazy val pEndpError = theirVerDet.data.endpoints
+        .map(ep => persistTheirEndpoint(
+          ocpi.ourVersion, newTokenToConnectToUs, newCredToConnectToThem.token, ep.identifier.name, ep.url))
 
-        (for {
-          theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl))
-          theirCredEndpoint = theirVerDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
-          newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
-            generateCredsToConnectToUs(newTokenToConnectToUs, ourVersUrl)))
-        } yield newCredToConnectToThem).run
-
-
-        (for {
-          theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl))
-          theirCredEndpoint = theirVerDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
-          newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
-            generateCredsToConnectToUs(newTokenToConnectToUs, ourVersUrl)))
-          //TODO: Something like this, I think inside the for comprehension
-          // persist their credentials
-          // persist their endpoints (theirVerDet)
-        } yield newCredToConnectToThem).run
+      // returns the 1st error found
+      pToken match {
+        case -\/(tokenError) => -\/(tokenError)
+        case _ => pPrefs match {
+          case -\/(prefsError) => -\/(prefsError)
+          case _ => pEndpError.filter(_.isLeft) match {
+            case -\/(firstEndpointError)::tail => -\/(firstEndpointError)
+            case _ => \/-(newCredToConnectToThem)
+          }}}
     }
+
+    (for {
+      theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl))
+      theirCredEndpoint = theirVerDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
+      newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
+        generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl)))
+      p <- result(Future.successful(persist(newCredToConnectToThem, theirVerDet))) //TODO: TNM-1986
+    } yield newCredToConnectToThem).run
+
+
   }
 
   /** Get versions, choose the one that match with the 'version' parameter, request the details of this version,
   * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
   * is not still registered
   */
-  // FIXME: I need to split this method in two, cause I want to use it in the initiation but without storing (since I can't do it yet)
   private[ocpi] def getTheirDetails(version: String, tokenToConnectToThem: String, theirVersionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
@@ -103,6 +114,8 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def persistNewTokenToConnectToUs(oldToken: String, newToken: String): HandshakeError \/ Unit
 
+  def persistTokenForNewParty(newPartyName: String, newToken: String, selectedVersion: String): HandshakeError \/ Unit
+
   def persistTheirEndpoint(version: String, existingTokenToConnectToUs: String, tokenToConnectToThem: String, endpName: String, url: Url): HandshakeError \/ Unit
 
   def ourPartyName: String
@@ -111,7 +124,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def ourWebsite: Option[Url]
 
-  def ourVersionsUrl: HandshakeError \/ Uri
+  def ourVersionsUrl: Uri
 }
 
 object ApiTokenGenerator {

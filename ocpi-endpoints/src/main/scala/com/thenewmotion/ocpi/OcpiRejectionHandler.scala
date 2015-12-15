@@ -8,7 +8,7 @@ import spray.http.StatusCodes._
 import spray.http.{ContentTypes, HttpEntity, HttpResponse}
 import spray.httpx.SprayJsonSupport
 import spray.json._
-import spray.routing.{MissingHeaderRejection, AuthenticationFailedRejection, RejectionHandler}
+import spray.routing._
 import spray.routing.directives.BasicDirectives
 import spray.routing.directives.RouteDirectives._
 
@@ -78,16 +78,30 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         )
       }
 
-    case rejections => complete {
-      HttpResponse(
-        InternalServerError,
-        HttpEntity(ContentTypes.`application/json`,
-          ErrorResp(
-            GenericServerFailure.code,
-            Some(GenericServerFailure.default_message),
-            DateTime.now()).toJson.compactPrint)
-      )
-    }
+    //TODO: TNM-2013: It doesn't work yet, it must be used to fail with that error when required endpoints not included
+//    case (r@ValidationRejection(msg, cause)) :: _ =>
+//      complete {
+//        HttpResponse(
+//          BadRequest,
+//          HttpEntity(ContentTypes.`application/json`,
+//            ErrorResp(
+//              MissingExpectedEndpoints.code,
+//              Some(s"${MissingExpectedEndpoints.default_message} $msg"),
+//              DateTime.now()).toJson.compactPrint)
+//        )
+//      }
+
+    // FIXME: TNM-1987 We generate Server Error even when the resource doesn't exist
+//    case rejections => complete {
+//      HttpResponse(
+//        InternalServerError,
+//        HttpEntity(ContentTypes.`application/json`,
+//          ErrorResp(
+//            GenericServerFailure.code,
+//            Some(GenericServerFailure.default_message),
+//            DateTime.now()).toJson.compactPrint)
+//      )
+//    }
 
   }
 }
