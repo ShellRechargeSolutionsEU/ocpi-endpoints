@@ -1,16 +1,13 @@
 import sbt.Keys._
 import sbt._
 
-
-
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
   "org.slf4j"                    % "slf4j-api"                %   "1.7.7")
 
-val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.1")
+val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
 
 val spray = Seq(
-
   "io.spray"                    %% "spray-routing-shapeless2" %   "1.3.3",
   "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test",
   "io.spray"                    %% "spray-client"             %   "1.3.3")
@@ -33,7 +30,6 @@ val testing = Seq(
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
-
 )
 
 val `ocpi-msgs` = project
@@ -55,4 +51,3 @@ val `ocpi-endpoints` = project
 enablePlugins(OssLibPlugin)
 
 publish := {}
-
