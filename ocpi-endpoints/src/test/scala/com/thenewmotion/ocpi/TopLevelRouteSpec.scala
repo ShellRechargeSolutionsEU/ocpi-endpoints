@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -96,7 +97,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     val ourCredentialsRoute = (version: String, token: String) => complete((StatusCodes.OK, s"credentials: $version"))
     val ourLocationsRoute = (version: String, token: String) => complete((StatusCodes.OK, s"locations: $version"))
-
+    val mockHandshakeService = mock[HandshakeService]
     val topLevelRoute = new TopLevelRoute {
 
       override val currentTime = DateTime.parse("2010-01-01T00:00:00Z")
@@ -109,7 +110,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
               EndpointIdentifier.Locations -> ourLocationsRoute
             )
           )
-        )
+        ), mockHandshakeService
       ) {
         token => if (token == "12345") Some(ApiUser("beCharged","12345")) else None
       }

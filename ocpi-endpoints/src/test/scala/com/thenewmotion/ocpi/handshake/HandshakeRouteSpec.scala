@@ -16,7 +16,6 @@ import scalaz._
 class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
-    //FIXME: This test should be changed together with the route since it is routing to http://host:port/credentials
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
 
       val theirCredsData =
@@ -44,7 +43,6 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     "initiateHandshake endpoint" should {
       "send the credentials to them to connect to us" in new CredentialsTestScope {
-        import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol.credentialsRespFormat
         val theirVersData =
           s"""
              |{
@@ -55,7 +53,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
         val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
 
-        Post("/initiateHandshake", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
+        Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
           handled must beTrue
           status.isSuccess === true
           responseAs[String] must contain(GenericSuccess.code.toString)
@@ -95,5 +93,6 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       Future.successful(\/-(credsToConnectToThem))
 
     val credentialsRoute = new HandshakeRoute(handshakeService, dateTime)
+    val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService, dateTime)
   }
 }

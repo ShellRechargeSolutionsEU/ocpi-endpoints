@@ -4,7 +4,8 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Url, BusinessDetails}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
@@ -91,7 +92,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         override def persistNewTokenToConnectToUs(oldT: String, newT: String) = \/-(Unit)
         override def persistTokenForNewParty(party: String, tok: String, ver: String) = -\/(CouldNotPersistNewToken)
 
-        override def ourPartyName: String = serverPartyName
+        override def ourPartyName: String = ourCpoName
         override def ourLogo: Option[Url] = None
         override def ourWebsite: Option[Url] = None
         override def persistTheirEndpoint(ver: String, tokConToUs: String, tokConToThem: String, name: String, url: Url) = \/-(Unit)
@@ -125,10 +126,15 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     def this() = this(ActorSystem("ocpi-allstarts"))
 
+    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
+
     val ourVersionsUrlStr = Uri("http://localhost:8080/cpo/versions")
+    val tokenToConnectToUs = "123"
+    val ourCpoName = "TNM (CPO)"
+    val ourCredentials = Creds("123", ourVersionsUrlStr.toString(), BusinessDetails(ourCpoName, None, None))
+    val ourCredsResp = CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), dateTime1, ourCredentials)
 
     val selectedVersion = "2.0"
-    val tokenToConnectToUs = "123"
     val tokenToConnectToThem = "456"
     val theirVersionsUrl = "http://the-awesomes/msp/versions"
     val theirVersionDetailsUrl = "http://the-awesomes/msp/2.0"
@@ -141,17 +147,12 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         None
       )
     )
-    val serverPartyName = "TNM (CPO)"
-
-    val serverCredentials = Creds("123", ourVersionsUrlStr.toString(), BusinessDetails(serverPartyName, None, None))
-
-    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
 
     var _client = mock[HandshakeClient]
 
     // React to handshake request
-    _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns Future.successful(\/-(VersionsResp(1000, None, dateTime1,
-      List(Version("2.0", theirVersionDetailsUrl)))))
+    _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns Future.successful(
+      \/-(VersionsResp(1000, None, dateTime1, List(Version("2.0", theirVersionDetailsUrl)))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
       \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
@@ -159,15 +160,16 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
           Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"))))))
 
     // Initiate handshake request
-    _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(\/-(VersionsResp(1000, None, dateTime1,
-      List(Version("2.0", theirVersionDetailsUrl)))))
+    _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(
+      \/-(VersionsResp(1000, None, dateTime1, List(Version("2.0", theirVersionDetailsUrl)))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToUs) returns Future.successful(
       \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"))))))
 
-    _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(\/-(serverCredentials))
+    _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(
+      \/-(ourCredsResp))
 
 
     val handshakeService = new HandshakeService {
@@ -175,7 +177,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       override def persistTheirPrefs(version: String, tokenToConnectToUs: String, credsToConnectToThem: Creds) = \/-(Unit)
       override def persistNewTokenToConnectToUs(oldToken: String, newToken: String) = \/-(Unit)
       override def persistTokenForNewParty(newPartyName: String, newToken: String, selectedVersion: String) = \/-(Unit)
-      override def ourPartyName: String = serverPartyName
+      override def ourPartyName: String = ourCpoName
       override def ourLogo: Option[Url] = None
       override def ourWebsite: Option[Url] = None
       override def persistTheirEndpoint(version: String, tokenToConnectToUs: String, tokenToConnectToThem: String, name: String, url: Url) = \/-(Unit)

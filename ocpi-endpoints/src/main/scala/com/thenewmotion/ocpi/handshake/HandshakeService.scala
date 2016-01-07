@@ -7,7 +7,7 @@ import Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_0.Versions
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.{EndpointIdentifier, VersionDetailsResp}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import spray.http.Uri
 import scala.concurrent.{Future, ExecutionContext}
 import scalaz.Scalaz._
@@ -74,10 +74,10 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     (for {
       theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl))
       theirCredEndpoint = theirVerDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
-      newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
+        newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl)))
-      p <- result(Future.successful(persist(newCredToConnectToThem, theirVerDet))) //TODO: TNM-1986
-    } yield newCredToConnectToThem).run
+      p <- result(Future.successful(persist(newCredToConnectToThem.data, theirVerDet))) //TODO: TNM-1986
+    } yield newCredToConnectToThem.data).run
 
 
   }

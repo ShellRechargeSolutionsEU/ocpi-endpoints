@@ -5,7 +5,7 @@ import akka.util.Timeout
 import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.handshake.Errors._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Url, SuccessResp}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.client.pipelining._
 import spray.http._
@@ -56,8 +56,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
   }
 
   def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: String, credToConnectToUs: Creds)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
-    val pipeline = request(tokenToConnectToThem) ~> unmarshalToOption[Creds]
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ CredsResp] = {
+    val pipeline = request(tokenToConnectToThem) ~> unmarshalToOption[CredsResp]
     pipeline(Post(theirCredUrl, credToConnectToUs)) map { toRight(_)(SendingCredentialsFailed) }
   }
 

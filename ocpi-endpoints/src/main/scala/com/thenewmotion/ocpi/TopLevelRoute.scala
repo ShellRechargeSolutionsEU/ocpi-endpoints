@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
 
+import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.routing._
@@ -9,7 +10,6 @@ import org.joda.time.DateTime
 import spray.http.Uri
 
 trait TopLevelRoute extends JsonApi {
-
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
 
   def routingConfig: OcpiRoutingConfig
@@ -77,6 +77,9 @@ trait TopLevelRoute extends JsonApi {
                 case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
               }
             }
+          } ~
+          pathPrefix("initiateHandshake") {
+            new InitiateHandshakeRoute(routingConfig.handshakeService).route
           }
         }
       }

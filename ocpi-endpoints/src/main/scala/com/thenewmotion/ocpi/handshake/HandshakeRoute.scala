@@ -11,9 +11,8 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
   def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
     import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
     import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
-    import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 
-    (post & extract(_.request.uri)) { ourCredentialsUrl =>
+    post {
       entity(as[Creds]) { credsToConnectToThem =>
         onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
           case -\/(_) => reject()
@@ -21,8 +20,17 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
             currentTime, ourNewCredsForThem))
         }
       }
-    } ~
-      path("initiateHandshake"){
+    }
+  }
+}
+
+class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+
+  def route(implicit ec: ExecutionContext) = {
+    import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+    import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
+    import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+
         post {
           entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
             onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
@@ -32,6 +40,5 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
             }
           }
         }
-      }
   }
 }
