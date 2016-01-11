@@ -49,7 +49,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
 
-    //TODO: It should all be abstract method of the library so applications have more freedon - TNM-1986
+    //TODO: It should all be abstract method of the library so applications have more freedom - TNM-1986
     def persist(newCredToConnectToThem: Creds, theirVerDet: VersionDetailsResp): HandshakeError \/ Creds = {
       // register their new token and the party
       val pToken = persistTokenForNewParty(newCredToConnectToThem.business_details.name, newTokenToConnectToUs, ourVersion)

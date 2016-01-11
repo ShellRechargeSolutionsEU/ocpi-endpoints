@@ -111,9 +111,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
             )
           )
         ), mockHandshakeService
-      ) {
-        token => if (token == "12345") Some(ApiUser("beCharged","12345")) else None
-      }
+      ) { token => if (token == "12345") Some(ApiUser("beCharged","12345")) else None }
+        { token => if (token == "initiate") Some(ApiUser("admin", "initiate")) else None }
     }
   }
 }

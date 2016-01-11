@@ -12,4 +12,5 @@ case class OcpiRoutingConfig(
   versionsEndpoint: String,
   versions: Map[String, OcpiVersionConfig],
   handshakeService: HandshakeService
-)(val authenticateApiUser: String => Option[ApiUser])
+)(val authenticateApiUser: String => Option[ApiUser]
+)(val authenticateInternalUser: String => Option[ApiUser])

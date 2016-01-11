@@ -16,7 +16,8 @@ trait TopLevelRoute extends JsonApi {
 
   def currentTime = DateTime.now
 
-  lazy val auth = new Authenticator(routingConfig.authenticateApiUser)
+  lazy val externalUseToken = new Authenticator(routingConfig.authenticateApiUser)
+  lazy val internalUseToken = new Authenticator(routingConfig.authenticateInternalUser)
 
   val EndPointPathMatcher = Segment.flatMap {
     case s => EndpointIdentifier.withName(s)
@@ -65,8 +66,16 @@ trait TopLevelRoute extends JsonApi {
 
   def route(implicit ec: ExecutionContext) =
     headerValueByName("Authorization") { access_token =>
-      authenticate(auth.validate(access_token)) { apiUser: ApiUser =>
-        (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
+      (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
+
+        pathPrefix("initiateHandshake") {
+          pathEndOrSingleSlash {
+            authenticate(internalUseToken.validate(access_token)) { internalUser: ApiUser =>
+              new InitiateHandshakeRoute(routingConfig.handshakeService).route
+            }
+          }
+        } ~
+        authenticate(externalUseToken.validate(access_token)) { apiUser: ApiUser =>
           pathPrefix(routingConfig.versionsEndpoint) {
             pathEndOrSingleSlash {
               versionsRoute(uri)
@@ -77,14 +86,11 @@ trait TopLevelRoute extends JsonApi {
                 case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
               }
             }
-          } ~
-          pathPrefix("initiateHandshake") {
-            new InitiateHandshakeRoute(routingConfig.handshakeService).route
           }
         }
+
       }
     }
-
 }
 
 class Authenticator(authenticateApiUser: String => Option[ApiUser]) {
