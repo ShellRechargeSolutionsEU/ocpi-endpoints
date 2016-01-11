@@ -9,9 +9,9 @@ import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.client.pipelining._
 import spray.http._
-import spray.httpx.unmarshalling._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.Try
 import scalaz.Scalaz._
 import scalaz._
 
@@ -35,32 +35,46 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
       ~> logResponse
     )
 
-  def unmarshalToOption[T](implicit unmarshaller: FromResponseUnmarshaller[T], ec: ExecutionContext):
-  Future[HttpResponse] => Future[Option[T]] = {
-
-    _.map { res =>
-      if (res.status.isFailure) None
-      else Some(unmarshal[T](unmarshaller)(res))
-    }
+  private def bimap[T, M](f: Future[T])(pf: PartialFunction[Try[T], M])(implicit ec: ExecutionContext): Future[M] = {
+    val p = Promise[M]()
+    f.onComplete(r => p.complete(Try(pf(r))))
+    p.future
   }
 
   def getTheirVersions(uri: Uri, token: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionsResp] = {
-    val pipeline = request(token) ~> unmarshalToOption[VersionsResp]
-    pipeline(Get(uri)) map { toRight(_)(VersionsRetrievalFailed) }
+    val pipeline = request(token) ~> unmarshal[VersionsResp]
+    val resp = pipeline(Get(uri))
+    bimap(resp) {
+      case scala.util.Success(versions) => \/-(versions)
+      case scala.util.Failure(_) =>
+        logger.error(s"Could not retrieve the versions information from $uri with token $token")
+        -\/(VersionsRetrievalFailed)
+    }
   }
 
   def getTheirVersionDetails(uri: Uri, token: String)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
-    val pipeline = request(token) ~> unmarshalToOption[VersionDetailsResp]
-    pipeline(Get(uri)) map { toRight(_)(VersionDetailsRetrievalFailed) }
+    val pipeline = request(token) ~> unmarshal[VersionDetailsResp]
+    val resp = pipeline(Get(uri))
+    bimap(resp) {
+      case scala.util.Success(versions) => \/-(versions)
+      case scala.util.Failure(_) =>
+        logger.error(s"Could not retrieve the version details from $uri with token $token")
+        -\/(VersionDetailsRetrievalFailed)
+    }
   }
 
   def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: String, credToConnectToUs: Creds)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ CredsResp] = {
-    val pipeline = request(tokenToConnectToThem) ~> unmarshalToOption[CredsResp]
-    pipeline(Post(theirCredUrl, credToConnectToUs)) map { toRight(_)(SendingCredentialsFailed) }
+    val pipeline = request(tokenToConnectToThem) ~> unmarshal[CredsResp]
+    val resp = pipeline(Post(theirCredUrl, credToConnectToUs))
+    bimap(resp) {
+      case scala.util.Success(theirCreds) => \/-(theirCreds)
+      case scala.util.Failure(_) =>
+        logger.error( s"""Could not retrieve their credentials from $theirCredUrl with token
+             $tokenToConnectToThem when sending our credentials $credToConnectToUs""")
+        -\/(SendingCredentialsFailed)
+    }
   }
-
-
 }
 
