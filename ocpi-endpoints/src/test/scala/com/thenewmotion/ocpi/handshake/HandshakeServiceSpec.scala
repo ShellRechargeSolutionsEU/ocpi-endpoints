@@ -25,9 +25,11 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
       result must beLike[\/[HandshakeError, Creds]] {
-        case \/-(Creds(_, v, bd)) =>
+        case \/-(Creds(_, v, bd, id, c)) =>
           v mustEqual "http://localhost:8080/cpo/versions"
           bd mustEqual BusinessDetails("TNM (CPO)", None, None)
+          id mustEqual ourPartyIdVal
+          c mustEqual ourCountryCodeVal
       }.await
     }
 
@@ -61,9 +63,11 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
       result must beLike[\/[HandshakeError, Creds]] {
-        case \/-(Creds(_, v, bd)) =>
+        case \/-(Creds(_, v, bd, id, c)) =>
           v mustEqual "http://localhost:8080/cpo/versions"
           bd mustEqual BusinessDetails("TNM (CPO)", None, None)
+          id mustEqual ourPartyIdVal
+          c mustEqual ourCountryCodeVal
       }.await
     }
 
@@ -90,13 +94,15 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         override def client = _client
         override def persistTheirPrefs(ver: String, tokConToUs: String, credConToThem: Creds) = \/-(Unit)
         override def persistNewTokenToConnectToUs(oldT: String, newT: String) = \/-(Unit)
-        override def persistTokenForNewParty(party: String, tok: String, ver: String) = -\/(CouldNotPersistNewToken)
+        override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = -\/(CouldNotPersistNewToken)
 
         override def ourPartyName: String = ourCpoName
         override def ourLogo: Option[Url] = None
         override def ourWebsite: Option[Url] = None
         override def persistTheirEndpoint(ver: String, tokConToUs: String, tokConToThem: String, name: String, url: Url) = \/-(Unit)
         override def ourVersionsUrl = ourVersionsUrlStr
+        override def ourPartyId = ourPartyIdVal
+        override def ourCountryCode = ourCountryCodeVal
       }
 
       val result = handshakeServiceError.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
@@ -131,7 +137,10 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     val ourVersionsUrlStr = Uri("http://localhost:8080/cpo/versions")
     val tokenToConnectToUs = "123"
     val ourCpoName = "TNM (CPO)"
-    val ourCredentials = Creds("123", ourVersionsUrlStr.toString(), BusinessDetails(ourCpoName, None, None))
+    val ourPartyIdVal = "TNM"
+    val ourCountryCodeVal = "NL"
+    val ourCredentials = Creds(tokenToConnectToUs, ourVersionsUrlStr.toString(),
+      BusinessDetails(ourCpoName, None, None), ourPartyIdVal, ourCountryCodeVal)
     val ourCredsResp = CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), dateTime1, ourCredentials)
 
     val selectedVersion = "2.0"
@@ -145,7 +154,9 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         "The Awesomes",
         None,
         None
-      )
+      ),
+      ourPartyIdVal,
+      ourCountryCodeVal
     )
 
     var _client = mock[HandshakeClient]
@@ -176,12 +187,14 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       override def client = _client
       override def persistTheirPrefs(version: String, tokenToConnectToUs: String, credsToConnectToThem: Creds) = \/-(Unit)
       override def persistNewTokenToConnectToUs(oldToken: String, newToken: String) = \/-(Unit)
-      override def persistTokenForNewParty(newPartyName: String, newToken: String, selectedVersion: String) = \/-(Unit)
+      override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = \/-(Unit)
       override def ourPartyName: String = ourCpoName
       override def ourLogo: Option[Url] = None
       override def ourWebsite: Option[Url] = None
       override def persistTheirEndpoint(version: String, tokenToConnectToUs: String, tokenToConnectToThem: String, name: String, url: Url) = \/-(Unit)
       override def ourVersionsUrl = ourVersionsUrlStr
+      override def ourPartyId = ourPartyIdVal
+      override def ourCountryCode = ourCountryCodeVal
     }
 
   }

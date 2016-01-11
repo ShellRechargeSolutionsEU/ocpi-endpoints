@@ -30,20 +30,24 @@ class CredentialsSpecs extends SpecificationWithJUnit {
         "Example Operator",
         Some("http://example.com/images/logo.png"),
         Some("http://example.com")
-      )
+      ),
+      party_id = "EXA",
+      country_code = "NL"
     )
 
 
     val credentialsJson1 =
       s"""
          |{
-         |    "token": "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
-         |    "url": "https://example.com/ocpi/cpo/",
+         |    "token": "${credentials1.token}",
+         |    "url": "${credentials1.url}",
          |    "business_details": {
-         |        "name": "Example Operator",
-         |        "logo": "http://example.com/images/logo.png",
-         |        "website": "http://example.com"
-         |    }
+         |        "name": "${credentials1.business_details.name}",
+         |        "logo": "${credentials1.business_details.logo.get}",
+         |        "website": "${credentials1.business_details.website.get}"
+         |    },
+         |    "party_id": "${credentials1.party_id}",
+         |    "country_code": "${credentials1.country_code}"
          |}
      """.stripMargin.parseJson
 

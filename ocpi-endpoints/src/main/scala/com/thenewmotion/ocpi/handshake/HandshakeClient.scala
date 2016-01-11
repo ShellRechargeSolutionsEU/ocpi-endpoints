@@ -57,7 +57,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     val pipeline = request(token) ~> unmarshal[VersionDetailsResp]
     val resp = pipeline(Get(uri))
     bimap(resp) {
-      case scala.util.Success(versions) => \/-(versions)
+      case scala.util.Success(versionDet) => \/-(versionDet)
       case scala.util.Failure(_) =>
         logger.error(s"Could not retrieve the version details from $uri with token $token")
         -\/(VersionDetailsRetrievalFailed)
@@ -71,8 +71,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     bimap(resp) {
       case scala.util.Success(theirCreds) => \/-(theirCreds)
       case scala.util.Failure(_) =>
-        logger.error( s"""Could not retrieve their credentials from $theirCredUrl with token
-             $tokenToConnectToThem when sending our credentials $credToConnectToUs""")
+        logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
+             s"$tokenToConnectToThem when sending our credentials $credToConnectToUs")
         -\/(SendingCredentialsFailed)
     }
   }

@@ -130,6 +130,6 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val versionDetailsRespFormat = jsonFormat4(VersionDetailsResp)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)
   implicit val successRespFormat = jsonFormat3(SuccessResp)
-  implicit val credentialsFormat = jsonFormat3(Creds)
+  implicit val credentialsFormat = jsonFormat5(Creds)
   implicit val credentialsRespFormat = jsonFormat4(CredsResp)
 }

@@ -27,7 +27,9 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
            |        "name": "${credsToConnectToThem.business_details.name}",
            |        "logo": "${credsToConnectToThem.business_details.logo}",
            |        "website": "${credsToConnectToThem.business_details.website}"
-           |    }
+           |    },
+           |    "party_id": "${credsToConnectToThem.party_id}",
+           |    "country_code": "${credsToConnectToThem.country_code}"
            |}
            |""".stripMargin
 
@@ -74,7 +76,9 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       business_details = OcpiBusinessDetails(
         "Example Operator",
         Some("http://them.com/images/logo.png"),
-        Some("http://them.com")))
+        Some("http://them.com")),
+      party_id = "EOP",
+      country_code = "NL")
 
     // our details
     val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
@@ -83,7 +87,9 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     val credsToConnectToUs = Creds(
       token = tokenToConnectToUs,
       url = ourVersionsUrl,
-      business_details = OcpiBusinessDetails("Us", None, Some("http://us.com")))
+      business_details = OcpiBusinessDetails("Us", None, Some("http://us.com")),
+      party_id = "TNM",
+      country_code = "NL")
 
     // mock
     val handshakeService = mock[HandshakeService]

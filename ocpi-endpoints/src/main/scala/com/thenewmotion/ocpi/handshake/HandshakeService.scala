@@ -52,7 +52,8 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     //TODO: It should all be abstract method of the library so applications have more freedom - TNM-1986
     def persist(newCredToConnectToThem: Creds, theirVerDet: VersionDetailsResp): HandshakeError \/ Creds = {
       // register their new token and the party
-      val pToken = persistTokenForNewParty(newCredToConnectToThem.business_details.name, newTokenToConnectToUs, ourVersion)
+      val pToken = persistTokenForNewParty(newCredToConnectToThem.business_details.name, newTokenToConnectToUs,
+        ourVersion, newCredToConnectToThem.party_id, newCredToConnectToThem.country_code)
       // persist their credentials
       lazy val pPrefs = persistTheirPrefs (ocpi.ourVersion, newTokenToConnectToUs, newCredToConnectToThem)
       // persist their endpoints (theirVerDet)
@@ -107,16 +108,18 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   private[ocpi] def generateCredsToConnectToUs(tokenToConnectToUs: String, ourVersionsUrl: Uri): Creds = {
     import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
 
-    Creds(tokenToConnectToUs, ourVersionsUrl.toString(), BusinessDetails(ourPartyName, ourLogo, ourWebsite))
+    Creds(tokenToConnectToUs, ourVersionsUrl.toString(), BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
   }
 
   def persistTheirPrefs(version: String, tokenToConnectToUs: String, credsToConnectToThem: Creds): HandshakeError \/ Unit
 
   def persistNewTokenToConnectToUs(oldToken: String, newToken: String): HandshakeError \/ Unit
 
-  def persistTokenForNewParty(newPartyName: String, newToken: String, selectedVersion: String): HandshakeError \/ Unit
+  def persistTokenForNewParty(newPartyName: String, newToken: String,
+    selectedVersion: String, partyId: String, countryCode: String): HandshakeError \/ Unit
 
-  def persistTheirEndpoint(version: String, existingTokenToConnectToUs: String, tokenToConnectToThem: String, endpName: String, url: Url): HandshakeError \/ Unit
+  def persistTheirEndpoint(version: String, existingTokenToConnectToUs: String,
+    tokenToConnectToThem: String, endpName: String, url: Url): HandshakeError \/ Unit
 
   def ourPartyName: String
 
@@ -125,6 +128,10 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   def ourWebsite: Option[Url]
 
   def ourVersionsUrl: Uri
+
+  def ourPartyId: String
+
+  def ourCountryCode: String
 }
 
 object ApiTokenGenerator {

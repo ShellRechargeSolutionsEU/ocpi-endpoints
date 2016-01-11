@@ -10,7 +10,9 @@ object Credentials {
   case class Creds(
     token: String,
     url:  Url,
-    business_details: BusinessDetails
+    business_details: BusinessDetails,
+    party_id: String,
+    country_code: String
     )
 
   case class CredsResp(
