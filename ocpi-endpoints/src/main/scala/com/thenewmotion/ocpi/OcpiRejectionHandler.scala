@@ -48,8 +48,8 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           BadRequest,
           HttpEntity(ContentTypes.`application/json`,
             ErrorResp(
-              AuthenticationFailed.code,
-              Some(AuthenticationFailed.default_message),
+              MissingHeader.code,
+              Some(MissingHeader.default_message),
               DateTime.now()).toJson.compactPrint)
         )
       }

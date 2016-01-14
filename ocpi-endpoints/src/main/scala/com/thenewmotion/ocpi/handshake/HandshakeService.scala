@@ -13,7 +13,9 @@ import scala.concurrent.{Future, ExecutionContext}
 import scalaz.Scalaz._
 import scalaz._
 
-abstract class HandshakeService(implicit system: ActorRefFactory) extends FutureEitherUtils {
+abstract class HandshakeService(ourPartyName: String, ourLogo: Option[Url], ourWebsite: Option[Url],
+  ourVersionsUrl: Uri, ourPartyId: String, ourCountryCode: String)
+  (implicit system: ActorRefFactory) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
@@ -24,9 +26,8 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
     logger.info(s"Handshake initiated: token for party to connect to us is $existingTokenToConnectToUs, " +
       s"chosen version: $version.\nCredentials for us: $credsToConnectToThem")
-    val result = for {
-      res <- getTheirDetails(version, credsToConnectToThem.token, Uri(credsToConnectToThem.url))
-    } yield res
+    val result = getTheirDetails(version, credsToConnectToThem.token, Uri(credsToConnectToThem.url), false)
+
     result.map {
       case -\/(error) =>
         logger.error(s"error getting versions information: $error")
@@ -73,7 +74,7 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
     }
 
     (for {
-      theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl))
+      theirVerDet <- result(getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl, true))
       theirCredEndpoint = theirVerDet.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
         newCredToConnectToThem <- result(client.sendCredentials(theirCredEndpoint.url, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl)))
@@ -87,13 +88,16 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
   * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
   * is not still registered
   */
-  private[ocpi] def getTheirDetails(version: String, tokenToConnectToThem: String, theirVersionsUrl: Uri)
+  private[ocpi] def getTheirDetails(version: String, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findCommonVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
-        case None => Future.successful(-\/(SelectedVersionNotHosted))
+        case None =>
+          if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion))
+          else if (ourVersion != version) Future.successful(-\/(SelectedVersionNotHostedByUs))
+          else Future.successful(-\/(SelectedVersionNotHostedByThem))
       }
     }
 
@@ -120,18 +124,6 @@ abstract class HandshakeService(implicit system: ActorRefFactory) extends Future
 
   def persistTheirEndpoint(version: String, existingTokenToConnectToUs: String,
     tokenToConnectToThem: String, endpName: String, url: Url): HandshakeError \/ Unit
-
-  def ourPartyName: String
-
-  def ourLogo: Option[Url]
-
-  def ourWebsite: Option[Url]
-
-  def ourVersionsUrl: Uri
-
-  def ourPartyId: String
-
-  def ourCountryCode: String
 }
 
 object ApiTokenGenerator {

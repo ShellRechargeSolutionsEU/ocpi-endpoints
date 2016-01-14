@@ -38,7 +38,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         Future.successful(-\/(VersionsRetrievalFailed))
       val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-      result must be_-\/.await
+      result must be_-\/(VersionsRetrievalFailed: HandshakeError).await
     }
 
     "return error if no versions were returned" in new HandshakeTestScope {
@@ -47,7 +47,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         List())))
       val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-      result must be_-\/.await
+      result must be_-\/(SelectedVersionNotHostedByThem: HandshakeError).await
     }
 
     "return error if there was an error getting version details" in new HandshakeTestScope {
@@ -56,7 +56,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
       val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-      result must be_-\/.await
+      result must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
     }
 
     "return credentials with new token if the initiating party's endpoints returned correct data" in new HandshakeTestScope {
@@ -77,37 +77,37 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
       val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-      result must be_-\/.await
+      result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
     }
 
     "return an error when any of the calls made to the other party endpoints don't respond" in new HandshakeTestScope{
-      _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToUs) returns
+      _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
         Future.successful(-\/(VersionsRetrievalFailed))
 
       val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-      result must be_-\/.await
+      result must be_-\/(VersionsRetrievalFailed: HandshakeError).await
     }
 
     "return an error when failing in the storage of the other party endpoints" in new HandshakeTestScope{
-      val handshakeServiceError = new HandshakeService {
+      val handshakeServiceError = new HandshakeService(
+        ourPartyName = ourCpoName,
+        ourLogo = None,
+        ourWebsite = None,
+        ourVersionsUrl = ourVersionsUrlStr,
+        ourPartyId = ourPartyIdVal,
+        ourCountryCode = ourCountryCodeVal
+        ) {
         override def client = _client
-        override def persistTheirPrefs(ver: String, tokConToUs: String, credConToThem: Creds) = \/-(Unit)
+        override def persistTheirPrefs(ver: String, tToConToUs: String, cToConToThem: Creds) = \/-(Unit)
         override def persistNewTokenToConnectToUs(oldT: String, newT: String) = \/-(Unit)
         override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = -\/(CouldNotPersistNewToken)
-
-        override def ourPartyName: String = ourCpoName
-        override def ourLogo: Option[Url] = None
-        override def ourWebsite: Option[Url] = None
-        override def persistTheirEndpoint(ver: String, tokConToUs: String, tokConToThem: String, name: String, url: Url) = \/-(Unit)
-        override def ourVersionsUrl = ourVersionsUrlStr
-        override def ourPartyId = ourPartyIdVal
-        override def ourCountryCode = ourCountryCodeVal
+        override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
       }
 
       val result = handshakeServiceError.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-      result must be_-\/.await
+      result must be_-\/(CouldNotPersistNewToken: HandshakeError).await
     }
 
     "return an error when it fails sending the credentials" in new HandshakeTestScope{
@@ -116,7 +116,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
       val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-      result must be_-\/.await
+      result must be_-\/(SendingCredentialsFailed: HandshakeError).await
     }
 
     "return an error if any of the required endpoints is not detailed" in new HandshakeTestScope {
@@ -183,18 +183,19 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       \/-(ourCredsResp))
 
 
-    val handshakeService = new HandshakeService {
+    val handshakeService = new HandshakeService(
+      ourPartyName = ourCpoName,
+      ourLogo = None,
+      ourWebsite = None,
+      ourVersionsUrl = ourVersionsUrlStr,
+      ourPartyId = ourPartyIdVal,
+      ourCountryCode = ourCountryCodeVal
+      ) {
       override def client = _client
-      override def persistTheirPrefs(version: String, tokenToConnectToUs: String, credsToConnectToThem: Creds) = \/-(Unit)
+      override def persistTheirPrefs(v: String, tToConToUs: String, cToConToThem: Creds) = \/-(Unit)
       override def persistNewTokenToConnectToUs(oldToken: String, newToken: String) = \/-(Unit)
       override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = \/-(Unit)
-      override def ourPartyName: String = ourCpoName
-      override def ourLogo: Option[Url] = None
-      override def ourWebsite: Option[Url] = None
-      override def persistTheirEndpoint(version: String, tokenToConnectToUs: String, tokenToConnectToThem: String, name: String, url: Url) = \/-(Unit)
-      override def ourVersionsUrl = ourVersionsUrlStr
-      override def ourPartyId = ourPartyIdVal
-      override def ourCountryCode = ourCountryCodeVal
+      override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
     }
 
   }

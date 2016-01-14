@@ -49,7 +49,6 @@ object Versions {
   object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
     case object Locations extends EndpointIdentifier {val name = "locations"}
     case object Credentials extends EndpointIdentifier {val name = "credentials"}
-    case object InitiateHandshake extends EndpointIdentifier {val name = "initiateHandshake"}
 
     val values = List(Locations, Credentials)
   }

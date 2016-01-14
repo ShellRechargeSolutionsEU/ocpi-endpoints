@@ -7,7 +7,9 @@ object Errors{
   case object VersionDetailsRetrievalFailed extends HandshakeError
   case object SendingCredentialsFailed extends HandshakeError
 
-  case object SelectedVersionNotHosted extends HandshakeError
+  case object SelectedVersionNotHostedByUs extends HandshakeError
+  case object CouldNotFindMutualVersion extends HandshakeError
+  case object SelectedVersionNotHostedByThem extends HandshakeError
   case object NoCredentialsEndpoint extends HandshakeError
   case object UnknownEndpointType extends HandshakeError
   case object CouldNotInsertEndpoint extends HandshakeError
