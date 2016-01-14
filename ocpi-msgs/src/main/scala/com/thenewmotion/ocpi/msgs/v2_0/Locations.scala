@@ -17,25 +17,25 @@ object Locations {
     postal_code: String,
     country:	String,
     coordinates:	GeoLocation,
-    evses: Option[List[Evse]],
-    directions:	Option[String] = None,
+    related_locations: List[AdditionalGeoLocation] = List(),
+    evses: List[Evse],
+    directions:	List[DisplayText],
     operator: Option[BusinessDetails] = None,
+    suboperator: Option[BusinessDetails] = None,
     opening_times: Option[Hours] = None,
     charging_when_closed: Option[Boolean] = None,
-    images: Option[List[Image]] = None
-
-    ) {
+    images: List[Image] = List()) {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
   sealed trait LocationType extends Nameable
-  object LocationTypeEnum extends Enumerable[LocationType] {
-    case object OnStreet extends LocationType {val name = "on_street"}
-    case object ParkingGarage extends LocationType {val name = "parking_garage"}
-    case object UndergroundGarage extends LocationType {val name = "underground_garage"}
-    case object ParkingLot extends LocationType {val name = "parking_lot"}
-    case object Other extends LocationType {val name = "other"}
-    case object Unknown extends LocationType {val name = "unknown"}
+  object LocationType extends Enumerable[LocationType] {
+    case object OnStreet extends LocationType {val name = "ON_STREET"}
+    case object ParkingGarage extends LocationType {val name = "PARKING_GARAGE"}
+    case object UndergroundGarage extends LocationType {val name = "UNDERGROUND_GARAGE"}
+    case object ParkingLot extends LocationType {val name = "PARKING_LOT"}
+    case object Other extends LocationType {val name = "OTHER"}
+    case object Unknown extends LocationType {val name = "UNKNOWN"}
     val values = List(OnStreet, ParkingGarage, UndergroundGarage,
       ParkingLot, Other, Unknown)
   }
@@ -52,10 +52,10 @@ object Locations {
   )
 
   case class Hours(
-    regular_hours: List[RegularHours],
     twentyfourseven: Boolean,
-    exceptional_openings: List[ExceptionalPeriod],
-    exceptional_closings: List[ExceptionalPeriod]
+    regular_hours: List[RegularHours] = List(),
+    exceptional_openings: List[ExceptionalPeriod] = List(),
+    exceptional_closings: List[ExceptionalPeriod] = List()
   ) {
     require(regular_hours.nonEmpty && !twentyfourseven
       || regular_hours.isEmpty && twentyfourseven)
@@ -69,14 +69,14 @@ object Locations {
     )
 
   case class Power(
-    current: Option[CurrentType],
+    current: Option[PowerType],
     amperage: Int,
     voltage: Int
     )
 
   sealed trait PricingUnit extends Nameable
 
-  object PricingUnitEnum extends Enumerable[PricingUnit] {
+  object PricingUnit extends Enumerable[PricingUnit] {
     case object Session extends PricingUnit {val name = "session"}
     case object KWhToEV extends PricingUnit {val name = "kwhtoev"}
     case object OccupancyHours extends PricingUnit {val name = "occupancyhours"}
@@ -87,7 +87,7 @@ object Locations {
 
   sealed trait PeriodType extends Nameable
 
-  object PeriodTypeEnum extends Enumerable[PeriodType] {
+  object PeriodType extends Enumerable[PeriodType] {
     case object Charging extends PeriodType {val name = "Charging"}
     case object Parking extends PeriodType {val name = "Parking"}
     val values = List(Charging, Parking)
@@ -109,81 +109,139 @@ object Locations {
     currency: CurrencyUnit,
     //    validity_rule: Option[Validity],  // not in OCPP 2.0
     condition: Option[String],
-    display_text: DisplayText
+    display_text: List[DisplayText]
     )
 
   case class  PriceScheme(
     price_scheme_id: Int,
     start_date: Option[DateTime],
     expiry_date: Option[DateTime],
-    tariff: Option[List[Tariff]],
-    display_text: DisplayText
+    tariff: List[Tariff],
+    display_text: List[DisplayText]
     )
 
   case class Connector(
     id: String,
+    status: ConnectorStatus,
     standard: ConnectorType,
     format: ConnectorFormat,
-    price_schemes: Option[List[PriceScheme]],
-    power_type:	CurrentType,
+    power_type:	PowerType,
     voltage: Int,
     amperage: Int,
+    tariff_id: Option[String],
     terms_and_conditions: Option[Url] = None
     )
 
 
 
   sealed trait Capability extends Nameable
-
-  //Shouldn't that be free text field? Different capability different tariff_type per
-  // charging profile. It needs to be agreed between the parties
-  //will do it like this for Enexis and discuss it on the OCPI meeting next month
-  object CapabilityEnum extends Enumerable[Capability]{
-    case object ChargingProfileCapable extends Capability {val name = "charging_profile_cap"}
-    case object Reservable extends Capability {val name = "reservable"}
-    val values = List(ChargingProfileCapable, Reservable)
+  object Capability extends Enumerable[Capability]{
+    case object ChargingProfileCapable extends Capability {val name = "CHARGING_PROFILE_CAPABLE"}
+    case object CreditCardPayable extends Capability {val name = "CREDIT_CARD_PAYABLE"}
+    case object Reservable extends Capability {val name = "RESERVABLE"}
+    case object RfidReader extends Capability {val name = "RFID_READER"}
+    val values = List(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader)
   }
 
   case class Evse(
-    id: String,
-    location_id: String,
+    uid: String,
     status: ConnectorStatus,
-    capabilities: Option[List[String]],
     connectors: List[Connector],
+    status_schedule: List[StatusSchedule] = List(),
+    capabilities: List[String] = List(),
+    evse_id: Option[String] = None,
     floor_level:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
-    physical_number:	Option[String] = None,
-    directions: Option[String] = None,
-    parking_restrictions:	Option[ParkingRestriction] = None,
-    images: Option[Image] = None
+    physical_reference:	Option[String] = None,
+    directions: List[DisplayText] = List(),
+    parking_restrictions:	List[ParkingRestriction] = List(),
+    images: List[Image] = List()
     )
+
+  case class EvsePatch(
+    uid: String,
+    status: ConnectorStatus,
+    connectors: List[Connector],
+    status_schedule: List[StatusSchedule] = List(),
+    capabilities: List[String] = List(),
+    evse_id: Option[String] = None,
+    floor_level:	Option[String] = None,
+    coordinates:	Option[GeoLocation] = None,
+    physical_reference:	Option[String] = None,
+    directions: List[DisplayText] = List(),
+    parking_restrictions:	List[ParkingRestriction] = List(),
+    images: List[Image] = List()
+  )
+
+  case class AdditionalGeoLocation(
+    latitude: String,
+    longitude: String,
+    name: Option[DisplayText] = None
+  )
 
   case class GeoLocation(
     latitude: String,
     longitude: String
     )
 
-  case class ParkingRestriction()
-  case class Image()
+  sealed trait ParkingRestriction extends Nameable
+  object ParkingRestriction extends Enumerable[ParkingRestriction] {
+    case object EvOnly extends ParkingRestriction {val name = "EV_ONLY"}
+    case object Plugged extends ParkingRestriction {val name = "PLUGGED"}
+    case object Disabled extends ParkingRestriction {val name = "DISABLED"}
+    case object Customers extends ParkingRestriction {val name = "CUSTOMERS"}
+    case object Motorcycles extends ParkingRestriction {val name = "MOTORCYCLES"}
+    val values = List(EvOnly, Plugged, Disabled, Customers, Motorcycles)
+  }
+
+  case class Image(
+    url: Url,
+    category: ImageCategory,
+    `type`: String,
+    width: Option[Int] = None,
+    height: Option[Int] = None,
+    thumbnail: Option[Url] = None
+  )
+
+  sealed trait ImageCategory extends Nameable
+  object ImageCategory extends Enumerable[ImageCategory] {
+    case object Charger extends ImageCategory {val name = "CHARGER"}
+    case object Entrance extends ImageCategory {val name = "ENTRANCE"}
+    case object Location extends ImageCategory {val name = "LOCATION"}
+    case object Network extends ImageCategory {val name = "NETWORK"}
+    case object Operator extends ImageCategory {val name = "OPERATOR"}
+    case object Other extends ImageCategory {val name = "OTHER"}
+    case object Owner extends ImageCategory {val name = "OWNER"}
+    val values = List()
+  }
 
   sealed trait ConnectorStatus extends Nameable
-
-  object ConnectorStatusEnum extends Enumerable[ConnectorStatus] {
+  object ConnectorStatus extends Enumerable[ConnectorStatus] {
     case object Available extends ConnectorStatus {val name = "AVAILABLE"}
-    //case object Occupied extends ConnectorStatus {val name = "occupied"} // not in current OCPI
-    case object Reserved extends ConnectorStatus {val name = "RESERVED"}
-    case object Charging extends ConnectorStatus {val name = "CHARGING"}
     case object Blocked extends ConnectorStatus {val name = "BLOCKED"}
-    case object OutOfService extends ConnectorStatus {val name = "OUTOFORDER"}
+    case object Charging extends ConnectorStatus {val name = "CHARGING"}
     case object Inoperative extends ConnectorStatus {val name = "INOPERATIVE"}
+    case object OutOfService extends ConnectorStatus {val name = "OUTOFORDER"}
+    case object Occupied extends ConnectorStatus {val name = "PLANNED"}
+    case object Removed extends ConnectorStatus {val name = "REMOVED"}
+    case object Reserved extends ConnectorStatus {val name = "RESERVED"}
+    case object Unknown extends ConnectorStatus {val name = "UNKNOWN"}
+
+
     //case object Unknown extends ConnectorStatus {val name = "unknown"}
-    val values = List(Available, Reserved, Charging, Blocked, OutOfService, Inoperative)
+    val values = List(Available, Blocked, Charging, Inoperative, OutOfService, Occupied, Removed, Reserved, Unknown)
   }
+
+  case class StatusSchedule(
+    period_begin: DateTime,
+    period_end: Option[DateTime],
+    status: ConnectorStatus
+  )
 
   sealed trait ConnectorType extends Nameable
 
-  object ConnectorTypeEnum extends Enumerable[ConnectorType] {
-    case object	Chademo	extends ConnectorType {val name = "Chademo"}
+  object ConnectorType extends Enumerable[ConnectorType] {
+    case object	CHADEMO	extends ConnectorType {val name = "CHADEMO"}
     case object	`IEC-62196-T1`	extends ConnectorType {val name = "IEC-62196-T1"}
     case object	`IEC-62196-T1-COMBO`	extends ConnectorType {val name = "IEC-62196-T1-COMBO"}
     case object	`IEC-62196-T2`	extends ConnectorType {val name = "IEC-62196-T2"}
@@ -208,7 +266,7 @@ object Locations {
     case object	`IEC-60309-2-three-16`	extends ConnectorType {val name = "IEC-60309-2-three-16"}
     case object	`IEC-60309-2-three-32`	extends ConnectorType {val name = "IEC-60309-2-three-32"}
     case object	`IEC-60309-2-three-64`	extends ConnectorType {val name = "IEC-60309-2-three-64"}
-    val values = List(Chademo, `IEC-62196-T1`, `IEC-62196-T1-COMBO`, `IEC-62196-T2`,
+    val values = List(CHADEMO, `IEC-62196-T1`, `IEC-62196-T1-COMBO`, `IEC-62196-T2`,
       `IEC-62196-T2-COMBO`, `IEC-62196-T3A`, `IEC-62196-T3C`, `DOMESTIC-A`, `DOMESTIC-B`,
       `DOMESTIC-C`, `DOMESTIC-D`, `DOMESTIC-E`, `DOMESTIC-F`, `DOMESTIC-G`, `DOMESTIC-H`,
       `DOMESTIC-I`, `DOMESTIC-J`, `DOMESTIC-K`, `DOMESTIC-L`, `TESLA-R`, `TESLA-S`,
@@ -216,30 +274,26 @@ object Locations {
   }
 
   sealed trait ConnectorFormat extends Nameable
-  object ConnectorFormatEnum extends Enumerable[ConnectorFormat] {
+  object ConnectorFormat extends Enumerable[ConnectorFormat] {
     case object Socket extends ConnectorFormat {val name = "SOCKET"}
     case object Cable extends ConnectorFormat {val name = "CABLE"}
     val values = List(Socket, Cable)
   }
 
-  sealed trait CurrentType extends Nameable
+  sealed trait PowerType extends Nameable
 
-  object CurrentTypeEnum extends Enumerable[CurrentType] {
-    case object AC1Phase extends CurrentType {val name = "AC_1_PHASE"}
-    case object AC3Phases extends CurrentType {val name = "AC_3_PHASE"}
-    case object DC extends CurrentType {val name = "DC"}
-    val values = List(AC1Phase, AC3Phases, DC)
+  object PowerType extends Enumerable[PowerType] {
+    case object AC1Phase extends PowerType {val name = "AC_1_PHASE"}
+    case object AC3Phase extends PowerType {val name = "AC_3_PHASE"}
+    case object DC extends PowerType {val name = "DC"}
+    val values = List(AC1Phase, AC3Phase, DC)
   }
 
-
-  case class LocationsData(
-    locations: List[Location]
-    )
   case class LocationResp(
     status_code: Int,
     status_message: Option[String] = None,
     timestamp: DateTime,
-    data: LocationsData
+    data: List[Location]
     ) extends OcpiResponse
 
 }

@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
 import com.thenewmotion.money.CurrencyUnit
-import Locations.CurrentTypeEnum.AC3Phases
+import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
 import org.joda.time.format.ISODateTimeFormat
@@ -24,7 +24,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
    "LocationResp" should {
       "deserialize" in new LocationsTestScope {
-         locationRespJson1.convertTo[LocationsData] mustEqual locationResp1
+         locationRespJson1.convertTo[LocationResp] mustEqual locationResp1
       }
       "serialize" in new LocationsTestScope {
          locationResp1.toJson.toString mustEqual locationRespJson1.compactPrint
@@ -50,7 +50,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
   }
 
   "PeriodTypeJsonFormat" should {
-    val periodType: PeriodType = PeriodTypeEnum.Charging
+    val periodType: PeriodType = PeriodType.Charging
     val str = "Charging"
     "serialize" in {
       periodType.toJson mustEqual JsString(str)
@@ -68,16 +68,16 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val date2 = formatter.parseDateTime("2020-12-31T23:59:59Z")
 
 
-    val displayText_standard = List(LocalizedText(Some("nl"), Some("Standaard Tarief")),
-      LocalizedText(Some("en"), Some("Standard Tariff")) )
-    val displayText_emsp =  List(LocalizedText(Some("nl"), Some("eMSP Tarief")),
-      LocalizedText(Some("en"), Some("eMSP Tariff")) )
+    val displayText_standard = List(DisplayText("nl", "Standaard Tarief"),
+      DisplayText("en", "Standard Tariff") )
+    val displayText_emsp =  List(DisplayText("nl", "eMSP Tarief"),
+      DisplayText("en", "eMSP Tariff") )
 
     val tariff_standard = Tariff(
       tariff_id = "kwrate",
       price_untaxed = Some(0.1936),
       price_taxed = None,
-      pricing_unit = PricingUnitEnum.KWhToEV,
+      pricing_unit = PricingUnit.KWhToEV,
       tax_pct = None,
       currency = CurrencyUnit("EUR"),
       condition = None,
@@ -88,7 +88,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       tariff_id = "kwrate",
       price_untaxed = Some(0.1536),
       price_taxed = None,
-      pricing_unit = PricingUnitEnum.KWhToEV,
+      pricing_unit = PricingUnit.KWhToEV,
       tax_pct = None,
       currency = CurrencyUnit("EUR"),
       condition = None,
@@ -99,7 +99,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       1,
       Some(date1),
       Some(date2),
-      Some(List(tariff_standard)),
+      List(tariff_standard),
       displayText_standard
     )
 
@@ -107,60 +107,57 @@ class LocationsSpecs extends SpecificationWithJUnit {
       2,
       Some(date1),
       Some(date2),
-      Some(List(tariff_emsp)),
+      List(tariff_emsp),
       displayText_emsp
     )
 
      val connector1 = Connector(
         "1",
-        ConnectorTypeEnum.`IEC-62196-T2`,
-        ConnectorFormatEnum.Cable,
-        price_schemes = Some(List(priceScheme1,priceScheme2)),
-        CurrentTypeEnum.AC3Phases,
-        220,
+        ConnectorStatus.Available,
+        ConnectorType.`IEC-62196-T2`,
+        ConnectorFormat.Cable,
+        PowerType.AC3Phase,
+        230,
         16,
-        None
+        tariff_id = Some("kwrate")
      )
 
     val connector2 = Connector(
       "2",
-      ConnectorTypeEnum.`IEC-62196-T2`,
-      ConnectorFormatEnum.Socket,
-      price_schemes = Some(List(priceScheme1)),
-      CurrentTypeEnum.AC3Phases,
-      220,
+      ConnectorStatus.Available,
+      ConnectorType.`IEC-62196-T2`,
+      ConnectorFormat.Socket,
+      PowerType.AC3Phase,
+      230,
       16,
-      None
+      tariff_id = Some("timerate")
     )
 
     val evse1 = Evse(
       "BE-BEC-E041503001",
-      "LOC1",
-      ConnectorStatusEnum.Available,
-      Some(List("RESERVABLE")),
-      List(connector1,connector2),
+      ConnectorStatus.Available,
+      capabilities = List("RESERVABLE"),
+      connectors = List(connector1, connector2),
       floor_level = Some("-1"),
-      physical_number = Some("1")
+      physical_reference = Some("1")
     )
 
     val evse2 = Evse(
       "BE-BEC-E041503002",
-      "LOC2",
-      ConnectorStatusEnum.Available,
-      Some(List("RESERVABLE")),
-      List(connector1),
+      ConnectorStatus.Available,
+      capabilities = List("RESERVABLE"),
+      connectors = List(connector1),
       floor_level = Some("-1"),
-      physical_number = Some("1")
+      physical_reference = Some("1")
     )
 
     val evse3 = Evse(
       "BE-BEC-E041503003",
-      "LOC2",
-      ConnectorStatusEnum.Available,
-      Some(List("RESERVABLE")),
-      List(connector1),
+      ConnectorStatus.Available,
+      capabilities = List("RESERVABLE"),
+      connectors = List(connector1),
       floor_level = Some("-1"),
-      physical_number = Some("1")
+      physical_reference = Some("2")
     )
 
     val excp_open_begin = formatter.parseDateTime("2014-06-21T09:00:00+02:00")
@@ -183,41 +180,46 @@ class LocationsSpecs extends SpecificationWithJUnit {
         ExceptionalPeriod(excp_close_begin, excp_close_end)
       )
     )
-
+    val dir1 = DisplayText("en", "left, left, left, right, left")
     val location1 = Location(
       "LOC1",
-      `type` = LocationTypeEnum.OnStreet,
+      `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 3A",
       city = "Gent",
       postal_code = "9000",
       country = "BEL",
       coordinates = GeoLocation("3.72994", "51.04759"),
-      evses = Some(List(evse1)),
-      directions = Some("left, left, left, right, left"), None,
-      opening_times = Some(hours1),  None, None
-
+      evses = List(evse1),
+      directions = List(dir1),
+      operator = None,
+      suboperator = None,
+      opening_times = Some(hours1),
+      charging_when_closed = None
     )
 
     val location2 = Location(
       "LOC2",
-      `type` = LocationTypeEnum.OnStreet,
+      `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 30",
       city = "Gent",
       postal_code = "9000",
       country = "BEL",
       coordinates = GeoLocation("3.72995", "51.04760"),
-      evses = Some(List(evse2,evse3)),
-      directions = Some("left, left, left, right, left"), None, None, None, None
+      evses = List(evse2,evse3),
+      directions = List(dir1)
 
     )
 
-    val locationResp1 = LocationsData(
-      locations = List(location1,location2)
+    val locationResp1 = LocationResp(
+      1000,
+      Some("OK"),
+      timestamp = date1,
+      data = List(location1,location2)
     )
 
-     val power1 = Power(Some(CurrentTypeEnum.AC3Phases), 16, 220)
+     val power1 = Power(Some(PowerType.AC3Phase), 16, 230)
 
 
 
@@ -244,134 +246,39 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evseJson1 =
       s"""
          |    {
-         |      "id": "BE-BEC-E041503001",
-         |      "location_id": "LOC1",
+         |      "uid": "BE-BEC-E041503001",
          |      "status": "AVAILABLE",
+         |      "status_schedule": [],
          |      "capabilities": [
          |        "RESERVABLE"
          |      ],
          |      "connectors": [
          |        {
          |          "id": "1",
+         |          "status":"AVAILABLE",
          |          "standard": "IEC-62196-T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
-         |          "voltage": 220,
+         |          "voltage": 230,
          |          "amperage": 16,
-         |          "price_schemes": [
-         |            {
-         |              "price_scheme_id": 1,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1936,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "Standaard Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "Standard Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "Standaard Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "Standard Tariff"
-         |                }
-         |              ]
-         |            },
-         |            {
-         |              "price_scheme_id": 2,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1536,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "eMSP Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "eMSP Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "eMSP Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "eMSP Tariff"
-         |                }
-         |              ]
-         |            }
-         |          ]
+         |          "tariff_id": "kwrate"
          |        },
          |        {
          |          "id": "2",
+         |          "status":"AVAILABLE",
          |          "standard": "IEC-62196-T2",
          |          "format": "SOCKET",
          |          "power_type": "AC_3_PHASE",
-         |          "voltage": 220,
+         |          "voltage": 230,
          |          "amperage": 16,
-         |          "price_schemes": [
-         |            {
-         |              "price_scheme_id": 1,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1936,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "Standaard Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "Standard Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "Standaard Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "Standard Tariff"
-         |                }
-         |              ]
-         |            }
-         |          ]
+         |          "tariff_id": "timerate"
          |        }
          |      ],
-         |      "physical_number": "1",
+         |      "directions": [],
+         |      "floor_level": "-1",
+         |      "images": [],
+         |      "parking_restrictions": [],
+         |      "physical_reference": "1",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -382,91 +289,29 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evseJson2 =
       s"""
          |    {
-         |      "id": "BE-BEC-E041503002",
-         |      "location_id": "LOC2",
+         |      "uid": "BE-BEC-E041503002",
          |      "status": "AVAILABLE",
+         |      "status_schedule": [],
          |      "capabilities": [
          |        "RESERVABLE"
          |      ],
          |      "connectors": [
          |        {
          |          "id": "1",
+         |          "status":"AVAILABLE",
          |          "standard": "IEC-62196-T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
-         |          "voltage": 220,
+         |          "voltage": 230,
          |          "amperage": 16,
-         |          "price_schemes": [
-         |            {
-         |              "price_scheme_id": 1,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1936,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "Standaard Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "Standard Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "Standaard Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "Standard Tariff"
-         |                }
-         |              ]
-         |            },
-         |            {
-         |              "price_scheme_id": 2,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1536,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "eMSP Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "eMSP Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "eMSP Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "eMSP Tariff"
-         |                }
-         |              ]
-         |            }
-         |          ]
+         |          "tariff_id": "kwrate"
          |        }
          |      ],
-         |      "physical_number": "1",
+         |      "directions": [],
+         |      "floor_level": "-1",
+         |      "images": [],
+         |      "parking_restrictions": [],
+         |      "physical_reference": "1",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -474,91 +319,29 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evseJson3 =
       s"""
          |    {
-         |      "id": "BE-BEC-E041503003",
-         |      "location_id": "LOC2",
+         |      "uid": "BE-BEC-E041503003",
          |      "status": "AVAILABLE",
+         |      "status_schedule": [],
          |      "capabilities": [
          |        "RESERVABLE"
          |      ],
          |      "connectors": [
          |        {
          |          "id": "1",
+         |          "status": "AVAILABLE",
          |          "standard": "IEC-62196-T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
-         |          "voltage": 220,
+         |          "voltage": 230,
          |          "amperage": 16,
-         |          "price_schemes": [
-         |            {
-         |              "price_scheme_id": 1,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1936,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "Standaard Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "Standard Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "Standaard Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "Standard Tariff"
-         |                }
-         |              ]
-         |            },
-         |            {
-         |              "price_scheme_id": 2,
-         |              "expiry_date": "2020-12-31T23:59:59Z",
-         |              "start_date": "2010-01-01T00:00:00Z",
-         |              "tariff": [
-         |                {
-         |                  "currency": "EUR",
-         |                  "price_untaxed": 0.1536,
-         |                  "pricing_unit": "kwhtoev",
-         |                  "tariff_id": "kwrate",
-         |                  "display_text": [
-         |                    {
-         |                      "language": "nl",
-         |                      "text": "eMSP Tarief"
-         |                    },
-         |                    {
-         |                      "language": "en",
-         |                      "text": "eMSP Tariff"
-         |                    }
-         |                  ]
-         |                }
-         |              ],
-         |              "display_text": [
-         |                {
-         |                  "language": "nl",
-         |                  "text": "eMSP Tarief"
-         |                },
-         |                {
-         |                  "language": "en",
-         |                  "text": "eMSP Tariff"
-         |                }
-         |              ]
-         |            }
-         |          ]
+         |          "tariff_id": "kwrate"
          |        }
          |      ],
-         |      "physical_number": "1",
+         |      "directions": [],
+         |      "floor_level": "-1",
+         |      "images": [],
+         |      "parking_restrictions": [],
+         |      "physical_reference": "2",
          |      "floor_level": "-1"
          |    }
    """.stripMargin.parseJson
@@ -570,15 +353,18 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "id": "LOC1",
-         |      "type": "on_street",
+         |      "type": "ON_STREET",
          |      "name": "Gent Zuid",
          |      "address": "F.Rooseveltlaan 3A",
          |      "city": "Gent",
          |      "postal_code": "9000",
          |      "country": "BEL",
          |      "coordinates": $geoLocationJson1,
-         |      "directions": "left, left, left, right, left",
+         |      "related_locations": [],
+         |      "evses": [$evseJson1],
+         |      "directions": [{"language":"en","text":"left, left, left, right, left"}],
          |      "opening_times": {
+         |        "twentyfourseven": false,
          |		    "regular_hours": [
          |		      {
          |		        "weekday": 1,
@@ -606,7 +392,6 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |		        "period_end": "20:00"
          |		      }
          |		    ],
-         |        "twentyfourseven": false,
          |		    "exceptional_openings": [
          |		      {
          |		        "period_begin": "2014-06-21T07:00:00Z",
@@ -619,7 +404,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |		        "period_end": "2014-06-24T22:00:00Z"
          |		      }
          |		    ]
-         |		  }
+         |		  },
+         |      "images":[]
          |    }
    """.stripMargin.parseJson
 
@@ -627,22 +413,27 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "id": "LOC2",
-         |      "type": "on_street",
+         |      "type": "ON_STREET",
          |      "name": "Gent Zuid",
          |      "address": "F.Rooseveltlaan 30",
          |      "city": "Gent",
          |      "postal_code": "9000",
          |      "country": "BEL",
          |      "coordinates": $geoLocationJson2,
-         |      "directions": "left, left, left, right, left"
+         |      "related_locations": [],
+         |      "evses": [$evseJson2, $evseJson3],
+         |      "directions": [{"language":"en","text":"left, left, left, right, left"}],
+         |      "images":[]
          |    }
    """.stripMargin.parseJson
 
     val locationRespJson1 =
       s"""
          |{
-         |  "locations": [$locationJson1,$locationJson2],
-         |  "evses": [$evseJson1,$evseJson2,$evseJson3]
+         |  "status_code": 1000,
+         |  "status_message": "OK",
+         |  "timestamp": "${date1.toString(formatter)}",
+         |  "data": [$locationJson1,$locationJson2]
          |}
        """.stripMargin.parseJson
 
@@ -671,11 +462,11 @@ class LocationsSpecs extends SpecificationWithJUnit {
        |{
        |  "current": "AC_3_PHASE",
        |  "amperage": 16,
-       |  "voltage": 220
+       |  "voltage": 230
        |}
      """.stripMargin.parseJson
 
-  val power1 = Power(Some(AC3Phases), 16, 220)
+  val power1 = Power(Some(AC3Phase), 16, 230)
 
 
 }

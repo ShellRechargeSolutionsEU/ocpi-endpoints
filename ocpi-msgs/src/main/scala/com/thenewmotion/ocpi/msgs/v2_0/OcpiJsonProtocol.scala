@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.msgs.v2_0
 
 import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.SimpleStringEnumSerializer
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, LocalizedText, _}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, _}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.Locations._
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
@@ -55,70 +55,53 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit val capabilityFormat =
-    new SimpleStringEnumSerializer[Capability](CapabilityEnum).enumFormat
+    new SimpleStringEnumSerializer[Capability](Capability).enumFormat
 
   implicit val connectorStatusFormat =
-    new SimpleStringEnumSerializer[ConnectorStatus](ConnectorStatusEnum).enumFormat
+    new SimpleStringEnumSerializer[ConnectorStatus](ConnectorStatus).enumFormat
 
   implicit val connectorTypeFormat =
-    new SimpleStringEnumSerializer[ConnectorType](ConnectorTypeEnum).enumFormat
+    new SimpleStringEnumSerializer[ConnectorType](ConnectorType).enumFormat
 
   implicit val connectorFormatFormat =
-    new SimpleStringEnumSerializer[ConnectorFormat](ConnectorFormatEnum).enumFormat
+    new SimpleStringEnumSerializer[ConnectorFormat](ConnectorFormat).enumFormat
 
   implicit val currentTypeFormat =
-    new SimpleStringEnumSerializer[CurrentType](CurrentTypeEnum).enumFormat
+    new SimpleStringEnumSerializer[PowerType](PowerType).enumFormat
 
   implicit val pricingUnitFormat =
-    new SimpleStringEnumSerializer[PricingUnit](PricingUnitEnum).enumFormat
+    new SimpleStringEnumSerializer[PricingUnit](PricingUnit).enumFormat
 
   implicit val periodTypeFormat =
-    new SimpleStringEnumSerializer[PeriodType](PeriodTypeEnum).enumFormat
+    new SimpleStringEnumSerializer[PeriodType](PeriodType).enumFormat
 
   implicit val locationTypeFormat =
-    new SimpleStringEnumSerializer[LocationType](LocationTypeEnum).enumFormat
+    new SimpleStringEnumSerializer[LocationType](LocationType).enumFormat
 
+  implicit val parkingRestrictionTypeFormat =
+    new SimpleStringEnumSerializer[ParkingRestriction](ParkingRestriction).enumFormat
 
+  implicit val imageCategoryTypeFormat =
+    new SimpleStringEnumSerializer[ImageCategory](ImageCategory).enumFormat
 
-  implicit val displayTextFormat = jsonFormat2(LocalizedText)
   implicit val powerFormat = jsonFormat3(Power)
+  implicit val displayTestFormat = jsonFormat2(DisplayText)
   implicit val tariffFormat = jsonFormat8(Tariff)
   implicit val priceSchemeFormat = jsonFormat5(PriceScheme)
   implicit val geoLocationFormat = jsonFormat2(GeoLocation)
+  implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
   implicit val regularHoursFormat = jsonFormat3(RegularHours)
   implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
   implicit val hoursFormat = jsonFormat4(Hours)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
-  implicit val parkingRestrictionsFormat = jsonFormat0(ParkingRestriction)
-  implicit val imageFormat = jsonFormat0(Image)
+  implicit val imageFormat = jsonFormat6(Image)
 
-  implicit val connectorFormat = jsonFormat8(Connector)
-  implicit val evseFormat = jsonFormat11(Evse)
+  implicit val connectorFormat = jsonFormat9(Connector)
+  implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
+  implicit val evseFormat = jsonFormat12(Evse)
   implicit val operatorFormat = jsonFormat3(Operator)
-  implicit val locationFormat = jsonFormat14(Location)
-  implicit val locationsDataFormat = new RootJsonFormat[LocationsData] {
-
-    def write(x: LocationsData) = {
-      val evses = x.locations.flatMap(_.evses).flatten
-      JsObject(
-        "locations" -> x.locations.map(_.copy(evses = None)).toJson,
-        "evses" -> evses.toJson
-      )
-    }
-    def read(value: JsValue) = value.asJsObject.getFields("locations", "evses") match {
-      case Seq(JsArray(locationVals), JsArray(evseVals)) =>
-        val evses = evseVals.toList.map(_.convertTo[Evse])
-        LocationsData(
-          locationVals.toList.map(loc =>
-            {val loco = loc.convertTo[Location];loco.copy(evses =
-              Some(evses.filter(_.location_id == loco.id)))})
-        )
-      case x => deserializationError("Expected LocationType as JsString, but got " + x)
-    }
-  }
+  implicit val locationFormat = jsonFormat16(Location)
   implicit val locationRespFormat = jsonFormat4(LocationResp)
-
-
   implicit val versionFormat = jsonFormat2(Version)
   implicit val versionsRespFormat = jsonFormat4(VersionsResp)
   implicit val versionsReqFormat = jsonFormat2(VersionsRequest)

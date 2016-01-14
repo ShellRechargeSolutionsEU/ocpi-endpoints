@@ -5,12 +5,9 @@ import org.joda.time.DateTime
 
 object CommonTypes {
 
-
-
-  type DisplayText = List[LocalizedText]
-  case class LocalizedText(
-    language: Option[String],
-    text: Option[String]
+  case class DisplayText(
+    language: String,
+    text: String
   )
 
   type Url = String

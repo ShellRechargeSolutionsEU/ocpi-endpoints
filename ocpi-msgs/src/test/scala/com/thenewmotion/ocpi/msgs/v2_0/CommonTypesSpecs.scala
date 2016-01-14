@@ -65,15 +65,13 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
 
     val displayTextJson1 =
       s"""
-         |[
          |  {
          |    "language": "en",
          |    "text": "Example"
          |  }
-         |]
      """.stripMargin.parseJson
 
-    val displayText1 = List(LocalizedText(Some("en"), Some("Example")))
+    val displayText1 = DisplayText("en", "Example")
 
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
