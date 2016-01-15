@@ -13,7 +13,10 @@ object Credentials {
     business_details: BusinessDetails,
     party_id: String,
     country_code: String
-    )
+    ){
+    require(party_id.length == 3)
+    require(country_code.length == 2)
+  }
 
   case class CredsResp(
     status_code: Int,

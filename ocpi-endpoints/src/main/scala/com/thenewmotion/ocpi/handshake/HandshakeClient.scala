@@ -11,9 +11,8 @@ import spray.client.pipelining._
 import spray.http._
 import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.concurrent.duration._
-import scala.util.Try
-import scalaz.Scalaz._
-import scalaz._
+import scala.util.{Try, Success, Failure}
+import scalaz.{-\/, \/-, \/}
 
 class HandshakeClient(implicit refFactory: ActorRefFactory) {
 
@@ -45,8 +44,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     val pipeline = request(token) ~> unmarshal[VersionsResp]
     val resp = pipeline(Get(uri))
     bimap(resp) {
-      case scala.util.Success(versions) => \/-(versions)
-      case scala.util.Failure(_) =>
+      case Success(versions) => \/-(versions)
+      case _ =>
         logger.error(s"Could not retrieve the versions information from $uri with token $token")
         -\/(VersionsRetrievalFailed)
     }
@@ -57,8 +56,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     val pipeline = request(token) ~> unmarshal[VersionDetailsResp]
     val resp = pipeline(Get(uri))
     bimap(resp) {
-      case scala.util.Success(versionDet) => \/-(versionDet)
-      case scala.util.Failure(_) =>
+      case Success(versionDet) => \/-(versionDet)
+      case _ =>
         logger.error(s"Could not retrieve the version details from $uri with token $token")
         -\/(VersionDetailsRetrievalFailed)
     }
@@ -69,8 +68,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) {
     val pipeline = request(tokenToConnectToThem) ~> unmarshal[CredsResp]
     val resp = pipeline(Post(theirCredUrl, credToConnectToUs))
     bimap(resp) {
-      case scala.util.Success(theirCreds) => \/-(theirCreds)
-      case scala.util.Failure(_) =>
+      case Success(theirCreds) => \/-(theirCreds)
+      case _ =>
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
              s"$tokenToConnectToThem when sending our credentials $credToConnectToUs")
         -\/(SendingCredentialsFailed)
