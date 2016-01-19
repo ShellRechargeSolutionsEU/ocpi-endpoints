@@ -16,8 +16,8 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
       entity(as[Creds]) { credsToConnectToThem =>
         onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
           case -\/(_) => reject()
-          case \/-(ourNewCredsForThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
-            currentTime, ourNewCredsForThem))
+          case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+            currentTime, newCredsToConnectToUs))
         }
       }
     }
@@ -35,8 +35,8 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
           entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
             onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
               case -\/(_) => reject()
-              case \/-(credsToConnectToUs) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
-                currentTime, credsToConnectToUs))
+              case \/-(newCredToConnectToThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+                currentTime, newCredToConnectToThem))
             }
           }
         }
