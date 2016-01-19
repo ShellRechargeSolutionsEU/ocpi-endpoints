@@ -102,7 +102,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
       override val currentTime = DateTime.parse("2010-01-01T00:00:00Z")
 
-      override val routingConfig = OcpiRoutingConfig("cpo", "versions",
+      override val routingConfig = OcpiRoutingConfig("cpo",
         Map (
           "2.0" -> OcpiVersionConfig(
             endPoints = Map(

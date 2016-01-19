@@ -91,10 +91,11 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     "return an error when failing in the storage of the other party endpoints" in new HandshakeTestScope{
       val handshakeServiceError = new HandshakeService(
+        ourNamespace = "cpo",
         ourPartyName = ourCpoName,
         ourLogo = None,
         ourWebsite = None,
-        ourVersionsUrl = ourVersionsUrlStr,
+        ourBaseUrl = ourBaseUrlStr,
         ourPartyId = ourPartyIdVal,
         ourCountryCode = ourCountryCodeVal
         ) {
@@ -135,6 +136,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
 
     val ourVersionsUrlStr = Uri("http://localhost:8080/cpo/versions")
+    val ourBaseUrlStr = Uri("http://localhost:8080")
     val tokenToConnectToUs = "123"
     val ourCpoName = "TNM (CPO)"
     val ourPartyIdVal = "TNM"
@@ -184,10 +186,11 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
 
     val handshakeService = new HandshakeService(
+      ourNamespace = "cpo",
       ourPartyName = ourCpoName,
       ourLogo = None,
       ourWebsite = None,
-      ourVersionsUrl = ourVersionsUrlStr,
+      ourBaseUrl = ourBaseUrlStr,
       ourPartyId = ourPartyIdVal,
       ourCountryCode = ourCountryCodeVal
       ) {

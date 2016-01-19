@@ -121,8 +121,8 @@ class VersionsSpecs extends SpecificationWithJUnit {
          |    "version": "2.0",
          |    "endpoints": [
          |        {
-         |            "identifier": "credentials",
-         |            "url": "https://example.com/ocpi/cpo/2.0/credentials/"
+         |            "identifier": "locations",
+         |            "url": "https://example.com/ocpi/cpo/2.0/locations/"
          |        }
          |    ]
          |  }

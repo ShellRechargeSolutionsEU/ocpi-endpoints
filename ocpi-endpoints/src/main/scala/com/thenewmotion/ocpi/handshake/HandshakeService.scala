@@ -13,13 +13,21 @@ import scala.concurrent.{Future, ExecutionContext}
 import scalaz.Scalaz._
 import scalaz._
 
-abstract class HandshakeService(ourPartyName: String, ourLogo: Option[Image], ourWebsite: Option[Url],
-  ourVersionsUrl: Uri, ourPartyId: String, ourCountryCode: String)
+abstract class HandshakeService(
+  ourNamespace: String,
+  ourPartyName: String,
+  ourLogo: Option[Image],
+  ourWebsite: Option[Url],
+  ourBaseUrl: Uri,
+  ourPartyId: String,
+  ourCountryCode: String)
   (implicit system: ActorRefFactory) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
   def client: HandshakeClient = new HandshakeClient
+
+  val ourVersionsUrl = ourBaseUrl + "/" + ourNamespace + "/" + EndpointIdentifier.Versions.name
 
   def reactToHandshakeRequest(version: String, existingTokenToConnectToUs: String, credsToConnectToThem: Creds)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {

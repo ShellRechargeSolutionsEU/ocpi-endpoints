@@ -34,7 +34,7 @@ object Versions {
     data: VersionDetails
     ) extends OcpiResponse {
     require(data.endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
-    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Locations), "Missing locations endpoint type details")
+//    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Locations), "Missing locations endpoint type details")
   }
 
 
@@ -49,8 +49,9 @@ object Versions {
   object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
     case object Locations extends EndpointIdentifier {val name = "locations"}
     case object Credentials extends EndpointIdentifier {val name = "credentials"}
+    case object Versions extends EndpointIdentifier {val name = "versions"}
 
-    val values = List(Locations, Credentials)
+    val values = List(Locations, Credentials, Versions)
   }
 }
 

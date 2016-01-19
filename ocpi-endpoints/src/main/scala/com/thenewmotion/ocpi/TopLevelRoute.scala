@@ -76,7 +76,7 @@ trait TopLevelRoute extends JsonApi {
           }
         } ~
         authenticate(externalUseToken.validate(access_token)) { apiUser: ApiUser =>
-          pathPrefix(routingConfig.versionsEndpoint) {
+          pathPrefix(EndpointIdentifier.Versions.name) {
             pathEndOrSingleSlash {
               versionsRoute(uri)
             } ~
