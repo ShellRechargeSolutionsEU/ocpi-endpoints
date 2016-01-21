@@ -3,17 +3,17 @@ package com.thenewmotion.ocpi.handshake
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.Errors._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Url, BusinessDetails}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, Url}
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds, CredsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import org.joda.time.DateTime
-import org.joda.time.format.ISODateTimeFormat
-import org.specs2.matcher.{Matchers, DisjunctionMatchers, FutureMatchers}
+import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.Uri
+
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 
@@ -99,12 +99,24 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         ourPartyId = ourPartyIdVal,
         ourCountryCode = ourCountryCodeVal
         ) {
-        override def client = _client
-        override def persistTheirPrefs(ver: String, tToConToUs: String, cToConToThem: Creds) = \/-(Unit)
-        override def persistNewTokenToConnectToUs(oldT: String, newT: String) = \/-(Unit)
-        override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = -\/(CouldNotPersistNewToken)
-        override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
-        override def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
+        override val client = _client
+
+        protected def persistHandshakeReactResult(
+          version: String,
+          existingTokenToConnectToUs: String,
+          newTokenToConnectToUs: String,
+          credsToConnectToThem: Creds,
+          endpoints: Iterable[Endpoint]
+        ): Disjunction[HandshakeError, Unit] = -\/(CouldNotPersistNewToken)
+
+        protected def persistHandshakeInitResult(
+          version: String,
+          newTokenToConnectToUs: String,
+          newCredToConnectToThem: Creds,
+          endpoints: Iterable[Endpoint]
+        ): Disjunction[HandshakeError, Unit] = -\/(CouldNotPersistNewToken)
+
+        def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
       }
 
       val result = handshakeServiceError.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
@@ -195,13 +207,24 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ourPartyId = ourPartyIdVal,
       ourCountryCode = ourCountryCodeVal
       ) {
-      override def client = _client
-      override def persistTheirPrefs(v: String, tToConToUs: String, cToConToThem: Creds) = \/-(Unit)
-      override def persistNewTokenToConnectToUs(oldToken: String, newToken: String) = \/-(Unit)
-      override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = \/-(Unit)
-      override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
-      override def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
-    }
+      override val client = _client
 
+      protected def persistHandshakeReactResult(
+        version: String,
+        existingTokenToConnectToUs: String,
+        newTokenToConnectToUs: String,
+        credsToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ): Disjunction[HandshakeError, Unit] = \/-(())
+
+      protected def persistHandshakeInitResult(
+        version: String,
+        newTokenToConnectToUs: String,
+        newCredToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ): Disjunction[HandshakeError, Unit] = \/-(())
+
+      def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
+    }
   }
 }

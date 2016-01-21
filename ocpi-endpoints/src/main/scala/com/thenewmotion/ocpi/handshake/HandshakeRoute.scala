@@ -8,11 +8,10 @@ import scala.concurrent.ExecutionContext
 import scalaz._
 
 class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
 
   def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
-    import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-    import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
-
     post {
       entity(as[Creds]) { credsToConnectToThem =>
         onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
@@ -34,20 +33,19 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
 }
 
 class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
+  import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 
   def route(implicit ec: ExecutionContext) = {
-    import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-    import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
-    import com.thenewmotion.ocpi.msgs.v2_0.Versions._
-
-        post {
-          entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
-            onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
-              case -\/(_) => reject()
-              case \/-(newCredToConnectToThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
-                currentTime, newCredToConnectToThem))
-            }
-          }
+    post {
+      entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
+        onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
+          case -\/(_) => reject()
+          case \/-(newCredToConnectToThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+            currentTime, newCredToConnectToThem))
         }
+      }
+    }
   }
 }
