@@ -104,6 +104,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         override def persistNewTokenToConnectToUs(oldT: String, newT: String) = \/-(Unit)
         override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = -\/(CouldNotPersistNewToken)
         override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
+        override def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
       }
 
       val result = handshakeServiceError.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
@@ -199,6 +200,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       override def persistNewTokenToConnectToUs(oldToken: String, newToken: String) = \/-(Unit)
       override def persistTokenForNewParty(party: String, tok: String, ver: String, pid: String, country: String) = \/-(Unit)
       override def persistTheirEndpoint(v: String, tToConToUs: String, tToConToThem: String, name: String, url: Url) = \/-(Unit)
+      override def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken)
     }
 
   }

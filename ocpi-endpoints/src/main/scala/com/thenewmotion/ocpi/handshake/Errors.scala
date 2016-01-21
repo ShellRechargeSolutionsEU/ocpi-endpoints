@@ -22,4 +22,5 @@ object Errors{
   case object CouldNotPersistNewParty extends HandshakeError
   case object AlreadyExistingParty extends HandshakeError
   case object UnknownPartyToken extends HandshakeError
+  case object WaitingForRegistrationRequest extends HandshakeError
 }

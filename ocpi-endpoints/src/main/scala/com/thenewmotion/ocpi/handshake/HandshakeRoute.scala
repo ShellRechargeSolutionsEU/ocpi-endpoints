@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi
 package handshake
 
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
@@ -20,6 +21,14 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
             currentTime, newCredsToConnectToUs))
         }
       }
+    } ~
+    get {
+      service.findRegisteredCredsToConnectToUs(tokenToConnectToUs) match {  //TODO
+        case -\/(_) => reject()  // Now will go through this one since it is sending an error back and will get resource not found because of the current implementation of the error handling
+        case \/-(credsToConnectToUs) =>
+          complete(CredsResp(GenericSuccess.code, None, currentTime, credsToConnectToUs))
+      }
+
     }
   }
 }

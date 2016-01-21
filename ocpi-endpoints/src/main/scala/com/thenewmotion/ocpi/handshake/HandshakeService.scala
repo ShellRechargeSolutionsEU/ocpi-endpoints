@@ -132,6 +132,8 @@ abstract class HandshakeService(
 
   def persistTheirEndpoint(version: String, existingTokenToConnectToUs: String,
     tokenToConnectToThem: String, endpName: String, url: Url): HandshakeError \/ Unit
+
+  def findRegisteredCredsToConnectToUs(tokenToConnectToUs: String): HandshakeError \/ Creds
 }
 
 object ApiTokenGenerator {
