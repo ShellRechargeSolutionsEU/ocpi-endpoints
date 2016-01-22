@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.handshake
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
@@ -18,6 +18,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
 
+      val theirLog = credsToConnectToThem.business_details.logo.get
       val theirCredsData =
         s"""
            |{
@@ -25,8 +26,12 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
            |    "url": "${credsToConnectToThem.url}",
            |    "business_details": {
            |        "name": "${credsToConnectToThem.business_details.name}",
-           |        "logo": "${credsToConnectToThem.business_details.logo}",
-           |        "website": "${credsToConnectToThem.business_details.website}"
+           |        "logo": {
+           |          "url": "${theirLog.url}",
+           |          "category": "${theirLog.category.name}",
+           |          "type": "${theirLog.`type`}"
+           |        },
+           |        "website": "${credsToConnectToThem.business_details.website.get}"
            |    },
            |    "party_id": "${credsToConnectToThem.party_id}",
            |    "country_code": "${credsToConnectToThem.country_code}"
@@ -75,7 +80,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       url = "https://them.com/ocpi/cpo/versions",
       business_details = OcpiBusinessDetails(
         "Example Operator",
-        Some("http://them.com/images/logo.png"),
+        Some(Image("http://them.com/images/logo.png", ImageCategory.Operator, "png")),
         Some("http://them.com")),
       party_id = "EOP",
       country_code = "NL")

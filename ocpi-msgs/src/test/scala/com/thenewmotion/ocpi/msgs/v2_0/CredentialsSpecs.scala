@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import CommonTypes.BusinessDetails
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Image, ImageCategory, BusinessDetails}
 import Credentials._
 import OcpiJsonProtocol._
 import org.specs2.mutable.SpecificationWithJUnit
@@ -22,20 +22,21 @@ class CredentialsSpecs extends SpecificationWithJUnit {
 
 
   private trait CredentialsTestScope extends Scope {
-
+    val businessDetails1 = BusinessDetails(
+      "Example Operator",
+      Some(Image("http://example.com/images/logo.png", ImageCategory.Operator, "png")),
+      Some("http://example.com")
+    )
     val credentials1 = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
       url = "https://example.com/ocpi/cpo/",
-      business_details = BusinessDetails(
-        "Example Operator",
-        Some("http://example.com/images/logo.png"),
-        Some("http://example.com")
-      ),
+      business_details = businessDetails1,
       party_id = "EXA",
       country_code = "NL"
     )
 
 
+    val logo1 = businessDetails1.logo.get
     val credentialsJson1 =
       s"""
          |{
@@ -43,7 +44,11 @@ class CredentialsSpecs extends SpecificationWithJUnit {
          |    "url": "${credentials1.url}",
          |    "business_details": {
          |        "name": "${credentials1.business_details.name}",
-         |        "logo": "${credentials1.business_details.logo.get}",
+         |        "logo": {
+         |          "url": "${logo1.url}",
+         |          "category": "${logo1.category.name}",
+         |          "type": "${logo1.`type`}"
+         |        },
          |        "website": "${credentials1.business_details.website.get}"
          |    },
          |    "party_id": "${credentials1.party_id}",

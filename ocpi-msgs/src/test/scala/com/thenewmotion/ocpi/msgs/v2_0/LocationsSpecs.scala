@@ -194,8 +194,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       directions = List(dir1),
       operator = None,
       suboperator = None,
-      opening_times = Some(hours1),
-      charging_when_closed = None
+      opening_times = Some(hours1)
     )
 
     val location2 = Location(
@@ -405,7 +404,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |		      }
          |		    ]
          |		  },
-         |      "images":[]
+         |      "images":[],
+         |      "charging_when_closed": true
          |    }
    """.stripMargin.parseJson
 
@@ -423,7 +423,8 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "related_locations": [],
          |      "evses": [$evseJson2, $evseJson3],
          |      "directions": [{"language":"en","text":"left, left, left, right, left"}],
-         |      "images":[]
+         |      "images":[],
+         |      "charging_when_closed": true
          |    }
    """.stripMargin.parseJson
 

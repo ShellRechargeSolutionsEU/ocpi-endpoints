@@ -13,7 +13,7 @@ import scala.concurrent.{Future, ExecutionContext}
 import scalaz.Scalaz._
 import scalaz._
 
-abstract class HandshakeService(ourPartyName: String, ourLogo: Option[Url], ourWebsite: Option[Url],
+abstract class HandshakeService(ourPartyName: String, ourLogo: Option[Image], ourWebsite: Option[Url],
   ourVersionsUrl: Uri, ourPartyId: String, ourCountryCode: String)
   (implicit system: ActorRefFactory) extends FutureEitherUtils {
 
