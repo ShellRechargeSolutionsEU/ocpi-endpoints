@@ -23,7 +23,7 @@ object Locations {
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     opening_times: Option[Hours] = None,
-    charging_when_closed: Option[Boolean] = None,
+    charging_when_closed: Option[Boolean] = Some(true),
     images: List[Image] = List()) {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
@@ -148,7 +148,7 @@ object Locations {
     status: ConnectorStatus,
     connectors: List[Connector],
     status_schedule: List[StatusSchedule] = List(),
-    capabilities: List[String] = List(),
+    capabilities: List[Capability] = List(),
     evse_id: Option[String] = None,
     floor_level:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
@@ -156,33 +156,29 @@ object Locations {
     directions: List[DisplayText] = List(),
     parking_restrictions:	List[ParkingRestriction] = List(),
     images: List[Image] = List()
-    )
+    ){
+    require(connectors.nonEmpty, "Cardinality of connectors given as '+'")
+  }
 
-  case class EvsePatch(
-    uid: String,
-    status: ConnectorStatus,
-    connectors: List[Connector],
-    status_schedule: List[StatusSchedule] = List(),
-    capabilities: List[String] = List(),
-    evse_id: Option[String] = None,
-    floor_level:	Option[String] = None,
-    coordinates:	Option[GeoLocation] = None,
-    physical_reference:	Option[String] = None,
-    directions: List[DisplayText] = List(),
-    parking_restrictions:	List[ParkingRestriction] = List(),
-    images: List[Image] = List()
-  )
+  val LatRegex = """-?[0-9]{1,2}\.[0-9]{6}"""
+  val LonRegex = """-?[0-9]{1,3}\.[0-9]{6}"""
 
   case class AdditionalGeoLocation(
     latitude: String,
     longitude: String,
     name: Option[DisplayText] = None
-  )
+  ){
+    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex")
+    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex")
+  }
 
   case class GeoLocation(
     latitude: String,
     longitude: String
-    )
+    ){
+    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex")
+    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex")
+  }
 
   sealed trait ParkingRestriction extends Nameable
   object ParkingRestriction extends Enumerable[ParkingRestriction] {
@@ -192,27 +188,6 @@ object Locations {
     case object Customers extends ParkingRestriction {val name = "CUSTOMERS"}
     case object Motorcycles extends ParkingRestriction {val name = "MOTORCYCLES"}
     val values = List(EvOnly, Plugged, Disabled, Customers, Motorcycles)
-  }
-
-  case class Image(
-    url: Url,
-    category: ImageCategory,
-    `type`: String,
-    width: Option[Int] = None,
-    height: Option[Int] = None,
-    thumbnail: Option[Url] = None
-  )
-
-  sealed trait ImageCategory extends Nameable
-  object ImageCategory extends Enumerable[ImageCategory] {
-    case object Charger extends ImageCategory {val name = "CHARGER"}
-    case object Entrance extends ImageCategory {val name = "ENTRANCE"}
-    case object Location extends ImageCategory {val name = "LOCATION"}
-    case object Network extends ImageCategory {val name = "NETWORK"}
-    case object Operator extends ImageCategory {val name = "OPERATOR"}
-    case object Other extends ImageCategory {val name = "OTHER"}
-    case object Owner extends ImageCategory {val name = "OWNER"}
-    val values = List()
   }
 
   sealed trait ConnectorStatus extends Nameable
@@ -242,35 +217,35 @@ object Locations {
 
   object ConnectorType extends Enumerable[ConnectorType] {
     case object	CHADEMO	extends ConnectorType {val name = "CHADEMO"}
-    case object	`IEC-62196-T1`	extends ConnectorType {val name = "IEC-62196-T1"}
-    case object	`IEC-62196-T1-COMBO`	extends ConnectorType {val name = "IEC-62196-T1-COMBO"}
-    case object	`IEC-62196-T2`	extends ConnectorType {val name = "IEC-62196-T2"}
-    case object	`IEC-62196-T2-COMBO`	extends ConnectorType {val name = "IEC-62196-T2-COMBO"}
-    case object	`IEC-62196-T3A`	extends ConnectorType {val name = "IEC-62196-T3A"}
-    case object	`IEC-62196-T3C`	extends ConnectorType {val name = "IEC-62196-T3C"}
-    case object	`DOMESTIC-A`	extends ConnectorType {val name = "DOMESTIC-A"}
-    case object	`DOMESTIC-B`	extends ConnectorType {val name = "DOMESTIC-B"}
-    case object	`DOMESTIC-C`	extends ConnectorType {val name = "DOMESTIC-C"}
-    case object	`DOMESTIC-D`	extends ConnectorType {val name = "DOMESTIC-D"}
-    case object	`DOMESTIC-E`	extends ConnectorType {val name = "DOMESTIC-E"}
-    case object	`DOMESTIC-F`	extends ConnectorType {val name = "DOMESTIC-F"}
-    case object	`DOMESTIC-G`	extends ConnectorType {val name = "DOMESTIC-G"}
-    case object	`DOMESTIC-H`	extends ConnectorType {val name = "DOMESTIC-H"}
-    case object	`DOMESTIC-I`	extends ConnectorType {val name = "DOMESTIC-I"}
-    case object	`DOMESTIC-J`	extends ConnectorType {val name = "DOMESTIC-J"}
-    case object	`DOMESTIC-K`	extends ConnectorType {val name = "DOMESTIC-K"}
-    case object	`DOMESTIC-L`	extends ConnectorType {val name = "DOMESTIC-L"}
-    case object	`TESLA-R`	extends ConnectorType {val name = "TESLA-R"}
-    case object	`TESLA-S`	extends ConnectorType {val name = "TESLA-S"}
-    case object	`IEC-60309-2-single-16`	extends ConnectorType {val name = "IEC-60309-2-single-16"}
-    case object	`IEC-60309-2-three-16`	extends ConnectorType {val name = "IEC-60309-2-three-16"}
-    case object	`IEC-60309-2-three-32`	extends ConnectorType {val name = "IEC-60309-2-three-32"}
-    case object	`IEC-60309-2-three-64`	extends ConnectorType {val name = "IEC-60309-2-three-64"}
-    val values = List(CHADEMO, `IEC-62196-T1`, `IEC-62196-T1-COMBO`, `IEC-62196-T2`,
-      `IEC-62196-T2-COMBO`, `IEC-62196-T3A`, `IEC-62196-T3C`, `DOMESTIC-A`, `DOMESTIC-B`,
-      `DOMESTIC-C`, `DOMESTIC-D`, `DOMESTIC-E`, `DOMESTIC-F`, `DOMESTIC-G`, `DOMESTIC-H`,
-      `DOMESTIC-I`, `DOMESTIC-J`, `DOMESTIC-K`, `DOMESTIC-L`, `TESLA-R`, `TESLA-S`,
-      `IEC-60309-2-single-16`, `IEC-60309-2-three-16`, `IEC-60309-2-three-32`, `IEC-60309-2-three-64`)
+    case object	`IEC_62196_T1`	extends ConnectorType {val name = "IEC_62196_T1"}
+    case object	`IEC_62196_T1_COMBO`	extends ConnectorType {val name = "IEC_62196_T1_COMBO"}
+    case object	`IEC_62196_T2`	extends ConnectorType {val name = "IEC_62196_T2"}
+    case object	`IEC_62196_T2_COMBO`	extends ConnectorType {val name = "IEC_62196_T2_COMBO"}
+    case object	`IEC_62196_T3A`	extends ConnectorType {val name = "IEC_62196_T3A"}
+    case object	`IEC_62196_T3C`	extends ConnectorType {val name = "IEC_62196_T3C"}
+    case object	`DOMESTIC_A`	extends ConnectorType {val name = "DOMESTIC_A"}
+    case object	`DOMESTIC_B`	extends ConnectorType {val name = "DOMESTIC_B"}
+    case object	`DOMESTIC_C`	extends ConnectorType {val name = "DOMESTIC_C"}
+    case object	`DOMESTIC_D`	extends ConnectorType {val name = "DOMESTIC_D"}
+    case object	`DOMESTIC_E`	extends ConnectorType {val name = "DOMESTIC_E"}
+    case object	`DOMESTIC_F`	extends ConnectorType {val name = "DOMESTIC_F"}
+    case object	`DOMESTIC_G`	extends ConnectorType {val name = "DOMESTIC_G"}
+    case object	`DOMESTIC_H`	extends ConnectorType {val name = "DOMESTIC_H"}
+    case object	`DOMESTIC_I`	extends ConnectorType {val name = "DOMESTIC_I"}
+    case object	`DOMESTIC_J`	extends ConnectorType {val name = "DOMESTIC_J"}
+    case object	`DOMESTIC_K`	extends ConnectorType {val name = "DOMESTIC_K"}
+    case object	`DOMESTIC_L`	extends ConnectorType {val name = "DOMESTIC_L"}
+    case object	`TESLA_R`	extends ConnectorType {val name = "TESLA_R"}
+    case object	`TESLA_S`	extends ConnectorType {val name = "TESLA_S"}
+    case object	`IEC_60309_2_single_16`	extends ConnectorType {val name = "IEC_60309_2_single_16"}
+    case object	`IEC_60309_2_three_16`	extends ConnectorType {val name = "IEC_60309_2_three_16"}
+    case object	`IEC_60309_2_three_32`	extends ConnectorType {val name = "IEC_60309_2_three_32"}
+    case object	`IEC_60309_2_three_64`	extends ConnectorType {val name = "IEC_60309_2_three_64"}
+    val values = List(CHADEMO, `IEC_62196_T1`, `IEC_62196_T1_COMBO`, `IEC_62196_T2`,
+      `IEC_62196_T2_COMBO`, `IEC_62196_T3A`, `IEC_62196_T3C`, `DOMESTIC_A`, `DOMESTIC_B`,
+      `DOMESTIC_C`, `DOMESTIC_D`, `DOMESTIC_E`, `DOMESTIC_F`, `DOMESTIC_G`, `DOMESTIC_H`,
+      `DOMESTIC_I`, `DOMESTIC_J`, `DOMESTIC_K`, `DOMESTIC_L`, `TESLA_R`, `TESLA_S`,
+      `IEC_60309_2_single_16`, `IEC_60309_2_three_16`, `IEC_60309_2_three_32`, `IEC_60309_2_three_64`)
   }
 
   sealed trait ConnectorFormat extends Nameable

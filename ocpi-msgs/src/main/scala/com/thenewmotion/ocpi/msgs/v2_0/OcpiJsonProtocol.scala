@@ -93,8 +93,9 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val regularHoursFormat = jsonFormat3(RegularHours)
   implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
   implicit val hoursFormat = jsonFormat4(Hours)
-  implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
   implicit val imageFormat = jsonFormat6(Image)
+  implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
+
 
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)

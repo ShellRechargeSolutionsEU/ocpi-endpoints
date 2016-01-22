@@ -114,7 +114,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
      val connector1 = Connector(
         "1",
         ConnectorStatus.Available,
-        ConnectorType.`IEC-62196-T2`,
+        ConnectorType.`IEC_62196_T2`,
         ConnectorFormat.Cable,
         PowerType.AC3Phase,
         230,
@@ -125,7 +125,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val connector2 = Connector(
       "2",
       ConnectorStatus.Available,
-      ConnectorType.`IEC-62196-T2`,
+      ConnectorType.`IEC_62196_T2`,
       ConnectorFormat.Socket,
       PowerType.AC3Phase,
       230,
@@ -136,7 +136,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evse1 = Evse(
       "BE-BEC-E041503001",
       ConnectorStatus.Available,
-      capabilities = List("RESERVABLE"),
+      capabilities = List(Capability.Reservable),
       connectors = List(connector1, connector2),
       floor_level = Some("-1"),
       physical_reference = Some("1")
@@ -145,7 +145,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evse2 = Evse(
       "BE-BEC-E041503002",
       ConnectorStatus.Available,
-      capabilities = List("RESERVABLE"),
+      capabilities = List(Capability.Reservable),
       connectors = List(connector1),
       floor_level = Some("-1"),
       physical_reference = Some("1")
@@ -154,7 +154,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val evse3 = Evse(
       "BE-BEC-E041503003",
       ConnectorStatus.Available,
-      capabilities = List("RESERVABLE"),
+      capabilities = List(Capability.Reservable),
       connectors = List(connector1),
       floor_level = Some("-1"),
       physical_reference = Some("2")
@@ -189,7 +189,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       city = "Gent",
       postal_code = "9000",
       country = "BEL",
-      coordinates = GeoLocation("3.72994", "51.04759"),
+      coordinates = GeoLocation("3.729945", "51.047594"),
       evses = List(evse1),
       directions = List(dir1),
       operator = None,
@@ -206,7 +206,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       city = "Gent",
       postal_code = "9000",
       country = "BEL",
-      coordinates = GeoLocation("3.72995", "51.04760"),
+      coordinates = GeoLocation("3.729955", "51.047604"),
       evses = List(evse2,evse3),
       directions = List(dir1)
 
@@ -228,16 +228,16 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val geoLocationJson1 =
       s"""
          |{
-         |  "latitude": "3.72994",
-         |  "longitude": "51.04759"
+         |  "latitude": "3.729945",
+         |  "longitude": "51.047594"
          |}
      """.stripMargin.parseJson
 
     val geoLocationJson2 =
       s"""
          |{
-         |  "latitude": "3.72995",
-         |  "longitude": "51.04760"
+         |  "latitude": "3.729955",
+         |  "longitude": "51.047604"
          |}
      """.stripMargin.parseJson
 
@@ -256,7 +256,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |        {
          |          "id": "1",
          |          "status":"AVAILABLE",
-         |          "standard": "IEC-62196-T2",
+         |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
          |          "voltage": 230,
@@ -266,7 +266,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |        {
          |          "id": "2",
          |          "status":"AVAILABLE",
-         |          "standard": "IEC-62196-T2",
+         |          "standard": "IEC_62196_T2",
          |          "format": "SOCKET",
          |          "power_type": "AC_3_PHASE",
          |          "voltage": 230,
@@ -299,7 +299,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |        {
          |          "id": "1",
          |          "status":"AVAILABLE",
-         |          "standard": "IEC-62196-T2",
+         |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
          |          "voltage": 230,
@@ -329,7 +329,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |        {
          |          "id": "1",
          |          "status": "AVAILABLE",
-         |          "standard": "IEC-62196-T2",
+         |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
          |          "voltage": 230,

@@ -15,16 +15,6 @@ import spray.json._
 class CommonTypesSpecs extends SpecificationWithJUnit {
 
 
-  "DisplayText" should {
-    "deserialize" in new TestScope {
-      displayTextJson1.convertTo[DisplayText] mustEqual displayText1
-    }
-    "serialize" in new TestScope {
-      displayText1.toJson.toString mustEqual displayTextJson1.compactPrint
-    }
-  }
-
-
   "DateTimeJsonFormat" should {
     val obj = new DateTime(2014, 1, 28, 17, 30, 0, UTC).withZone(DateTimeZone.getDefault)
     val str = "2014-01-28T17:30:00Z"
@@ -62,16 +52,6 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
 
 
   private trait TestScope extends Scope {
-
-    val displayTextJson1 =
-      s"""
-         |  {
-         |    "language": "en",
-         |    "text": "Example"
-         |  }
-     """.stripMargin.parseJson
-
-    val displayText1 = DisplayText("en", "Example")
 
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
