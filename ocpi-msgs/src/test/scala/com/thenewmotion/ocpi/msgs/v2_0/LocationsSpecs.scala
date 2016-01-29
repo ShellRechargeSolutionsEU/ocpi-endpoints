@@ -194,7 +194,10 @@ class LocationsSpecs extends SpecificationWithJUnit {
       directions = List(dir1),
       operator = None,
       suboperator = None,
-      opening_times = Some(hours1)
+      opening_times = Some(hours1),
+      related_locations = List.empty,
+      charging_when_closed = Some(true),
+      images = List.empty
     )
 
     val location2 = Location(
@@ -207,8 +210,13 @@ class LocationsSpecs extends SpecificationWithJUnit {
       country = "BEL",
       coordinates = GeoLocation("3.729955", "51.047604"),
       evses = List(evse2,evse3),
-      directions = List(dir1)
-
+      directions = List(dir1),
+      operator = None,
+      suboperator = None,
+      opening_times = None,
+      related_locations = List.empty,
+      charging_when_closed = Some(true),
+      images = List.empty
     )
 
     val locationResp1 = LocationResp(
@@ -218,11 +226,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       data = List(location1,location2)
     )
 
-     val power1 = Power(Some(PowerType.AC3Phase), 16, 230)
-
-
-
-
+    val power1 = Power(Some(PowerType.AC3Phase), 16, 230)
 
     val geoLocationJson1 =
       s"""
