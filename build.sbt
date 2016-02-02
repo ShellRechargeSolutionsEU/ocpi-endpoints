@@ -12,7 +12,14 @@ val spray = Seq(
   "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test",
   "io.spray"                    %% "spray-client"             %   "1.3.3")
 
-val akka = Seq("com.typesafe.akka"   %% "akka-actor"          %   "2.4.1")
+def akka(scalaVersion: String) = {
+  val version = scalaVersion match {
+    case x if x.startsWith("2.10") => "2.3.14"
+    case x => "2.4.1"
+  }
+
+  Seq("com.typesafe.akka" %% s"akka-actor" % version)
+}
 
 val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.1.3")
 
@@ -45,7 +52,7 @@ val `ocpi-endpoints` = (project in file("ocpi-endpoints"))
   .settings(
     commonSettings,
     description := "OCPI endpoints",
-    libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ misc ++ testing)
+    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
 
 val root = (project in file("."))
   .aggregate(
