@@ -50,6 +50,10 @@ object Versions {
     case object Locations extends EndpointIdentifier {val name = "locations"}
     case object Credentials extends EndpointIdentifier {val name = "credentials"}
     case object Versions extends EndpointIdentifier {val name = "versions"}
+    case object Tariffs extends EndpointIdentifier {val name = "tariffs"}
+    case object Tokens extends EndpointIdentifier {val name = "tokens"}
+    case object Cdrs extends EndpointIdentifier {val name = "cdrs"}
+    case object Sessions extends EndpointIdentifier {val name = "sessions"}
 
     val values = List(Locations, Credentials, Versions)
   }
