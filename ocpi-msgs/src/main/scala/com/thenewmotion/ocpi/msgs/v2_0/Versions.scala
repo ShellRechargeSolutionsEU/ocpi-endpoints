@@ -55,7 +55,7 @@ object Versions {
     case object Cdrs extends EndpointIdentifier {val name = "cdrs"}
     case object Sessions extends EndpointIdentifier {val name = "sessions"}
 
-    val values = List(Locations, Credentials, Versions)
+    val values = List(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions)
   }
 }
 
