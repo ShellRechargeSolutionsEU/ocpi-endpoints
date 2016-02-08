@@ -183,7 +183,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
       \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
           Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
-          Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"))))))
+          Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
+          Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
 
     // Initiate handshake request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(
@@ -192,7 +193,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToUs) returns Future.successful(
       \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
-        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"))))))
+        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
 
     _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(
       \/-(ourCredsResp))
