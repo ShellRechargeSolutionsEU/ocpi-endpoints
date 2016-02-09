@@ -43,9 +43,10 @@ abstract class HandshakeService(
     credsToConnectToThem: Creds
   )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
-    logger.info(s"Handshake initiated: token for party to connect to us " +
-      s"is $existingTokenToConnectToUs, chosen version: $version." +
-      s" Credentials for us: $credsToConnectToThem")
+    logger.info(s"Handshake initiated by party: ${credsToConnectToThem.party_id}, " +
+      s"using token: $existingTokenToConnectToUs, " +
+      s"chosen version: $version. " +
+      s"Credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(
       version, credsToConnectToThem.token, Uri(credsToConnectToThem.url), initiatedByUs = false)
@@ -54,7 +55,7 @@ abstract class HandshakeService(
       case e @ -\/(error) =>
         logger.error(s"error getting versions information: $error"); e
       case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party '${credsToConnectToThem.business_details.name}'")
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.party_id}'")
         val newTokenToConnectToUs = ApiTokenGenerator.generateToken
 
         val persistResult = persistHandshakeReactResult(
@@ -63,6 +64,42 @@ abstract class HandshakeService(
 
         persistResult.bimap(
           e => { logger.error(s"error persisting handshake data: $e"); e },
+          _ => generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl)
+        )
+    }
+  }
+
+  /**
+    * React to a update credentials request.
+    *
+    * @return new credentials to connect to us
+    */
+  def reactToUpdateCredsRequest(
+    version: String,
+    existingTokenToConnectToUs: String,
+    credsToConnectToThem: Creds
+  )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+
+    logger.info(s"Update credentials request sent by ${credsToConnectToThem.party_id} " +
+      s"using token: $existingTokenToConnectToUs, for version: $version. " +
+      s"New credentials for us: $credsToConnectToThem")
+
+    val details = getTheirDetails(
+      version, credsToConnectToThem.token, Uri(credsToConnectToThem.url), initiatedByUs = false)
+
+    details map {
+      case e @ -\/(error) =>
+        logger.error(s"error getting versions information: $error"); e
+      case \/-(verDetails) =>
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.party_id}'")
+        val newTokenToConnectToUs = ApiTokenGenerator.generateToken
+
+        val persistResult = persistUpdateCredsResult(
+          version, existingTokenToConnectToUs, newTokenToConnectToUs,
+          credsToConnectToThem, verDetails.data.endpoints)
+
+        persistResult.bimap(
+          e => { logger.error(s"error persisting the update of the credentials: $e"); e },
           _ => generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl)
         )
     }
@@ -109,9 +146,9 @@ abstract class HandshakeService(
       versionResp.data.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None =>
-          if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion))
-          else if (ourVersion != version) Future.successful(-\/(SelectedVersionNotHostedByUs))
-          else Future.successful(-\/(SelectedVersionNotHostedByThem))
+          if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion()))
+          else if (ourVersion != version) Future.successful(-\/(SelectedVersionNotHostedByUs()))
+          else Future.successful(-\/(SelectedVersionNotHostedByThem()))
       }
     }
 
@@ -130,6 +167,14 @@ abstract class HandshakeService(
   }
 
   protected def persistHandshakeReactResult(
+    version: String,
+    existingTokenToConnectToUs: String,
+    newTokenToConnectToUs: String,
+    credsToConnectToThem: Creds,
+    endpoints: Iterable[Endpoint]
+  ): HandshakeError \/ Unit
+
+  protected def persistUpdateCredsResult(
     version: String,
     existingTokenToConnectToUs: String,
     newTokenToConnectToUs: String,

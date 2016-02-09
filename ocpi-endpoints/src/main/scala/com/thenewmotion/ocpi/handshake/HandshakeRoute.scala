@@ -16,19 +16,27 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
       entity(as[Creds]) { credsToConnectToThem =>
         onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
           case -\/(_) => reject()
-          case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+          case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
             currentTime, newCredsToConnectToUs))
         }
       }
     } ~
-    get {
-      service.findRegisteredCredsToConnectToUs(tokenToConnectToUs) match {  //TODO
-        case -\/(_) => reject()  // Now will go through this one since it is sending an error back and will get resource not found because of the current implementation of the error handling
-        case \/-(credsToConnectToUs) =>
-          complete(CredsResp(GenericSuccess.code, None, currentTime, credsToConnectToUs))
+      get {
+        service.findRegisteredCredsToConnectToUs(tokenToConnectToUs) match {
+          case -\/(_) => reject()
+          case \/-(credsToConnectToUs) =>
+            complete(CredsResp(GenericSuccess.code, None, currentTime, credsToConnectToUs))
+        }
+      } ~
+      put {
+        entity(as[Creds]) { credsToConnectToThem =>
+          onSuccess(service.reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
+            case -\/(_) => reject()
+            case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
+              currentTime, newCredsToConnectToUs))
+          }
+        }
       }
-
-    }
   }
 }
 

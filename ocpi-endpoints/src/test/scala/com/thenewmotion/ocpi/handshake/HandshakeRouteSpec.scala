@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.handshake
 
-import com.thenewmotion.ocpi.handshake.Errors.UnknownPartyToken
+import com.thenewmotion.ocpi.handshake.Errors.{WaitingForRegistrationRequest, UnknownPartyToken}
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.{GenericServerFailure, GenericSuccess}
@@ -19,8 +19,6 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
-      handshakeService.findRegisteredCredsToConnectToUs(any) returns -\/(UnknownPartyToken)
-
       val theirLog = credsToConnectToThem.business_details.logo.get
       val theirCredsData =
         s"""
@@ -63,20 +61,85 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
-      handshakeService.findRegisteredCredsToConnectToUs(any) returns -\/(UnknownPartyToken)
-
       Get("/credentials") ~> HttpService.sealRoute(credentialsRoute.route(selectedVersion, tokenToConnectToUs)) ~> check {
         handled must beTrue
         status.isSuccess === false
         // TODO: TNM-1987
       }
     }
+
+    "accept the update of the credentials they sent us to connect to them" in new CredentialsTestScope {
+      handshakeService.findRegisteredCredsToConnectToUs(any) returns \/-(credsToConnectToUs)
+      handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
+        Future.successful(\/-(newCredsToConnectToUs))
+
+      val theirLog = credsToConnectToThem.business_details.logo.get
+      val theirNewCredsData =
+        s"""
+           |{
+           |    "token": "${credsToConnectToThem.token}",
+           |    "url": "${credsToConnectToThem.url}",
+           |    "business_details": {
+           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "logo": {
+           |          "url": "${theirLog.url}",
+           |          "category": "${theirLog.category.name}",
+           |          "type": "${theirLog.`type`}"
+           |        },
+           |        "website": "${credsToConnectToThem.business_details.website.get}"
+           |    },
+           |    "party_id": "${credsToConnectToThem.party_id}",
+           |    "country_code": "${credsToConnectToThem.country_code}"
+           |}
+           |""".stripMargin
+
+      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
+
+      Put("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
+        handled must beTrue
+        status.isSuccess === true
+        responseAs[String] must contain(GenericSuccess.code.toString)
+        responseAs[String] must contain(newCredsToConnectToUs.token)
+      }
+    }
+    "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
+      handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
+        Future.successful(-\/(WaitingForRegistrationRequest()))
+
+
+      val theirLog = credsToConnectToThem.business_details.logo.get
+      val theirNewCredsData =
+        s"""
+           |{
+           |    "token": "${credsToConnectToThem.token}",
+           |    "url": "${credsToConnectToThem.url}",
+           |    "business_details": {
+           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "logo": {
+           |          "url": "${theirLog.url}",
+           |          "category": "${theirLog.category.name}",
+           |          "type": "${theirLog.`type`}"
+           |        },
+           |        "website": "${credsToConnectToThem.business_details.website.get}"
+           |    },
+           |    "party_id": "${credsToConnectToThem.party_id}",
+           |    "country_code": "${credsToConnectToThem.country_code}"
+           |}
+           |""".stripMargin
+
+      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
+
+      Put("/credentials", body) ~>  HttpService.sealRoute(credentialsRoute.route(selectedVersion, tokenToConnectToUs)) ~> check {
+        handled must beTrue
+        status.isSuccess === false
+        // TODO: TNM-1987
+      }
+    }
+
   }
 
   "initiateHandshake endpoint" should {
     "send the credentials to them to connect to us" in new CredentialsTestScope {
-      handshakeService.findRegisteredCredsToConnectToUs(any) returns -\/(UnknownPartyToken)
-
       val theirVersData =
         s"""
            |{
@@ -124,13 +187,16 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       business_details = OcpiBusinessDetails("Us", None, Some("http://us.com")),
       party_id = "TNM",
       country_code = "NL")
+    val newCredsToConnectToUs = credsToConnectToUs.copy()
 
     // mock
     val handshakeService = mock[HandshakeService]
     handshakeService.reactToHandshakeRequest(any, any, any)(any) returns
       Future.successful(\/-(credsToConnectToUs))
+
     handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url) returns
       Future.successful(\/-(credsToConnectToThem))
+    handshakeService.findRegisteredCredsToConnectToUs(any) returns -\/(UnknownPartyToken())
 
     val credentialsRoute = new HandshakeRoute(handshakeService, dateTime)
     val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService, dateTime)
