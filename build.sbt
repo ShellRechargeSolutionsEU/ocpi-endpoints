@@ -3,7 +3,7 @@ import sbt._
 
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.12")
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.15")
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
 
@@ -21,7 +21,7 @@ def akka(scalaVersion: String) = {
   Seq("com.typesafe.akka" %% s"akka-actor" % version)
 }
 
-val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.1.3")
+val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.1.6")
 
 val misc = Seq(
   "com.thenewmotion"            %% "joda-money-ext"           %   "1.0.0",
