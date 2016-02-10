@@ -4,7 +4,7 @@ class DefaultOcpiRestActor(routingConfig: OcpiRoutingConfig) extends OcpiRestAct
 
   import context.dispatcher
 
-  override def receive: Receive = runRoute(topLevelRoute)
+  override def receive: Receive = runRoute(route)
 
   implicit private val rejectionHandler = OcpiRejectionHandler.Default
 
