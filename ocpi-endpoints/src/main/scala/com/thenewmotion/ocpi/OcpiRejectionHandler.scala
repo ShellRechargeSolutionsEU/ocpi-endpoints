@@ -5,7 +5,6 @@ import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes._
 import org.joda.time.DateTime
 import spray.http.StatusCodes._
-import spray.http.{ContentTypes, HttpEntity, HttpResponse}
 import spray.httpx.SprayJsonSupport
 import spray.json._
 import spray.routing._
@@ -18,90 +17,74 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
   val Default = RejectionHandler {
 
-    case (r@UnsupportedVersionRejection(version: String)) :: _ =>
-      complete {
-        HttpResponse(
-          BadRequest,
-          HttpEntity(ContentTypes.`application/json`,
+    case (MalformedRequestContentRejection(msg, cause)) :: _ => complete {
+        ( BadRequest,
+            ErrorResp(
+              GenericClientFailure.code,
+              Some(msg),
+              DateTime.now()).toJson.compactPrint)
+      }
+
+    case (r@UnsupportedVersionRejection(version: String)) :: _ => complete {
+        ( BadRequest,
             ErrorResp(
               UnsupportedVersion.code,
               Some(s"Version not known: $version"),
               DateTime.now()).toJson.compactPrint)
-        )
       }
 
-    case (r@NoVersionsRejection()) :: _ =>
-      complete {
-        HttpResponse(
-          InternalServerError,
-          HttpEntity(ContentTypes.`application/json`,
+    case (r@NoVersionsRejection()) :: _ => complete {
+        ( InternalServerError,
             ErrorResp(
               3010,
               Some(s"No versions registered"),
               DateTime.now()).toJson.compactPrint)
-        )
       }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders)) :: _ =>
       complete {
-        HttpResponse(
-          BadRequest,
-          HttpEntity(ContentTypes.`application/json`,
+        ( BadRequest,
             ErrorResp(
               MissingHeader.code,
               Some(MissingHeader.default_message),
               DateTime.now()).toJson.compactPrint)
-        )
       }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, challengeHeaders)) :: _ =>
       complete {
-        HttpResponse(
-          BadRequest,
-          HttpEntity(ContentTypes.`application/json`,
+        ( BadRequest,
             ErrorResp(
               AuthenticationFailed.code,
               Some(AuthenticationFailed.default_message),
               DateTime.now()).toJson.compactPrint)
-        )
       }
 
-    case (r@MissingHeaderRejection(header)) :: _ =>
-      complete {
-        HttpResponse(
-          BadRequest,
-          HttpEntity(ContentTypes.`application/json`,
+    case (r@MissingHeaderRejection(header)) :: _ => complete {
+        ( BadRequest,
             ErrorResp(
               MissingHeader.code,
               Some(s"Header not found: '$header'"),
               DateTime.now()).toJson.compactPrint)
-        )
+
       }
 
     //TODO: TNM-2013: It doesn't work yet, it must be used to fail with that error when required endpoints not included
-//    case (r@ValidationRejection(msg, cause)) :: _ =>
-//      complete {
-//        HttpResponse(
-//          BadRequest,
-//          HttpEntity(ContentTypes.`application/json`,
+//    case (r@ValidationRejection(msg, cause)) :: _ => complete {
+//        ( BadRequest,
 //            ErrorResp(
 //              MissingExpectedEndpoints.code,
 //              Some(s"${MissingExpectedEndpoints.default_message} $msg"),
 //              DateTime.now()).toJson.compactPrint)
-//        )
 //      }
 
-    // FIXME: TNM-1987 We generate Server Error even when the resource doesn't exist
-//    case rejections => complete {
-//      HttpResponse(
-//        InternalServerError,
-//        HttpEntity(ContentTypes.`application/json`,
-//          ErrorResp(
-//            GenericServerFailure.code,
-//            Some(GenericServerFailure.default_message),
-//            DateTime.now()).toJson.compactPrint)
-//      )
-//    }
+
+    case rejections => complete {
+      (BadRequest,
+        ErrorResp(
+          GenericClientFailure.code,
+          Option(rejections.mkString(", ")).filter(_.trim.nonEmpty),
+          DateTime.now()).toJson.compactPrint)
+    }
 
   }
 }
