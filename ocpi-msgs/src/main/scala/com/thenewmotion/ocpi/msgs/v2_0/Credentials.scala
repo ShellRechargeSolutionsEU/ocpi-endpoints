@@ -21,7 +21,7 @@ object Credentials {
   case class CredsResp(
     status_code: Int,
     status_message: Option[String],
-    timestamp: DateTime,
+    timestamp: DateTime = DateTime.now(),
     data: Creds
     ) extends OcpiResponse
 

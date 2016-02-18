@@ -30,7 +30,7 @@ object Versions {
   case class VersionDetailsResp(
     status_code: Int,
     status_message: Option[String],
-    timestamp: DateTime,
+    timestamp: DateTime = DateTime.now(),
     data: VersionDetails
     ) extends OcpiResponse {
     require(data.endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
@@ -41,7 +41,7 @@ object Versions {
   case class VersionsResp(
     status_code: Int,
     status_message: Option[String],
-    timestamp: DateTime,
+    timestamp: DateTime = DateTime.now(),
     data: List[Version]
     ) extends OcpiResponse
 

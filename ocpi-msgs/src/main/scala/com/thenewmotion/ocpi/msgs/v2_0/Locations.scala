@@ -4,6 +4,7 @@ import com.thenewmotion.ocpi.msgs.{Enumerable, Nameable}
 import com.thenewmotion.time.Imports._
 import com.thenewmotion.money.CurrencyUnit
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
+import org.joda.time.DateTime
 
 
 object Locations {
@@ -267,7 +268,7 @@ object Locations {
   case class LocationResp(
     status_code: Int,
     status_message: Option[String] = None,
-    timestamp: DateTime,
+    timestamp: DateTime = DateTime.now(),
     data: List[Location]
     ) extends OcpiResponse
 
