@@ -48,7 +48,7 @@ object CommonTypes {
   case class ErrorResp(
     status_code: Int,
     status_message: Option[String] = None,
-    timestamp: DateTime
+    timestamp: DateTime = DateTime.now()
     ) extends OcpiResponse {
     require(status_code >= 2000 && status_code <= 3999)
   }
@@ -56,7 +56,7 @@ object CommonTypes {
   case class SuccessResp(
     status_code: Int,
     status_message: Option[String] = None,
-    timestamp: DateTime
+    timestamp: DateTime = DateTime.now()
     ) extends OcpiResponse {
     require(status_code >= 1000 && status_code <= 1999)
   }

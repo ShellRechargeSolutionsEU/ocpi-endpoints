@@ -21,24 +21,21 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         ( BadRequest,
             ErrorResp(
               GenericClientFailure.code,
-              Some(msg),
-              DateTime.now()).toJson.compactPrint)
+              Some(msg)).toJson.compactPrint)
       }
 
     case (r@UnsupportedVersionRejection(version: String)) :: _ => complete {
         ( BadRequest,
             ErrorResp(
               UnsupportedVersion.code,
-              Some(s"Version not known: $version"),
-              DateTime.now()).toJson.compactPrint)
+              Some(s"Version not known: $version")).toJson.compactPrint)
       }
 
     case (r@NoVersionsRejection()) :: _ => complete {
         ( InternalServerError,
             ErrorResp(
               3010,
-              Some(s"No versions registered"),
-              DateTime.now()).toJson.compactPrint)
+              Some(s"No versions registered")).toJson.compactPrint)
       }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders)) :: _ =>
@@ -46,8 +43,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         ( BadRequest,
             ErrorResp(
               MissingHeader.code,
-              Some(MissingHeader.default_message),
-              DateTime.now()).toJson.compactPrint)
+              Some(MissingHeader.default_message)).toJson.compactPrint)
       }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, challengeHeaders)) :: _ =>
@@ -55,16 +51,14 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         ( BadRequest,
             ErrorResp(
               AuthenticationFailed.code,
-              Some(AuthenticationFailed.default_message),
-              DateTime.now()).toJson.compactPrint)
+              Some(AuthenticationFailed.default_message)).toJson.compactPrint)
       }
 
     case (r@MissingHeaderRejection(header)) :: _ => complete {
         ( BadRequest,
             ErrorResp(
               MissingHeader.code,
-              Some(s"Header not found: '$header'"),
-              DateTime.now()).toJson.compactPrint)
+              Some(s"Header not found: '$header'")).toJson.compactPrint)
 
       }
 
@@ -82,8 +76,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
       (BadRequest,
         ErrorResp(
           GenericClientFailure.code,
-          Option(rejections.mkString(", ")).filter(_.trim.nonEmpty),
-          DateTime.now()).toJson.compactPrint)
+          Option(rejections.mkString(", ")).filter(_.trim.nonEmpty)).toJson.compactPrint)
     }
 
   }

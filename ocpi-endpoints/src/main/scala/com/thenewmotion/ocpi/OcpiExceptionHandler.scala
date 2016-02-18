@@ -20,8 +20,7 @@ object OcpiExceptionHandler extends BasicDirectives with SprayJsonSupport {
         ( InternalServerError,
             ErrorResp(
               GenericClientFailure.code,
-              Some(exception.toString),
-              DateTime.now()).toJson.compactPrint)
+              Some(exception.toString)).toJson.compactPrint)
       }
   }
 }
