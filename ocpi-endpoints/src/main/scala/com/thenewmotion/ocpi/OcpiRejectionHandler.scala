@@ -25,6 +25,20 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
           DateTime.now()).toJson.compactPrint)
     }
 
+    case (r@UnsupportedVersionRejection(version: String)) :: _ => complete {
+      ( BadRequest,
+        ErrorResp(
+          UnsupportedVersion.code,
+          Some(s"${UnsupportedVersion.default_message}: $version")).toJson.compactPrint)
+    }
+
+    case (r@NoVersionsRejection()) :: _ => complete {
+      ( InternalServerError,
+        ErrorResp(
+          NotVersionsRegistered.code,
+          Some(NotVersionsRegistered.default_message)).toJson.compactPrint)
+    }
+
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders)) :: _ =>
       complete {
         ( BadRequest,
@@ -39,7 +53,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         ( BadRequest,
           ErrorResp(
             AuthenticationFailed.code,
-            Some(AuthenticationFailed.default_message),
+            Some(s"${AuthenticationFailed.default_message}: $challengeHeaders"),
             DateTime.now()).toJson.compactPrint)
       }
 
@@ -47,7 +61,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
       ( BadRequest,
         ErrorResp(
           MissingHeader.code,
-          Some(s"Header not found: '$header'"),
+          Some(s"${MissingHeader.default_message}: '$header'"),
           DateTime.now()).toJson.compactPrint)
 
     }
