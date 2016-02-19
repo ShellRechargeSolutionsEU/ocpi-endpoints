@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorRefFactory
 import com.thenewmotion.ocpi.common.OcpiClient
-import com.thenewmotion.ocpi.handshake.Errors._
+import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.Url
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
@@ -10,7 +10,7 @@ import spray.client.pipelining._
 import spray.http._
 import spray.httpx.SprayJsonSupport._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Success
+import scala.util.{Success, Failure}
 import scalaz.{-\/, \/-, \/}
 
 class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
@@ -21,8 +21,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
     val resp = pipeline(Get(uri))
     bimap(resp) {
       case Success(versions) => \/-(versions)
-      case _ =>
-        logger.error(s"Could not retrieve the versions information from $uri with token $token")
+      case Failure(t) =>
+        logger.error(s"Could not retrieve the versions information from $uri with token $token", t)
         -\/(VersionsRetrievalFailed())
     }
   }
@@ -33,8 +33,8 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
     val resp = pipeline(Get(uri))
     bimap(resp) {
       case Success(versionDet) => \/-(versionDet)
-      case _ =>
-        logger.error(s"Could not retrieve the version details from $uri with token $token")
+      case Failure(t) =>
+        logger.error(s"Could not retrieve the version details from $uri with token $token", t)
         -\/(VersionDetailsRetrievalFailed())
     }
   }
@@ -45,9 +45,9 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
     val resp = pipeline(Post(theirCredUrl, credToConnectToUs))
     bimap(resp) {
       case Success(theirCreds) => \/-(theirCreds)
-      case _ =>
+      case Failure(t) =>
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
-          s"$tokenToConnectToThem when sending our credentials $credToConnectToUs")
+          s"$tokenToConnectToThem when sending our credentials $credToConnectToUs", t )
         -\/(SendingCredentialsFailed())
     }
   }

@@ -1,13 +1,16 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
+import com.thenewmotion.ocpi.handshake.{HandshakeErrorRejection, HandshakeError, InitiateHandshakeRoute}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.routing._
 import spray.routing.authentication.Authentication
+import spray.routing.directives.FutureDirectives
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import spray.http.Uri
+
+import scalaz.{\/-, -\/, \/}
 
 trait TopLevelRoute extends JsonApi {
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
@@ -21,6 +24,24 @@ trait TopLevelRoute extends JsonApi {
 
   val EndPointPathMatcher = Segment.flatMap {
     case s => EndpointIdentifier.withName(s)
+  }
+
+  case class OcpiErrorRejection(error: HandshakeError) extends Rejection
+
+  trait TopLevelApi extends JsonApi {
+    protected def leftToRejection[T](errOrX: HandshakeError \/ T)(f: T => Route): Route =
+      errOrX match {
+        case -\/(err) => reject(HandshakeErrorRejection(err))
+        case \/-(res) => f(res)
+      }
+
+    protected def futLeftToRejection[T](errOrX: Future[HandshakeError \/ T])(f: T => Route)
+      (implicit ec: ExecutionContext): Route = {
+      FutureDirectives.onSuccess(errOrX) {
+        case -\/(err) => reject(HandshakeErrorRejection(err))
+        case \/-(res) => f(res)
+      }
+    }
   }
 
   def appendPath(uri: Uri, segments: String*) = {
@@ -64,14 +85,14 @@ trait TopLevelRoute extends JsonApi {
     }
 
 
-  def route(implicit ec: ExecutionContext) =
+  def topLevelRoute(implicit ec: ExecutionContext) =
     headerValueByName("Authorization") { access_token =>
       (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
 
         pathPrefix("initiateHandshake") {
           pathEndOrSingleSlash {
             authenticate(internalUseToken.validate(access_token)) { internalUser: ApiUser =>
-              new InitiateHandshakeRoute(routingConfig.handshakeService).route
+              new InitiateHandshakeRoute(routingConfig.handshakeService).routeWithoutRH
             }
           }
         } ~
@@ -82,7 +103,7 @@ trait TopLevelRoute extends JsonApi {
             } ~
             pathPrefix(Segment) { version =>
               routingConfig.versions.get(version) match {
-                case None => reject
+                case None => reject(UnsupportedVersionRejection(version))
                 case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
               }
             }

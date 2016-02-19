@@ -5,7 +5,7 @@ import java.security.SecureRandom
 import akka.actor.ActorRefFactory
 import com.thenewmotion.ocpi
 import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.handshake.Errors._
+import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_0.Versions

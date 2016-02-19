@@ -1,16 +1,16 @@
 package com.thenewmotion.ocpi.handshake
 
-import com.thenewmotion.ocpi.handshake.Errors.{WaitingForRegistrationRequest, UnknownPartyToken}
+import com.thenewmotion.ocpi.handshake.HandshakeError._
+import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.{GenericServerFailure, GenericSuccess}
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.MediaTypes._
-import spray.http.{StatusCodes, ContentType, HttpCharsets, HttpEntity}
-import spray.routing.HttpService
+import spray.http.{ContentType, HttpCharsets, HttpEntity}
 import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
@@ -41,7 +41,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirCredsData)
 
-      Post("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
+      Post("/credentials", body) ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
         handled must beTrue
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
@@ -52,7 +52,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
       handshakeService.findRegisteredCredsToConnectToUs(any) returns \/-(credsToConnectToUs)
 
-      Get("/credentials") ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
+      Get("/credentials") ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
         handled must beTrue
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
@@ -61,10 +61,8 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
-      Get("/credentials") ~> HttpService.sealRoute(credentialsRoute.route(selectedVersion, tokenToConnectToUs)) ~> check {
-        handled must beTrue
-        status.isSuccess === false
-        // TODO: TNM-1987
+      Get("/credentials") ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
+        handled must beFalse
       }
     }
 
@@ -95,14 +93,14 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
 
-      Put("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
+      Put("/credentials", body) ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
         handled must beTrue
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(newCredsToConnectToUs.token)
       }
     }
-    "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
+    "return error if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
       handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
         Future.successful(-\/(WaitingForRegistrationRequest()))
 
@@ -129,10 +127,8 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
 
-      Put("/credentials", body) ~>  HttpService.sealRoute(credentialsRoute.route(selectedVersion, tokenToConnectToUs)) ~> check {
-        handled must beTrue
-        status.isSuccess === false
-        // TODO: TNM-1987
+      Put("/credentials", body) ~>  credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
+        handled must beFalse
       }
     }
 
@@ -150,7 +146,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
 
-      Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
+      Post("/initiateHandshake", body) ~> initHandshakeRoute.routeWithoutRH ~> check {
         handled must beTrue
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)

@@ -26,14 +26,14 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     "authenticate api calls with valid token info" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(validToken) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beTrue
       }
     }
 
     "reject api calls without Authorization header" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(invalidHeaderName) ~> topLevelRoute.route ~> check {
+        addHeader(invalidHeaderName) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beFalse
         rejections must contain(MissingHeaderRejection("Authorization"))
       }
@@ -41,7 +41,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     "reject api calls without valid token" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(invalidToken) ~> topLevelRoute.route ~> check {
+        addHeader(invalidToken) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beFalse
         rejections must contain(AuthenticationFailedRejection(CredentialsRejected,List()))
       }
@@ -51,7 +51,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     "route calls to our versions endpoint" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(validToken) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson
@@ -63,7 +63,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     "route calls to our version details" in new TopLevelScope {
       Get("/cpo/versions/2.0") ~>
-        addHeader(validToken) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson
@@ -77,7 +77,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     "route calls to our version details when terminated by slash" in new TopLevelScope {
       Get("/cpo/versions/2.0/") ~>
-        addHeader(validToken) ~> topLevelRoute.route ~> check {
+        addHeader(validToken) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beTrue
 
         val json = responseAs[String].parseJson

@@ -1,30 +1,51 @@
 package com.thenewmotion.ocpi
 package handshake
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
+import scala.concurrent._
+import spray.routing.{Route, Rejection}
 import scalaz._
+import spray.routing.directives.FutureDirectives
 
-class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+case class HandshakeErrorRejection(error: HandshakeError) extends Rejection
+
+trait HandshakeApi extends JsonApi {
+  protected def leftToRejection[T](errOrX: HandshakeError \/ T)(f: T => Route): Route =
+    errOrX match {
+      case -\/(err) => reject(HandshakeErrorRejection(err))
+      case \/-(res) => f(res)
+    }
+
+  protected def futLeftToRejection[T](errOrX: Future[HandshakeError \/ T])(f: T => Route)
+    (implicit ec: ExecutionContext): Route = {
+    FutureDirectives.onSuccess(errOrX) {
+      case -\/(err) => reject(HandshakeErrorRejection(err))
+      case \/-(res) => f(res)
+    }
+  }
+}
+
+class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends HandshakeApi {
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
   import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
 
-  def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
+  def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) =
+    handleRejections(HandshakeRejectionHandler.Default)(routeWithoutRH(accessedVersion, tokenToConnectToUs))
+
+  def routeWithoutRH(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
     post {
       entity(as[Creds]) { credsToConnectToThem =>
-        onSuccess(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
-          case -\/(_) => reject()
-          case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
-            currentTime, newCredsToConnectToUs))
+        futLeftToRejection(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
+          newCredsToConnectToUs =>
+            complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
+              currentTime, newCredsToConnectToUs))
         }
       }
     } ~
       get {
-        service.findRegisteredCredsToConnectToUs(tokenToConnectToUs) match {
-          case -\/(_) => reject()
-          case \/-(credsToConnectToUs) =>
+        leftToRejection(service.findRegisteredCredsToConnectToUs(tokenToConnectToUs)) { credsToConnectToUs =>
             complete(CredsResp(GenericSuccess.code, None, currentTime, credsToConnectToUs))
         }
       } ~
@@ -40,18 +61,20 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
   }
 }
 
-class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends HandshakeApi {
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
   import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
   import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 
-  def route(implicit ec: ExecutionContext) = {
+  def route(implicit ec: ExecutionContext) = handleRejections(HandshakeRejectionHandler.Default)(routeWithoutRH)
+
+  def routeWithoutRH(implicit ec: ExecutionContext) = {
     post {
       entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
-        onSuccess(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
-          case -\/(_) => reject()
-          case \/-(newCredToConnectToThem) => complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
-            currentTime, newCredToConnectToThem))
+        futLeftToRejection(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
+          newCredToConnectToThem =>
+            complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
+              currentTime, newCredToConnectToThem))
         }
       }
     }

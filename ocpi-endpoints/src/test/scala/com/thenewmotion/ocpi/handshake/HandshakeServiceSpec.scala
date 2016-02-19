@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.thenewmotion.ocpi.handshake.Errors._
+import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds, CredsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
