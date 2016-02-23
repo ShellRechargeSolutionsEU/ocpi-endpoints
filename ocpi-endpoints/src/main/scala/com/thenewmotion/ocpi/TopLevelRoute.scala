@@ -86,17 +86,17 @@ trait TopLevelRoute extends JsonApi {
 
 
   def topLevelRoute(implicit ec: ExecutionContext) =
-    headerValueByName("Authorization") { access_token =>
+    headerValueByName("Authorization") { accessToken =>
       (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
 
         pathPrefix("initiateHandshake") {
           pathEndOrSingleSlash {
-            authenticate(internalUseToken.validate(access_token)) { internalUser: ApiUser =>
+            authenticate(internalUseToken.validate(accessToken)) { internalUser: ApiUser =>
               new InitiateHandshakeRoute(routingConfig.handshakeService).route
             }
           }
         } ~
-        authenticate(externalUseToken.validate(access_token)) { apiUser: ApiUser =>
+        authenticate(externalUseToken.validate(accessToken)) { apiUser: ApiUser =>
           pathPrefix(EndpointIdentifier.Versions.name) {
             pathEndOrSingleSlash {
               versionsRoute(uri)

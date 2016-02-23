@@ -46,7 +46,7 @@ object Locations {
     opening_times: Option[Hours] = None,
     charging_when_closed: Option[Boolean] = None,
     images: Option[List[Image]] = None) {
-    require(country.foldLeft(true) { (_, country) => country.length == 3}, "Location needs 3-letter, ISO 3166-1 country code!")
+    require(country.fold(true)(_.length == 3), "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
   sealed trait LocationType extends Nameable
@@ -79,7 +79,8 @@ object Locations {
     exceptional_closings: List[ExceptionalPeriod] = List()
   ) {
     require(regular_hours.nonEmpty && !twentyfourseven
-      || regular_hours.isEmpty && twentyfourseven)
+      || regular_hours.isEmpty && twentyfourseven,
+      "Opening hours need to be either 24/7 or have non-empty regular_hours")
   }
 
 
@@ -147,13 +148,13 @@ object Locations {
 
   case class ConnectorPatch(
     id: String,
-    status: Option[ConnectorStatus],
-    standard: Option[ConnectorType],
-    format: Option[ConnectorFormat],
-    power_type:	Option[PowerType],
-    voltage: Option[Int],
-    amperage: Option[Int],
-    tariff_id: Option[String],
+    status: Option[ConnectorStatus] = None,
+    standard: Option[ConnectorType] = None,
+    format: Option[ConnectorFormat] = None,
+    power_type:	Option[PowerType] = None,
+    voltage: Option[Int] = None,
+    amperage: Option[Int] = None,
+    tariff_id: Option[String] = None,
     terms_and_conditions: Option[Url] = None
     )
 
@@ -186,7 +187,7 @@ object Locations {
   }
 
   case class EvsePatch(
-    id: String,
+    uid: String,
     status: Option[ConnectorStatus] = None,
     connectors: Option[List[Connector]] = None,
     status_schedule: Option[List[StatusSchedule]] = None,
@@ -236,15 +237,15 @@ object Locations {
     case object Blocked extends ConnectorStatus {val name = "BLOCKED"}
     case object Charging extends ConnectorStatus {val name = "CHARGING"}
     case object Inoperative extends ConnectorStatus {val name = "INOPERATIVE"}
-    case object OutOfService extends ConnectorStatus {val name = "OUTOFORDER"}
-    case object Occupied extends ConnectorStatus {val name = "PLANNED"}
+    case object OutOfOrder extends ConnectorStatus {val name = "OUTOFORDER"}
+    case object Planned extends ConnectorStatus {val name = "PLANNED"}
     case object Removed extends ConnectorStatus {val name = "REMOVED"}
     case object Reserved extends ConnectorStatus {val name = "RESERVED"}
     case object Unknown extends ConnectorStatus {val name = "UNKNOWN"}
 
 
     //case object Unknown extends ConnectorStatus {val name = "unknown"}
-    val values = List(Available, Blocked, Charging, Inoperative, OutOfService, Occupied, Removed, Reserved, Unknown)
+    val values = List(Available, Blocked, Charging, Inoperative, OutOfOrder, Planned, Removed, Reserved, Unknown)
   }
 
   case class StatusSchedule(
@@ -309,26 +310,26 @@ object Locations {
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: List[Location]
-    ) extends SuccessResp
+    ) extends SuccessResponse
 
   case class LocationResp(
     status_code: Int,
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Location
-  ) extends OcpiResponse
+  ) extends OcpiResponse[Option[String]]
 
   case class EvseResp(
     status_code: Int,
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Evse
-  ) extends OcpiResponse
+  ) extends OcpiResponse[Option[String]]
 
   case class ConnectorResp(
     status_code: Int,
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Connector
-  ) extends OcpiResponse
+  ) extends OcpiResponse[Option[String]]
 }

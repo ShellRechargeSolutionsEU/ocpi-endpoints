@@ -53,7 +53,13 @@ object CommonTypes {
     require(status_code >= 2000 && status_code <= 3999)
   }
 
-  trait SuccessResp extends OcpiResponse[Option[String]] {
+  private[ocpi] trait SuccessResponse extends OcpiResponse[Option[String]] {
     require(status_code >= 1000 && status_code <= 1999)
   }
+
+  case class SuccessResp(
+    status_code: Int,
+    status_message: Option[String] = None,
+    timestamp: DateTime = DateTime.now()
+  ) extends SuccessResponse
 }

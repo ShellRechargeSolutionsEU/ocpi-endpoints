@@ -1,9 +1,5 @@
 package com.thenewmotion.ocpi
 
-/**
- *
- */
-
   trait Nameable {
     val name: String
   }

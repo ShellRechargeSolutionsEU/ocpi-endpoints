@@ -23,7 +23,7 @@ class LocationsClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
       case Success(locations) => \/-(locations)
       case Failure(t) =>
         logger.error(s"Failed to get locations from $uri", t)
-        -\/(LocationRetrievalFailed())
+        -\/(LocationNotFound())
     }
   }
 }

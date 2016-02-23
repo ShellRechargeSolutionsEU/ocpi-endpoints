@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResp, Url}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResponse, Url}
 import com.thenewmotion.ocpi.msgs.{Enumerable, Nameable}
 import org.joda.time.DateTime
 
@@ -35,9 +35,8 @@ object Versions {
     status_message: Option[String],
     timestamp: DateTime = DateTime.now(),
     data: VersionDetails
-    ) extends SuccessResp {
+    ) extends SuccessResponse {
     require(data.endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
-//    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Locations), "Missing locations endpoint type details")
   }
 
 
@@ -46,7 +45,7 @@ object Versions {
     status_message: Option[String],
     timestamp: DateTime = DateTime.now(),
     data: List[Version]
-    ) extends SuccessResp
+    ) extends SuccessResponse
 
   sealed trait EndpointIdentifier extends Nameable
   object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
