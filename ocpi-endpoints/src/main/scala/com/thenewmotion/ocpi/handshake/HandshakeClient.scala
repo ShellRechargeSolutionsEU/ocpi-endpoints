@@ -23,7 +23,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
       case Success(versions) => \/-(versions)
       case Failure(t) =>
         logger.error(s"Could not retrieve the versions information from $uri with token $token", t)
-        -\/(VersionsRetrievalFailed())
+        -\/(VersionsRetrievalFailed)
     }
   }
 
@@ -35,7 +35,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
       case Success(versionDet) => \/-(versionDet)
       case Failure(t) =>
         logger.error(s"Could not retrieve the version details from $uri with token $token", t)
-        -\/(VersionDetailsRetrievalFailed())
+        -\/(VersionDetailsRetrievalFailed)
     }
   }
 
@@ -48,7 +48,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
       case Failure(t) =>
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
           s"$tokenToConnectToThem when sending our credentials $credToConnectToUs", t )
-        -\/(SendingCredentialsFailed())
+        -\/(SendingCredentialsFailed)
     }
   }
 }

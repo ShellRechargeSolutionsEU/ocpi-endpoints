@@ -146,9 +146,9 @@ abstract class HandshakeService(
       versionResp.data.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None =>
-          if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion()))
-          else if (ourVersion != version) Future.successful(-\/(SelectedVersionNotHostedByUs()))
-          else Future.successful(-\/(SelectedVersionNotHostedByThem()))
+          if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion))
+          else if (ourVersion != version) Future.successful(-\/(SelectedVersionNotHostedByUs(version)))
+          else Future.successful(-\/(SelectedVersionNotHostedByThem(version)))
       }
     }
 

@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.msgs.v2_0
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{OcpiResponse, Url, BusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResp, Url, BusinessDetails}
 import org.joda.time.DateTime
 
 
@@ -23,7 +23,7 @@ object Credentials {
     status_message: Option[String],
     timestamp: DateTime = DateTime.now(),
     data: Creds
-    ) extends OcpiResponse
+    ) extends SuccessResp
 
 }
 

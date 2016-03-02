@@ -26,8 +26,6 @@ trait TopLevelRoute extends JsonApi {
     case s => EndpointIdentifier.withName(s)
   }
 
-  case class OcpiErrorRejection(error: HandshakeError) extends Rejection
-
   trait TopLevelApi extends JsonApi {
     protected def leftToRejection[T](errOrX: HandshakeError \/ T)(f: T => Route): Route =
       errOrX match {

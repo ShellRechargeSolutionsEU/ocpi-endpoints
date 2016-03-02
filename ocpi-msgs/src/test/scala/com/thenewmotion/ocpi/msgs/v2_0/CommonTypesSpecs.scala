@@ -65,10 +65,10 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
        |}
      """.stripMargin.parseJson
 
-    val genericErrorResp1 = ErrorResp(
-      GenericClientFailure.code,
-      Some(GenericClientFailure.default_message),
-      date1
-    )
+    val genericErrorResp1 =
+      ErrorResp(
+        GenericClientFailure.code,
+        GenericClientFailure.default_message,
+        date1)
   }
 }

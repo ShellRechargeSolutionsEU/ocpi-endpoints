@@ -4,10 +4,8 @@ import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes._
-import org.joda.time.DateTime
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
-import spray.json._
 import spray.routing._
 import spray.routing.directives.{MiscDirectives, BasicDirectives}
 import spray.routing.directives.RouteDirectives._
@@ -19,54 +17,48 @@ object HandshakeRejectionHandler  extends BasicDirectives with MiscDirectives wi
   val Default = RejectionHandler {
 
     // UnableToUseApi
-    case HandshakeErrorRejection(e@VersionsRetrievalFailed(reason)) :: _ => complete {
+    case HandshakeErrorRejection(VersionsRetrievalFailed) :: _ => complete {
       ( FailedDependency,
         ErrorResp(
           UnableToUseApi.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          VersionsRetrievalFailed.reason))
     }
 
-    case HandshakeErrorRejection(e@VersionDetailsRetrievalFailed(reason)) :: _ => complete {
+    case HandshakeErrorRejection(VersionDetailsRetrievalFailed) :: _ => complete {
       ( FailedDependency,
         ErrorResp(
           UnableToUseApi.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          VersionDetailsRetrievalFailed.reason))
     }
 
     // Initiate handshake specific error
-    case HandshakeErrorRejection(e@SendingCredentialsFailed(reason)) :: _ => complete {
+    case HandshakeErrorRejection(SendingCredentialsFailed) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           UnableToUseApi.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          SendingCredentialsFailed.reason))
     }
 
     // UnsupportedVersion
-    case HandshakeErrorRejection(e@SelectedVersionNotHostedByUs(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@SelectedVersionNotHostedByUs(v)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           UnsupportedVersion.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
     }
 
-    case HandshakeErrorRejection(e@CouldNotFindMutualVersion(reason)) :: _ => complete {
+    case HandshakeErrorRejection(CouldNotFindMutualVersion) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           UnsupportedVersion.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          CouldNotFindMutualVersion.reason))
     }
 
-    case HandshakeErrorRejection(e@SelectedVersionNotHostedByThem(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@SelectedVersionNotHostedByThem(v)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           UnsupportedVersion.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
     }
 
     // Endpoints
@@ -75,99 +67,88 @@ object HandshakeRejectionHandler  extends BasicDirectives with MiscDirectives wi
       ( BadRequest,
         ErrorResp(
           MissingExpectedEndpoints.code,
-          Some(s"${MissingExpectedEndpoints.default_message} $msg"),
-          DateTime.now()).toJson.compactPrint)
+          s"${MissingExpectedEndpoints.default_message} $msg"))
     }
 
     // Is recognized by OCPI msgs but not internally by the application that uses it
-    case HandshakeErrorRejection(e@HandshakeError.UnknownEndpointType(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@HandshakeError.UnknownEndpointType(ep)) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           OcpiStatusCodes.UnknownEndpointType.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
     }
 
     // GenericServerFailure
-    case HandshakeErrorRejection(e@CouldNotPersistCredsForUs(reason)) :: _ => complete {
+    case HandshakeErrorRejection(CouldNotPersistCredsForUs) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          CouldNotPersistCredsForUs.reason))
     }
 
-    case HandshakeErrorRejection(e@CouldNotPersistCredsForUs(reason)) :: _ => complete {
+    case HandshakeErrorRejection(CouldNotPersistNewCredsForUs) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          CouldNotPersistNewCredsForUs.reason))
+          
     }
 
-    case HandshakeErrorRejection(e@CouldNotPersistNewCredsForUs(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@CouldNotPersistNewToken(t)) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
+          
     }
 
-    case HandshakeErrorRejection(e@CouldNotPersistNewToken(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@CouldNotPersistNewEndpoint(ep)) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
+          
     }
 
-    case HandshakeErrorRejection(e@CouldNotPersistNewEndpoint(reason)) :: _ => complete {
+    case HandshakeErrorRejection(CouldNotUpdateEndpoints) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          CouldNotUpdateEndpoints.reason))
+          
     }
 
-    case HandshakeErrorRejection(e@CouldNotUpdateEndpoints(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@CouldNotPersistNewParty(p)) :: _ => complete {
       ( InternalServerError,
         ErrorResp(
           GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
-    }
-
-    case HandshakeErrorRejection(e@CouldNotPersistNewParty(reason)) :: _ => complete {
-      ( InternalServerError,
-        ErrorResp(
-          GenericServerFailure.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
+          
     }
 
     // Not allowed
-    case HandshakeErrorRejection(e@AlreadyExistingParty(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@AlreadyExistingParty(p, c, v)) :: _ => complete {
       ( Conflict,
         ErrorResp(
           PartyAlreadyRegistered.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
+
     }
 
-    case HandshakeErrorRejection(e@UnknownPartyToken(reason)) :: _ => complete {
+    case HandshakeErrorRejection(e@UnknownPartyToken(t)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           AuthenticationFailed.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          e.reason))
+          
     }
 
-    case HandshakeErrorRejection(e@WaitingForRegistrationRequest(reason)) :: _ => complete {
+    case HandshakeErrorRejection(WaitingForRegistrationRequest) :: _ => complete {
       ( BadRequest,
         ErrorResp(
           RegistrationNotCompletedYetByParty.code,
-          reason,
-          DateTime.now()).toJson.compactPrint)
+          WaitingForRegistrationRequest.reason))
+          
     }
 
   }

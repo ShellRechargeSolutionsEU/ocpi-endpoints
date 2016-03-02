@@ -1,44 +1,58 @@
 package com.thenewmotion.ocpi.handshake
 
 sealed trait HandshakeError {
-  val reason: Option[String]
+  val reason: String
 }
 
 object HandshakeError{
-  case class VersionsRetrievalFailed(
-    reason: Option[String] = Some("Failed versions retrieval.")) extends HandshakeError
-  case class VersionDetailsRetrievalFailed(
-    reason: Option[String] = Some("Failed version details retrieval.")) extends HandshakeError
-  case class SendingCredentialsFailed(
-    reason: Option[String] = Some("Failed sending the credentials to connect to us.")) extends HandshakeError
-
-  case class SelectedVersionNotHostedByUs(
-    reason: Option[String] = Some("The selected version is not supported by our systems.")) extends HandshakeError
-  case class CouldNotFindMutualVersion(
-    reason: Option[String] = Some("Could not find mutual version.")) extends HandshakeError
-  case class SelectedVersionNotHostedByThem(
-    reason: Option[String] = Some("Selected version not supported by the requester party systems.")) extends HandshakeError
-//  case class NoCredentialsEndpoint(
-//    reason: Option[String] = Some("Credentials endpoint details required but not found.")) extends HandshakeError
-  case class UnknownEndpointType(
-    reason: Option[String] = Some(s"Unknown endpoint type.")) extends HandshakeError
-
-  case class CouldNotPersistCredsForUs(
-    reason: Option[String] = Some("Could not persist credentials sent to us.")) extends HandshakeError
-  case class CouldNotPersistNewCredsForUs(
-    reason: Option[String] = Some("Could not persist the new credentials sent to us.")) extends HandshakeError
-  case class CouldNotPersistNewToken(
-    reason: Option[String] = Some("Could not persist the new token.")) extends HandshakeError
-  case class CouldNotPersistNewEndpoint(
-    reason: Option[String] = Some("Could not persist new endpoint.")) extends HandshakeError
-  case class CouldNotUpdateEndpoints(
-    reason: Option[String] = Some("Could not update registered endpoints.")) extends HandshakeError
-  case class CouldNotPersistNewParty(
-    reason: Option[String] = Some("Could not persist new party.")) extends HandshakeError
-  case class AlreadyExistingParty(
-    reason: Option[String] = Some("Already existing partyId for this country and version.")) extends HandshakeError
-  case class UnknownPartyToken(
-    reason: Option[String] = Some("Unknown party token.")) extends HandshakeError
-  case class WaitingForRegistrationRequest(
-    reason: Option[String] = Some("Still waiting for registration request.")) extends HandshakeError
+  case object VersionsRetrievalFailed extends HandshakeError{
+    override val reason: String = "Failed versions retrieval."
+  }
+  case object VersionDetailsRetrievalFailed extends HandshakeError{
+    override val reason: String = "Failed version details retrieval."
+  }
+  case object SendingCredentialsFailed extends HandshakeError{
+    override val reason: String = "Failed sending the credentials to connect to us."
+  }
+  case class SelectedVersionNotHostedByUs(version: String) extends HandshakeError{
+    override val reason: String = s"The selected version: $version, is not supported by our systems."
+  }
+  case object CouldNotFindMutualVersion extends HandshakeError{
+    override val reason: String = "Could not find mutual version."
+  }
+  case class SelectedVersionNotHostedByThem(version: String) extends HandshakeError{
+    override val reason: String = s"Selected version: $version, not supported by the requester party systems."
+  }
+//  case object NoCredentialsEndpoint extends HandshakeError{
+//    override val reason: String = "Credentials endpoint details required but not found."   }
+  case class UnknownEndpointType(endpointType: String) extends HandshakeError{
+    override val reason: String = s"Unknown endpoint type: $endpointType"
+}
+  case object CouldNotPersistCredsForUs extends HandshakeError{
+    override val reason: String = "Could not persist credentials sent to us."
+  }
+  case object CouldNotPersistNewCredsForUs extends HandshakeError{
+    override val reason: String = "Could not persist the new credentials sent to us."
+  }
+  case class CouldNotPersistNewToken(newToken: String) extends HandshakeError{
+    override val reason: String = s"Could not persist the new token: $newToken."
+  }
+  case class CouldNotPersistNewEndpoint(endpoint: String) extends HandshakeError{
+    override val reason: String = s"Could not persist new endpoint: $endpoint."
+  }
+  case object CouldNotUpdateEndpoints extends HandshakeError{
+    override val reason: String = "Could not update registered endpoints."
+  }
+  case class CouldNotPersistNewParty(partyId: String) extends HandshakeError{
+    override val reason: String = s"Could not persist new party: $partyId."
+  }
+  case class AlreadyExistingParty(partyId: String, country: String, version: String) extends HandshakeError{
+    override val reason: String = s"Already existing partyId: '$partyId' for country: '$country' and version: '$version'."
+  }
+  case class UnknownPartyToken(token: String) extends HandshakeError{
+    override val reason: String = s"Unknown party token: '$token'."
+  }
+  case object WaitingForRegistrationRequest extends HandshakeError{
+    override val reason: String = "Still waiting for registration request."
+  }
 }

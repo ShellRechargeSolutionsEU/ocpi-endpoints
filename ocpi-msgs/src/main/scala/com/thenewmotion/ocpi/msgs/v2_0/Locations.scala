@@ -270,6 +270,6 @@ object Locations {
     status_message: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: List[Location]
-    ) extends OcpiResponse
+    ) extends SuccessResp
 
 }

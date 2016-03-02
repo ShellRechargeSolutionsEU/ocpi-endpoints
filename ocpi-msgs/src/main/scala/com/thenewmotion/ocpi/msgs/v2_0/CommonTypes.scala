@@ -39,25 +39,21 @@ object CommonTypes {
     website: Option[Url]
     )
 
-  trait OcpiResponse {
+  trait OcpiResponse[StatusMessage] {
     def status_code: Int
-    def status_message: Option[String]
+    def status_message: StatusMessage
     def timestamp: DateTime
   }
 
   case class ErrorResp(
     status_code: Int,
-    status_message: Option[String] = None,
+    status_message: String,
     timestamp: DateTime = DateTime.now()
-    ) extends OcpiResponse {
+    ) extends OcpiResponse[String] {
     require(status_code >= 2000 && status_code <= 3999)
   }
 
-  case class SuccessResp(
-    status_code: Int,
-    status_message: Option[String] = None,
-    timestamp: DateTime = DateTime.now()
-    ) extends OcpiResponse {
+  trait SuccessResp extends OcpiResponse[Option[String]] {
     require(status_code >= 1000 && status_code <= 1999)
   }
 }
