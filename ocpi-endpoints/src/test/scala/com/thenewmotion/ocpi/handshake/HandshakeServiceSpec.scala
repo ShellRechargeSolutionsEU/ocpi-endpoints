@@ -21,137 +21,117 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
   with DisjunctionMatchers{
 
   "HandshakeService" should {
-    "return credentials with new token if the initiating party's endpoints returned correct data" in new HandshakeTestScope {
-      val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-      result must beLike[\/[HandshakeError, Creds]] {
-        case \/-(Creds(_, v, bd, id, c)) =>
-          v mustEqual "http://localhost:8080/cpo/versions"
-          bd mustEqual BusinessDetails("TNM (CPO)", None, None)
-          id mustEqual ourPartyIdVal
-          c mustEqual ourCountryCodeVal
-      }.await
-    }
+    "when requesting react to handshake" >> {
+      "return credentials with new token if the initiating party's endpoints returned correct data" >> new HandshakeTestScope {
+        val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-    "return error if there was an error getting versions" in new HandshakeTestScope {
-      _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-        Future.successful(-\/(VersionsRetrievalFailed))
-      val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-
-      result must be_-\/(VersionsRetrievalFailed: HandshakeError).await
-    }
-
-    "return error if no versions were returned" in new HandshakeTestScope {
-      _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-        Future.successful(\/-(VersionsResp(1000, None, dateTime1,
-        List())))
-      val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-
-      result must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
-    }
-
-    "return error if there was an error getting version details" in new HandshakeTestScope {
-      _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-        -\/(VersionDetailsRetrievalFailed))
-
-      val result = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-
-      result must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
-    }
-
-    "return credentials with new token if the initiating party's endpoints returned correct data" in new HandshakeTestScope {
-      val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
-
-      result must beLike[\/[HandshakeError, Creds]] {
-        case \/-(Creds(_, v, bd, id, c)) =>
-          v mustEqual "http://localhost:8080/cpo/versions"
-          bd mustEqual BusinessDetails("TNM (CPO)", None, None)
-          id mustEqual ourPartyIdVal
-          c mustEqual ourCountryCodeVal
-      }.await
-    }
-
-    "return error when not mutual version found" in new HandshakeTestScope{
-      _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
-        Future.successful(\/-(VersionsResp(1000, None, dateTime1, List(Version("1.9", theirVersionDetailsUrl)))))
-
-      val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
-
-      result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
-    }
-
-    "return an error when any of the calls made to the other party endpoints don't respond" in new HandshakeTestScope{
-      _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
-        Future.successful(-\/(VersionsRetrievalFailed))
-
-      val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
-
-      result must be_-\/(VersionsRetrievalFailed: HandshakeError).await
-    }
-
-    "return an error when failing in the storage of the other party endpoints" in new HandshakeTestScope{
-      val handshakeServiceError = new HandshakeService(
-        ourNamespace = "cpo",
-        ourPartyName = ourCpoName,
-        ourLogo = None,
-        ourWebsite = None,
-        ourBaseUrl = ourBaseUrlStr,
-        ourPartyId = ourPartyIdVal,
-        ourCountryCode = ourCountryCodeVal
-        ) {
-        override val client = _client
-
-        protected def persistHandshakeReactResult(
-          version: String,
-          existingTokenToConnectToUs: String,
-          newTokenToConnectToUs: String,
-          credsToConnectToThem: Creds,
-          endpoints: Iterable[Endpoint]
-        ): Disjunction[HandshakeError, Unit] = -\/(CouldNotPersistNewToken(newTokenToConnectToUs))
-
-        protected def persistUpdateCredsResult(
-          version: String,
-          existingTokenToConnectToUs: String,
-          newTokenToConnectToUs: String,
-          credsToConnectToThem: Creds,
-          endpoints: Iterable[Endpoint]
-        ): HandshakeError \/ Unit = -\/(WaitingForRegistrationRequest)
-
-        protected def persistHandshakeInitResult(
-          version: String,
-          tokenToConnectToUs: String,
-          newCredToConnectToThem: Creds,
-          endpoints: Iterable[Endpoint]
-        ): Disjunction[HandshakeError, Unit] = -\/(CouldNotPersistNewToken(newCredToConnectToThem.token))
-
-        def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken(tokenToConnectToUs))
+        result must beLike[\/[HandshakeError, Creds]] {
+          case \/-(Creds(_, v, bd, id, c)) =>
+            v mustEqual "http://localhost:8080/cpo/versions"
+            bd mustEqual BusinessDetails("TNM (CPO)", None, None)
+            id mustEqual ourPartyIdVal
+            c mustEqual ourCountryCodeVal
+        }.await
       }
-
-      val result = handshakeServiceError.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
-
-      result must be_-\/(CouldNotPersistNewToken(tokenToConnectToUs): HandshakeError).await
+      "return an error if storing the other party's endpoints failed" >> new HandshakeTestScope {
+        val reactResult = handshakeServicePersistError.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+        reactResult must beLike[\/[HandshakeError, Creds]] {
+          case -\/(CouldNotPersistNewToken(t)) =>
+            t mustNotEqual tokenToConnectToUs
+        }.await
+      }
     }
+    "when requesting the initiation of the handshake" >> {
+      "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new HandshakeTestScope {
+        val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-    "return an error when it fails sending the credentials" in new HandshakeTestScope{
-      _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns
-        Future.successful(-\/(SendingCredentialsFailed))
+        result must beLike[\/[HandshakeError, Creds]] {
+          case \/-(Creds(_, v, bd, id, c)) =>
+            v mustEqual "http://localhost:8080/cpo/versions"
+            bd mustEqual BusinessDetails("TNM (CPO)", None, None)
+            id mustEqual ourPartyIdVal
+            c mustEqual ourCountryCodeVal
+        }.await
+      }
+      "return error when not mutual version found" >> new HandshakeTestScope {
+        _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
+          Future.successful(\/-(VersionsResp(1000, None, dateTime1, List(Version("1.9", theirVersionDetailsUrl)))))
 
-      val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
+        val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
 
-      result must be_-\/(SendingCredentialsFailed: HandshakeError).await
+        result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
+      }
+      "return an error when failing in the storage of the other party endpoints" >> new HandshakeTestScope {
+        handshakeServicePersistError.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url) must
+          be_-\/(CouldNotPersistNewToken(tokenToConnectToUs): HandshakeError).await
+      }
+      "return an error when it fails sending the credentials" >> new HandshakeTestScope{
+        _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns
+          Future.successful(-\/(SendingCredentialsFailed))
+
+        val result = handshakeService.initiateHandshakeProcess(tokenToConnectToUs, theirVersionsUrl)
+
+        result must be_-\/(SendingCredentialsFailed: HandshakeError).await
+      }
     }
-
-    "return an error if any of the required endpoints is not detailed" in new HandshakeTestScope {
-      _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
-        Future.failed(new IllegalArgumentException)
-
-      handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
-        throwA[IllegalArgumentException].await
+    "when requesting the update of the credentials" >> {
+      "return an error if requested for a party did not registered yet" >> new HandshakeTestScope {
+        handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
+          be_-\/(WaitingForRegistrationRequest: HandshakeError).await
+      }
+      "return an error when failing in the storage of the other party endpoints" >> new HandshakeTestScope {
+        handshakeServiceUpdateError.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
+          be_-\/(CouldNotUpdateEndpoints: HandshakeError).await
+      }
     }
+    "when requesting react, initiate or update handshake" >> {
+      "return error if there was an error getting versions" >> new HandshakeTestScope {
+        _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
+          Future.successful(-\/(VersionsRetrievalFailed))
+        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
-    "return an error if failed persisting the new credentials details" in new HandshakeTestScope {
-      handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
-        be_-\/(WaitingForRegistrationRequest: HandshakeError).await
+        reactResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
+        initResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
+        updateResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
+      }
+      "return error if no versions were returned" >> new HandshakeTestScope {
+        _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
+          Future.successful(\/-(VersionsResp(1000, None, dateTime1,
+            List())))
+        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+
+        reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
+        initResult must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
+        updateResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
+      }
+      "return error if there was an error getting version details" >> new HandshakeTestScope {
+        _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
+          -\/(VersionDetailsRetrievalFailed))
+
+        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+
+        reactResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
+        initResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
+        updateResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
+      }
+      "return an error if any of the required endpoints is not detailed" >> new HandshakeTestScope {
+        _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
+          Future.failed(new IllegalArgumentException)
+
+        handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
+          throwA[IllegalArgumentException].await
+        handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+          throwA[IllegalArgumentException].await
+        handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
+          throwA[IllegalArgumentException].await
+      }
     }
   }
 
@@ -195,9 +175,9 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
       \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
-          Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
-          Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
-          Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
+        Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
+        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
 
     // Initiate handshake request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(
@@ -212,7 +192,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(
       \/-(ourCredsResp))
 
-
+    // handshakeServices
     val handshakeService = new HandshakeService(
       ourNamespace = "cpo",
       ourPartyName = ourCpoName,
@@ -221,7 +201,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ourBaseUrl = ourBaseUrlStr,
       ourPartyId = ourPartyIdVal,
       ourCountryCode = ourCountryCodeVal
-      ) {
+    ) {
       override val client = _client
 
       protected def persistHandshakeReactResult(
@@ -246,6 +226,80 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         newCredToConnectToThem: Creds,
         endpoints: Iterable[Endpoint]
       ): Disjunction[HandshakeError, Unit] = \/-(())
+
+      def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken(tokenToConnectToUs))
+    }
+
+    val handshakeServicePersistError = new HandshakeService(
+      ourNamespace = "cpo",
+      ourPartyName = ourCpoName,
+      ourLogo = None,
+      ourWebsite = None,
+      ourBaseUrl = ourBaseUrlStr,
+      ourPartyId = ourPartyIdVal,
+      ourCountryCode = ourCountryCodeVal
+    ) {
+      override val client = _client
+
+      protected def persistHandshakeReactResult(
+        version: String,
+        existingTokenToConnectToUs: String,
+        newTokenToConnectToUs: String,
+        credsToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(CouldNotPersistNewToken(newTokenToConnectToUs))
+
+      protected def persistUpdateCredsResult(
+        version: String,
+        existingTokenToConnectToUs: String,
+        newTokenToConnectToUs: String,
+        credsToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(WaitingForRegistrationRequest)
+
+      protected def persistHandshakeInitResult(
+        version: String,
+        tokenToConnectToUs: String,
+        newCredToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(CouldNotPersistNewToken(newCredToConnectToThem.token))
+
+      def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken(tokenToConnectToUs))
+    }
+
+    val handshakeServiceUpdateError = new HandshakeService(
+      ourNamespace = "cpo",
+      ourPartyName = ourCpoName,
+      ourLogo = None,
+      ourWebsite = None,
+      ourBaseUrl = ourBaseUrlStr,
+      ourPartyId = ourPartyIdVal,
+      ourCountryCode = ourCountryCodeVal
+    ) {
+      override val client = _client
+
+      protected def persistHandshakeReactResult(
+        version: String,
+        existingTokenToConnectToUs: String,
+        newTokenToConnectToUs: String,
+        credsToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(CouldNotPersistNewToken(newTokenToConnectToUs))
+
+      protected def persistUpdateCredsResult(
+        version: String,
+        existingTokenToConnectToUs: String,
+        newTokenToConnectToUs: String,
+        credsToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(CouldNotUpdateEndpoints)
+
+      protected def persistHandshakeInitResult(
+        version: String,
+        tokenToConnectToUs: String,
+        newCredToConnectToThem: Creds,
+        endpoints: Iterable[Endpoint]
+      ) = -\/(CouldNotPersistNewToken(newCredToConnectToThem.token))
 
       def findRegisteredCredsToConnectToUs(t: String) = -\/(UnknownPartyToken(tokenToConnectToUs))
     }

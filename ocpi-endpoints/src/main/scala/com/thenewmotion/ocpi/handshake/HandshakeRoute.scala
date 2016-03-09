@@ -12,16 +12,18 @@ import spray.routing.directives.FutureDirectives
 case class HandshakeErrorRejection(error: HandshakeError) extends Rejection
 
 trait HandshakeApi extends JsonApi {
+  private val logger = Logger(getClass)
+
   protected def leftToRejection[T](errOrX: HandshakeError \/ T)(f: T => Route): Route =
     errOrX match {
-      case -\/(err) => reject(HandshakeErrorRejection(err))
+      case -\/(err) => logger.error(s"HandshakeErrorRejection just happened with reason: ${err.reason}"); reject(HandshakeErrorRejection(err))
       case \/-(res) => f(res)
     }
 
   protected def futLeftToRejection[T](errOrX: Future[HandshakeError \/ T])(f: T => Route)
     (implicit ec: ExecutionContext): Route = {
     FutureDirectives.onSuccess(errOrX) {
-      case -\/(err) => reject(HandshakeErrorRejection(err))
+      case -\/(err) => logger.error(s"HandshakeErrorRejection just happened with reason: ${err.reason}"); reject(HandshakeErrorRejection(err))
       case \/-(res) => f(res)
     }
   }
@@ -34,7 +36,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
   def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) =
     handleRejections(HandshakeRejectionHandler.Default)(routeWithoutRH(accessedVersion, tokenToConnectToUs))
 
-  def routeWithoutRH(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
+  private[handshake] def routeWithoutRH(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
     post {
       entity(as[Creds]) { credsToConnectToThem =>
         futLeftToRejection(service.reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
@@ -68,7 +70,7 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
 
   def route(implicit ec: ExecutionContext) = handleRejections(HandshakeRejectionHandler.Default)(routeWithoutRH)
 
-  def routeWithoutRH(implicit ec: ExecutionContext) = {
+  private[handshake] def routeWithoutRH(implicit ec: ExecutionContext) = {
     post {
       entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
         futLeftToRejection(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {

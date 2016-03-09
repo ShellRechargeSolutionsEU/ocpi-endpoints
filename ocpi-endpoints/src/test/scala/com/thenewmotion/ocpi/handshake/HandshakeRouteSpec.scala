@@ -4,7 +4,7 @@ import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.{UnableToUseApi, GenericSuccess}
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -100,7 +100,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
         responseAs[String] must contain(newCredsToConnectToUs.token)
       }
     }
-    "return error if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
+    "reject indicating the reason if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
       handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
         Future.successful(-\/(WaitingForRegistrationRequest))
 
@@ -131,7 +131,6 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
         handled must beFalse
       }
     }
-
   }
 
   "initiateHandshake endpoint" should {
@@ -155,10 +154,37 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     }
 
+    "reject indicating the reason if the initiation of the handshake failed" in new CredentialsTestScope {
+      val error: HandshakeError = VersionDetailsRetrievalFailed
+
+      handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url) returns
+        Future.successful(-\/(error))
+
+      val theirVersData =
+        s"""
+           |{
+           |"token": "${credsToConnectToThem.token}",
+           |"url": "${credsToConnectToThem.url}"
+           |}
+          """.stripMargin
+
+      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
+
+      Post("/initiateHandshake", body) ~> initHandshakeRoute.routeWithoutRH ~> check {
+        handled must beFalse
+        rejection mustEqual HandshakeErrorRejection(error)
+      }
+
+      Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
+        handled must beTrue
+        status.isSuccess must beFalse
+        responseAs[String].contains(GenericSuccess.code.toString) must beFalse
+        responseAs[String] must contain(error.reason)
+      }
+    }
   }
 
   trait CredentialsTestScope extends Scope {
-//    implicit private val rejectionHandler = OcpiRejectionHandler.Default
 
     val dateTime = DateTime.parse("2010-01-01T00:00:00Z")
 
@@ -187,12 +213,14 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     // mock
     val handshakeService = mock[HandshakeService]
+
+    //default mocks
     handshakeService.reactToHandshakeRequest(any, any, any)(any) returns
       Future.successful(\/-(credsToConnectToUs))
-
     handshakeService.initiateHandshakeProcess(credsToConnectToThem.token, credsToConnectToThem.url) returns
       Future.successful(\/-(credsToConnectToThem))
-    handshakeService.findRegisteredCredsToConnectToUs(any) returns -\/(UnknownPartyToken(tokenToConnectToUs))
+    handshakeService.findRegisteredCredsToConnectToUs(any) returns
+      -\/(UnknownPartyToken(tokenToConnectToUs))
 
     val credentialsRoute = new HandshakeRoute(handshakeService, dateTime)
     val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService, dateTime)

@@ -90,7 +90,7 @@ trait TopLevelRoute extends JsonApi {
         pathPrefix("initiateHandshake") {
           pathEndOrSingleSlash {
             authenticate(internalUseToken.validate(access_token)) { internalUser: ApiUser =>
-              new InitiateHandshakeRoute(routingConfig.handshakeService).routeWithoutRH
+              new InitiateHandshakeRoute(routingConfig.handshakeService).route
             }
           }
         } ~
