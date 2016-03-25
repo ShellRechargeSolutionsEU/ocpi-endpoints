@@ -51,10 +51,13 @@ val `ocpi-endpoints` = project
     description := "OCPI endpoints",
     libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
 
+val `ocpi-endpoints-root` = (project in file("."))
+  .aggregate(
+    `ocpi-msgs`,
+    `ocpi-endpoints`)
+  .enablePlugins(OssLibPlugin)
+  .settings(
+    commonSettings,
+    publish := {}
+  )
 
-organization := "com.thenewmotion.ocpi"
-name := "ocpi-endpoints-root"
-
-enablePlugins(OssLibPlugin)
-
-publish := {}

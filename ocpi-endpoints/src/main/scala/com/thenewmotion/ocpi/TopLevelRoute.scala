@@ -3,9 +3,8 @@ package com.thenewmotion.ocpi
 import com.thenewmotion.ocpi.handshake.{HandshakeErrorRejection, HandshakeError, InitiateHandshakeRoute}
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
-import spray.routing._
-import spray.routing.authentication.Authentication
-import spray.routing.directives.FutureDirectives
+import spray.http._, HttpHeaders._
+import spray.routing._, authentication._, directives.FutureDirectives
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import spray.http.Uri
@@ -18,9 +17,6 @@ trait TopLevelRoute extends JsonApi {
   def routingConfig: OcpiRoutingConfig
 
   def currentTime = DateTime.now
-
-  lazy val externalUseToken = new Authenticator(routingConfig.authenticateApiUser)
-  lazy val internalUseToken = new Authenticator(routingConfig.authenticateInternalUser)
 
   val EndPointPathMatcher = Segment.flatMap {
     case s => EndpointIdentifier.withName(s)
@@ -85,58 +81,51 @@ trait TopLevelRoute extends JsonApi {
     }
 
 
-  def topLevelRoute(implicit ec: ExecutionContext) =
-    headerValueByName("Authorization") { accessToken =>
-      (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
+  def topLevelRoute(implicit ec: ExecutionContext) = {
+    val externalUseToken = new TokenAuthenticator(routingConfig.authenticateApiUser)
+    val internalUseToken = new TokenAuthenticator(routingConfig.authenticateInternalUser)
 
-        pathPrefix("initiateHandshake") {
-          pathEndOrSingleSlash {
-            authenticate(internalUseToken.validate(accessToken)) { internalUser: ApiUser =>
-              new InitiateHandshakeRoute(routingConfig.handshakeService).route
-            }
+    (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
+      pathPrefix("initiateHandshake") {
+        pathEndOrSingleSlash {
+          authenticate(internalUseToken) { internalUser: ApiUser =>
+            new InitiateHandshakeRoute(routingConfig.handshakeService).route
           }
-        } ~
-        authenticate(externalUseToken.validate(accessToken)) { apiUser: ApiUser =>
-          pathPrefix(EndpointIdentifier.Versions.name) {
-            pathEndOrSingleSlash {
-              versionsRoute(uri)
-            } ~
-            pathPrefix(Segment) { version =>
-              routingConfig.versions.get(version) match {
-                case None => reject(UnsupportedVersionRejection(version))
-                case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
-              }
+        }
+      } ~
+      authenticate(externalUseToken) { apiUser: ApiUser =>
+        pathPrefix(EndpointIdentifier.Versions.name) {
+          pathEndOrSingleSlash {
+            versionsRoute(uri)
+          } ~
+          pathPrefix(Segment) { version =>
+            routingConfig.versions.get(version) match {
+              case None => reject(UnsupportedVersionRejection(version))
+              case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
             }
           }
         }
-
       }
     }
+  }
 }
 
-class Authenticator(authenticateApiUser: String => Option[ApiUser]) {
+class TokenAuthenticator(
+  apiUser: String => Option[ApiUser]
+)(implicit val executionContext: ExecutionContext) extends HttpAuthenticator[ApiUser] {
 
-  val logger = Logger(getClass)
+  val challenge = `WWW-Authenticate`(
+    HttpChallenge(scheme = "Token", realm = "???", params = Map.empty)) :: Nil
 
-  def validate(token: String)(implicit ec: ExecutionContext): Future[Authentication[ApiUser]] = {
-    Future {
-      extractTokenValue(token) match {
-        case Some(tokenVal) => authenticateApiUser(tokenVal)
-          .toRight(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
-        case None => Left(MalformedHeaderRejection("Authorization", "Header value not starting with 'Token '"))
-      }
-    }
-  }
+  def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext) =
+    Future(
+      credentials
+        .flatMap {
+          case GenericHttpCredentials("Token", token, _) => Some(token)
+          case _ => None
+        }
+        .flatMap(apiUser)
+    )
 
-  def extractTokenValue(token: String)(implicit ec: ExecutionContext): Option[String] = {
-    val authScheme = "Token "
-    if (token.startsWith(authScheme)){
-      val tokenVal = token.substring(authScheme.length)
-      if (!tokenVal.isEmpty) Some(tokenVal) else None
-    }
-    else {
-      logger.debug(s"Authorization header value not starting with '$authScheme' prefix.")
-      None
-    }
-  }
+  def getChallengeHeaders(r: HttpRequest) = challenge
 }

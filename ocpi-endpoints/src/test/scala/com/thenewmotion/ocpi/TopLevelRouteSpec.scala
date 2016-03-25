@@ -5,10 +5,10 @@ import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import spray.http.HttpHeaders.RawHeader
+import spray.http.HttpHeaders._
+import spray.http.GenericHttpCredentials
 import spray.http.StatusCodes
-import spray.routing.AuthenticationFailedRejection.CredentialsRejected
-import spray.routing.{AuthenticationFailedRejection, MissingHeaderRejection}
+import spray.routing.AuthenticationFailedRejection
 import spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import spray.json._
@@ -18,13 +18,6 @@ import spray.json.DefaultJsonProtocol._
 class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
   "api" should {
-    "extract the token value from the header value" in {
-      val auth = new Authenticator(user => None)
-      auth.extractTokenValue("Basic 12345") must beNone
-      auth.extractTokenValue("Token 12345") mustEqual Some("12345")
-      auth.extractTokenValue("Token ") must beNone
-    }
-
     "authenticate api calls with valid token info" in new TopLevelScope {
       Get("/cpo/versions") ~>
         addHeader(validToken) ~> topLevelRoute.topLevelRoute ~> check {
@@ -36,15 +29,17 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       Get("/cpo/versions") ~>
         addHeader(invalidHeaderName) ~> topLevelRoute.topLevelRoute ~> check {
         handled must beFalse
-        rejections must contain(MissingHeaderRejection("Authorization"))
+        rejection must haveClass[AuthenticationFailedRejection]
       }
     }
 
     "reject api calls without valid token" in new TopLevelScope {
       Get("/cpo/versions") ~>
-        addHeader(invalidToken) ~> topLevelRoute.topLevelRoute ~> check {
+      addHeader(invalidToken) ~>
+      topLevelRoute.topLevelRoute ~>
+      check {
         handled must beFalse
-        rejections must contain(AuthenticationFailedRejection(CredentialsRejected,List()))
+        rejection must haveClass[AuthenticationFailedRejection]
       }
     }
 
@@ -92,9 +87,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
   }
 
   trait TopLevelScope extends Scope with JsonApi {
-    val validToken = RawHeader("Authorization", "Token 12345")
+    val validToken = Authorization(GenericHttpCredentials("Token", "12345"))
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
-    val invalidToken = RawHeader("Authorization", "Token letmein")
+    val invalidToken = Authorization(GenericHttpCredentials("Token", "letmein"))
 
     val ourCredentialsRoute = (version: String, apiUser: ApiUser) => complete((StatusCodes.OK, s"credentials: $version"))
     val ourLocationsRoute = (version: String, apiUser: ApiUser) => complete((StatusCodes.OK, s"locations: $version"))
