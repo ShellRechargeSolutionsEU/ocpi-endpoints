@@ -1,6 +1,3 @@
-import sbt.Keys._
-import sbt._
-
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
   "org.slf4j"                    % "slf4j-api"                %   "1.7.15")
@@ -14,8 +11,8 @@ val spray = Seq(
 
 def akka(scalaVersion: String) = {
   val version = scalaVersion match {
-    case x if x.startsWith("2.10") => "2.3.14"
-    case x => "2.4.1"
+    case tnm.ScalaVersion.curr => "2.4.1"
+    case tnm.ScalaVersion.prev => "2.3.14"
   }
 
   Seq("com.typesafe.akka" %% s"akka-actor" % version)
@@ -39,14 +36,14 @@ val commonSettings = Seq(
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 )
 
-val `ocpi-msgs` = (project in file("ocpi-msgs"))
+val `ocpi-msgs` = project
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     description := "OCPI serialization library",
     libraryDependencies :=`spray-json` ++ misc ++ testing)
 
-val `ocpi-endpoints` = (project in file("ocpi-endpoints"))
+val `ocpi-endpoints` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`ocpi-msgs`)
   .settings(
@@ -54,10 +51,9 @@ val `ocpi-endpoints` = (project in file("ocpi-endpoints"))
     description := "OCPI endpoints",
     libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
 
-val root = (project in file("."))
-  .aggregate(
-    `ocpi-msgs`,
-    `ocpi-endpoints`)
+
+organization := "com.thenewmotion.ocpi"
+name := "ocpi-endpoints-root"
 
 enablePlugins(OssLibPlugin)
 
