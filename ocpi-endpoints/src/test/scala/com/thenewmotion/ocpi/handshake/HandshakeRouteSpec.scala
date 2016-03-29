@@ -4,7 +4,7 @@ import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
 import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.{UnableToUseApi, GenericSuccess}
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
