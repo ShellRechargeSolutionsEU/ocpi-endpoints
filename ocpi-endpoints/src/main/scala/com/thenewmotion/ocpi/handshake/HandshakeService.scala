@@ -135,7 +135,7 @@ abstract class HandshakeService(
       verDet <- result(theirDetails)
       credEndpoint = theirCredEp(verDet)
       _ <- result(Future.successful(persistPartyPendingRegistration(partyName, countryCode, partyId, newTokenToConnectToUs)))
-      newCredToConnectToThem <- result(withCleanup(theirNewCred(credEndpoint.url)))
+      newCredToConnectToThem <- result(theirNewCred(credEndpoint.url))
       _ <- result(Future.successful(persist(newCredToConnectToThem.data, verDet.data.endpoints)))
     } yield newCredToConnectToThem.data).run
   }
@@ -193,6 +193,13 @@ abstract class HandshakeService(
     newTokenToConnectToUs: String,
     newCredToConnectToThem: Creds,
     endpoints: Iterable[Endpoint]
+  ): HandshakeError \/ Unit
+
+  protected def persistPartyPendingRegistration(
+    partyName: String,
+    countryCode: String,
+    partyId: String,
+    newTokenToConnectToUs: String
   ): HandshakeError \/ Unit
 
   protected def persistPartyPendingRegistration(

@@ -73,7 +73,7 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
     post {
       entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
         import theirVersionsUrlInfo._
-        futLeftToRejection(service.initiateHandshakeProcess(party_name, country_code, party_id, token, url)) {
+        futLeftToRejection(service.initiateHandshakeProcess(partyName, countryCode, partyId, token, url)) {
           newCredToConnectToThem =>
             complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
               currentTime, newCredToConnectToThem))
