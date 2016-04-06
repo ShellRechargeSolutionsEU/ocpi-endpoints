@@ -47,15 +47,14 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
       }
     } ~
       get {
-        leftToRejection(service.findRegisteredCredsToConnectToUs(tokenToConnectToUs)) { credsToConnectToUs =>
+        leftToRejection(service.credsToConnectToUs(tokenToConnectToUs)) { credsToConnectToUs =>
             complete(CredsResp(GenericSuccess.code, None, currentTime, credsToConnectToUs))
         }
       } ~
       put {
         entity(as[Creds]) { credsToConnectToThem =>
-          onSuccess(service.reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
-            case -\/(_) => reject()
-            case \/-(newCredsToConnectToUs) => complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
+          futLeftToRejection(service.reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)) {
+            newCredsToConnectToUs => complete(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
               currentTime, newCredsToConnectToUs))
           }
         }
@@ -73,7 +72,8 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
   private[handshake] def routeWithoutRH(implicit ec: ExecutionContext) = {
     post {
       entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
-        futLeftToRejection(service.initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)) {
+        import theirVersionsUrlInfo._
+        futLeftToRejection(service.initiateHandshakeProcess(party_name, country_code, party_id, token, url)) {
           newCredToConnectToThem =>
             complete(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message),
               currentTime, newCredToConnectToThem))

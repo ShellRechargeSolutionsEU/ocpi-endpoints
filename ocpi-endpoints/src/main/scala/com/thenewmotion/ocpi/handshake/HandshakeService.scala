@@ -110,7 +110,8 @@ abstract class HandshakeService(
     *
     * @return new credentials to connect to them
     */
-  def initiateHandshakeProcess(tokenToConnectToThem: String, theirVersionsUrl: Uri)
+  def initiateHandshakeProcess(partyName: String, countryCode: String, partyId: String,
+    tokenToConnectToThem: String, theirVersionsUrl: Uri)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
     logger.info(s"initiate handshake process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
@@ -123,13 +124,18 @@ abstract class HandshakeService(
     def theirNewCred(credEp: Url) =
       client.sendCredentials(credEp, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl))
+    def withCleanup[A, B](f: => Future[A \/ B]): Future[A \/ B]  = f.map {
+      case disj if disj.isLeft => removePartyPendingRegistration(newTokenToConnectToUs); disj
+      case disj  => disj
+    }
     def persist(creds: Creds, endpoints: Iterable[Endpoint]) =
       persistHandshakeInitResult(ocpi.ourVersion, newTokenToConnectToUs, creds, endpoints)
 
     (for {
       verDet <- result(theirDetails)
       credEndpoint = theirCredEp(verDet)
-      newCredToConnectToThem <- result(theirNewCred(credEndpoint.url))
+      _ <- result(Future.successful(persistPartyPendingRegistration(partyName, countryCode, partyId, newTokenToConnectToUs)))
+      newCredToConnectToThem <- result(withCleanup(theirNewCred(credEndpoint.url)))
       _ <- result(Future.successful(persist(newCredToConnectToThem.data, verDet.data.endpoints)))
     } yield newCredToConnectToThem.data).run
   }
@@ -189,7 +195,18 @@ abstract class HandshakeService(
     endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
-  def findRegisteredCredsToConnectToUs(tokenToConnectToUs: String): HandshakeError \/ Creds
+  protected def persistPartyPendingRegistration(
+    partyName: String,
+    countryCode: String,
+    partyId: String,
+    newTokenToConnectToUs: String
+  ): HandshakeError \/ Unit
+
+  protected def removePartyPendingRegistration(
+    tokenToConnectToUs: String
+  ): HandshakeError \/ Unit
+
+  def credsToConnectToUs(tokenToConnectToUs: String): HandshakeError \/ Creds
 }
 
 object ApiTokenGenerator {

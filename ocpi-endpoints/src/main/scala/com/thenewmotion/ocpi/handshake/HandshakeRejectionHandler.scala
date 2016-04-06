@@ -126,9 +126,9 @@ object HandshakeRejectionHandler  extends BasicDirectives with MiscDirectives wi
           
     }
 
-    // Not allowed
+
     case HandshakeErrorRejection(e@AlreadyExistingParty(p, c, v)) :: _ => complete {
-      ( Conflict,
+      ( MethodNotAllowed,
         ErrorResp(
           PartyAlreadyRegistered.code,
           e.reason))
@@ -144,7 +144,7 @@ object HandshakeRejectionHandler  extends BasicDirectives with MiscDirectives wi
     }
 
     case HandshakeErrorRejection(WaitingForRegistrationRequest) :: _ => complete {
-      ( BadRequest,
+      ( MethodNotAllowed,
         ErrorResp(
           RegistrationNotCompletedYetByParty.code,
           WaitingForRegistrationRequest.reason))

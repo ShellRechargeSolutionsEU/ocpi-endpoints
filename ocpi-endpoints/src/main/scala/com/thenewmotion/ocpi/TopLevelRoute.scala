@@ -121,7 +121,7 @@ class Authenticator(authenticateApiUser: String => Option[ApiUser]) {
       extractTokenValue(token) match {
         case Some(tokenVal) => authenticateApiUser(tokenVal)
           .toRight(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
-        case None => Left(AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, List()))
+        case None => Left(MalformedHeaderRejection("Authorization", "Header value not starting with 'Token '"))
       }
     }
   }
@@ -133,7 +133,7 @@ class Authenticator(authenticateApiUser: String => Option[ApiUser]) {
       if (!tokenVal.isEmpty) Some(tokenVal) else None
     }
     else {
-      logger.debug(s"Auth failed for token beginning with ${token.substring(0,2)}")
+      logger.debug(s"Authorization header value not starting with '$authScheme' prefix.")
       None
     }
   }

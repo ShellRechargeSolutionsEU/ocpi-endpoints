@@ -18,6 +18,9 @@ object Versions {
     )
 
   case class VersionsRequest(
+    party_name: String,
+    country_code: String,
+    party_id: String,
     token: String,
     url: Url
   )
