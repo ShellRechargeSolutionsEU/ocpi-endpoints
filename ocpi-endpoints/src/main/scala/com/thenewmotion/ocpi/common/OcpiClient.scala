@@ -7,12 +7,11 @@ import spray.client.pipelining._
 import spray.http._
 import spray.httpx.unmarshalling._
 
-import scala.concurrent.duration._
 import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.util.Try
 
 
-abstract class OcpiClient(implicit refFactory: ActorRefFactory) {
+abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: Timeout) {
 
   protected val logger = Logger(getClass)
 
@@ -20,7 +19,6 @@ abstract class OcpiClient(implicit refFactory: ActorRefFactory) {
   private val logRequest: HttpRequest => HttpRequest = { r => logger.debug(r.toString); r }
   private val logResponse: HttpResponse => HttpResponse = { r => logger.debug(r.toString); r }
 
-  protected implicit val timeout = Timeout(10.seconds)
 
   protected def request(auth: String)(implicit ec: ExecutionContext) = (
     addCredentials(GenericHttpCredentials("Token", auth, Map()))

@@ -1,19 +1,22 @@
 package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorRefFactory
+import akka.util.Timeout
 import com.thenewmotion.ocpi.common.OcpiClient
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.Url
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds, CredsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.client.pipelining._
 import spray.http._
 import spray.httpx.SprayJsonSupport._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Failure}
-import scalaz.{-\/, \/-, \/}
 
-class HandshakeClient(implicit refFactory: ActorRefFactory) extends OcpiClient {
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
+import scalaz.{-\/, \/, \/-}
+
+class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = Timeout(20.seconds)) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
 
   def getTheirVersions(uri: Uri, token: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ VersionsResp] = {
