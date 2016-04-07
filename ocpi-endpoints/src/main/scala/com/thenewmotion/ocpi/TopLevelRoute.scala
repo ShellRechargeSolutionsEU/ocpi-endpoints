@@ -69,7 +69,8 @@ trait TopLevelRoute extends JsonApi {
           currentTime,
           VersionDetails(
             version, versionInfo.endPoints.map {
-              case (k, v) => Endpoint(k, appendPath(uri, k.name).toString() )
+              case (k, Right(v)) => Endpoint(k, appendPath(uri, k.name).toString() )
+              case (k, Left(extUri)) => Endpoint(k, extUri)
             }.toList
           )
         )
@@ -78,7 +79,8 @@ trait TopLevelRoute extends JsonApi {
     pathPrefix(EndPointPathMatcher) { path =>
       versionInfo.endPoints.get(path) match {
         case None => reject
-        case Some(route) => route(version, apiUser.token)
+        case Some(Left(extUri)) => reject // implemented externally
+        case Some(Right(route)) => route(version, apiUser.token)
       }
     }
 

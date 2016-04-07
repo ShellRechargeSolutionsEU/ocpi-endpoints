@@ -4,7 +4,7 @@ import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier
 
 case class OcpiVersionConfig(
-  endPoints: Map[EndpointIdentifier, GuardedRoute]
+  endPoints: Map[EndpointIdentifier, Either[URI, GuardedRoute]]
 )
 
 case class OcpiRoutingConfig(

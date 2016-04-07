@@ -106,8 +106,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         Map (
           "2.0" -> OcpiVersionConfig(
             endPoints = Map(
-              EndpointIdentifier.Credentials -> ourCredentialsRoute,
-              EndpointIdentifier.Locations -> ourLocationsRoute
+              EndpointIdentifier.Credentials -> Right(ourCredentialsRoute),
+              EndpointIdentifier.Locations -> Right(ourLocationsRoute)
             )
           )
         ), mockHandshakeService

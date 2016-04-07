@@ -8,6 +8,7 @@ package object ocpi {
 
   type Version = String
   type AuthToken = String
+  type URI = String
 
   type GuardedRoute = (Version, AuthToken) => Route
 
