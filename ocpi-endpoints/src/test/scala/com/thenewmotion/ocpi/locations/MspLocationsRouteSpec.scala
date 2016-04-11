@@ -126,26 +126,11 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
         rejection mustEqual AuthorizationFailedRejection
       }
     }
-
-    "disallow unauthorized resource access" in new LocationsTestScope {
-      val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = "{}")
-
-      Patch("/NL/TNM/LOC2", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        handled must beFalse
-        rejection mustEqual AuthorizationFailedRejection
-      }
-    }
   }
 
   trait LocationsTestScope extends Scope {
 
     val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
-
-    def authorizeAccess(cc: CountryCode, opId: OperatorId, locId: String) =
-      (cc, opId, locId) match {
-        case (CountryCode("NL"), OperatorId("TNM"), "LOC1") => true
-        case _ => false
-      }
 
     val mspLocService = mock[MspLocationsService]
 
@@ -159,7 +144,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val apiUser = ApiUser("1", "123", "NL", "TNM")
 
-    val locationsRoute = new MspLocationsRoute(mspLocService, authorizeAccess, dateTime1)
+    val locationsRoute = new MspLocationsRoute(mspLocService, dateTime1)
 
     val loc1String = s"""
                        |{

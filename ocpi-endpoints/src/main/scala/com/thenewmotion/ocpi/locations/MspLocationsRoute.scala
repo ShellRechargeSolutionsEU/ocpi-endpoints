@@ -15,7 +15,6 @@ case class LocationsErrorRejection(error: LocationsError) extends Rejection
 
 class MspLocationsRoute(
   service: MspLocationsService,
-  isResourceAccessAuthorized: (CountryCode, OperatorId, String) => Boolean,
   currentTime: => DateTime = DateTime.now
 ) (implicit ec: ExecutionContext) extends JsonApi {
 
@@ -50,7 +49,7 @@ class MspLocationsRoute(
           }
         }
       } ~
-      authorize(CountryCode(apiUser.countryCode) == cc && OperatorId(apiUser.partyId) == opId && isResourceAccessAuthorized(cc, opId, locId)) {
+      authorize(CountryCode(apiUser.countryCode) == cc && OperatorId(apiUser.partyId) == opId) {
         pathEndOrSingleSlash {
           patch {
             entity(as[LocationPatch]) { location =>
