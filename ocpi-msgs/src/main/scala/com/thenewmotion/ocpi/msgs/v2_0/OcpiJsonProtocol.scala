@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.msgs.v2_0
 import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.SimpleStringEnumSerializer
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, _}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{CredsResp, Creds}
+import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds, CredsResp}
 import com.thenewmotion.ocpi.msgs.v2_0.Locations._
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import com.thenewmotion.time.Imports._
@@ -96,14 +96,115 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val imageFormat = jsonFormat6(Image)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
 
+  private def jsNumToStr(jsVal: JsValue) = jsVal match {
+    case JsNumber(x) => x.toString
+    case JsString(x) => x
+    case x => deserializationError(s"Expected JsNumber or JsString; got $x")
+  }
 
-  implicit val connectorFormat = jsonFormat9(Connector)
-  implicit val connectorPatchFormat = jsonFormat9(ConnectorPatch)
+  private def jsNumToOptStr(jsVal: JsValue) = jsVal match {
+    case JsNumber(x) => Some(x.toString)
+    case JsString(x) => Some(x)
+    case _      => None
+  }
+
+  private def jsNullToEmptyArray(jsVal: JsValue) = jsVal match {
+    case JsNull => JsArray()
+    case x: JsArray => x
+    case x => deserializationError(s"Expected JsNull or JsArray; got $x")
+  }
+
+  implicit val connectorFormat = new RootJsonFormat[Connector] {
+    def write (x: Connector) = jsonFormat9(Connector).write(x)
+    def read (value: JsValue): Connector = {
+      val fieldNames = Seq("id", "status", "standard", "format", "power_type",
+        "voltage", "amperage", "tariff_id", "terms_and_conditions")
+      fieldNames.map(fn =>
+        value.asJsObject.fields.getOrElse(fn, JsNull)) match {
+        case Seq(id, status, standard, format,
+            power_type, JsNumber(voltage), JsNumber(amperage), tariff_id,
+            terms_and_conditions) =>
+          Connector(jsNumToStr(id), status.convertTo[Option[ConnectorStatus]] getOrElse ConnectorStatus.Unknown,
+            standard.convertTo[ConnectorType], format.convertTo[ConnectorFormat],
+            power_type.convertTo[PowerType], voltage.toInt, amperage.toInt,
+            jsNumToOptStr(tariff_id), terms_and_conditions.convertTo[Option[Url]])
+        case x => deserializationError(s"Connector object expected; got $x")
+      }
+    }
+  }
+
+  implicit val connectorPatchFormat = new RootJsonFormat[ConnectorPatch] {
+    def write (x: ConnectorPatch) = jsonFormat9(ConnectorPatch).write(x)
+    def read (value: JsValue): ConnectorPatch = {
+      val fieldNames = Seq("id", "status", "standard", "format", "power_type",
+        "voltage", "amperage", "tariff_id", "terms_and_conditions")
+      fieldNames.map(fn =>
+        value.asJsObject.fields.getOrElse(fn, JsNull)) match {
+        case Seq(id, status, standard, format,
+        power_type, voltage, amperage, tariff_id,
+        terms_and_conditions) =>
+          ConnectorPatch(jsNumToStr(id), status.convertTo[Option[ConnectorStatus]],
+            standard.convertTo[Option[ConnectorType]], format.convertTo[Option[ConnectorFormat]],
+            power_type.convertTo[Option[PowerType]], voltage.convertTo[Option[Int]], amperage.convertTo[Option[Int]],
+            jsNumToOptStr(tariff_id), terms_and_conditions.convertTo[Option[Url]])
+        case x => deserializationError(s"Connector object expected; got $x")
+      }
+    }
+  }
+
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
-  implicit val evseFormat = jsonFormat12(Evse)
+
+  implicit val evseFormat = new RootJsonFormat[Evse] {
+    def write(x: Evse) = jsonFormat12(Evse).write(x)
+    def read(value: JsValue): Evse = {
+      val fieldNames = Seq("uid", "status", "connectors", "status_schedule", "capabilities",
+        "evse_id", "floor_level", "coordinates", "physical_reference", "directions",
+        "parking_restrictions", "images")
+      fieldNames.map(fn =>
+        value.asJsObject.fields.getOrElse(fn, JsNull)) match {
+        case Seq(JsString(uid), status, connectors, status_schedule, capabilities,
+        evse_id, floor_level, coordinates, physical_reference, directions,
+        parking_restrictions, images) =>
+          Evse(uid, status.convertTo[ConnectorStatus], connectors.convertTo[List[Connector]],
+            jsNullToEmptyArray(status_schedule).convertTo[List[StatusSchedule]],
+            jsNullToEmptyArray(capabilities).convertTo[List[Capability]],
+            evse_id.convertTo[Option[String]], floor_level.convertTo[Option[String]],
+            coordinates.convertTo[Option[GeoLocation]], physical_reference.convertTo[Option[String]],
+            jsNullToEmptyArray(directions).convertTo[List[DisplayText]],
+            jsNullToEmptyArray(parking_restrictions).convertTo[List[ParkingRestriction]],
+            jsNullToEmptyArray(images).convertTo[List[Image]])
+        case x => deserializationError(s"Connector object expected; got $x")
+      }
+    }
+  }
   implicit val evsePatchFormat = jsonFormat12(EvsePatch)
   implicit val operatorFormat = jsonFormat3(Operator)
-  implicit val locationFormat = jsonFormat16(Location)
+
+  implicit val locationFormat = new RootJsonFormat[Location] {
+    def write(x: Location) = jsonFormat16(Location).write(x)
+    def read(value: JsValue): Location = {
+
+      val fieldNames = Seq("id", "type", "name", "address", "city",
+        "postal_code", "country", "coordinates", "related_locations", "evses",
+        "directions", "operator", "suboperator", "opening_times", "charging_when_closed", "images")
+      fieldNames.map(fn =>
+        value.asJsObject.fields.getOrElse(fn, JsNull)) match {
+        case Seq(JsString(id), _type, name, address, city,
+        postal_code, country, coordinates, related_locations, evses,
+        directions, operator, suboperator, opening_times, charging_when_closed, images) =>
+          Location(id, _type.convertTo[LocationType], name.convertTo[Option[String]], address.convertTo[String],
+            city.convertTo[String], postal_code.convertTo[String], country.convertTo[String],
+            coordinates.convertTo[GeoLocation],
+            jsNullToEmptyArray(related_locations).convertTo[List[AdditionalGeoLocation]],
+            evses.convertTo[List[Evse]], jsNullToEmptyArray(directions).convertTo[List[DisplayText]],
+            operator.convertTo[Option[BusinessDetails]], suboperator.convertTo[Option[BusinessDetails]],
+            opening_times.convertTo[Option[Hours]], charging_when_closed.convertTo[Option[Boolean]],
+            jsNullToEmptyArray(images).convertTo[List[Image]])
+        case x => deserializationError(s"Connector object expected; got $x")
+      }
+    }
+  }
+
   implicit val locationPatchFormat = jsonFormat16(LocationPatch)
   implicit val locationsRespFormat = jsonFormat4(LocationsResp)
   implicit val locationRespFormat = jsonFormat4(LocationResp)

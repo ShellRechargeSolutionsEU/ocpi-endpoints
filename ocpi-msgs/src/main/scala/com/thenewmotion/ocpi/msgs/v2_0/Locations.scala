@@ -201,24 +201,28 @@ object Locations {
     images: Option[List[Image]] = None
   )
 
-  val LatRegex = """-?[0-9]{1,2}\.[0-9]{6}"""
-  val LonRegex = """-?[0-9]{1,3}\.[0-9]{6}"""
+  val LatRegex = """-?[0-9]{1,2}\.[0-9]{1,6}"""
+  val LonRegex = """-?[0-9]{1,3}\.[0-9]{1,6}"""
 
   case class AdditionalGeoLocation(
     latitude: String,
     longitude: String,
     name: Option[DisplayText] = None
   ){
-    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex")
-    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex")
+    // we will suspend this hard validation until we have a way to continue parsing
+    // the list even if individual locations cannot be deserialized
+//    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
+//    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
   }
 
   case class GeoLocation(
     latitude: String,
     longitude: String
     ){
-    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex")
-    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex")
+    // we will suspend this hard validation until we have a way to continue parsing
+    // the list even if individual locations cannot be deserialized
+//    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
+//    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
   }
 
   sealed trait ParkingRestriction extends Nameable
