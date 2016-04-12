@@ -115,7 +115,7 @@ class TokenAuthenticator(
 )(implicit val executionContext: ExecutionContext) extends HttpAuthenticator[ApiUser] {
 
   val challenge = `WWW-Authenticate`(
-    HttpChallenge(scheme = "Token", realm = "???", params = Map.empty)) :: Nil
+    HttpChallenge(scheme = "Token", realm = "ocpi", params = Map.empty)) :: Nil
 
   def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext) =
     Future(
