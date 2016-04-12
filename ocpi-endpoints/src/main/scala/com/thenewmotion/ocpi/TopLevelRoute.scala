@@ -4,7 +4,7 @@ import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
 import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_0.Versions._
 import spray.http._, HttpHeaders._
-import spray.routing._, authentication._, directives.FutureDirectives
+import spray.routing._, authentication._
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import spray.http.Uri

@@ -42,7 +42,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
     get {
       complete {
         service
-          .findRegisteredCredsToConnectToUs(tokenToConnectToUs)
+          .credsToConnectToUs(tokenToConnectToUs)
           .map(CredsResp(GenericSuccess.code, None, currentTime, _))
       }
     } ~
@@ -67,8 +67,9 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
     post {
       entity(as[VersionsRequest]) { theirVersionsUrlInfo =>
         complete {
+          import theirVersionsUrlInfo._
           service
-            .initiateHandshakeProcess(theirVersionsUrlInfo.token, theirVersionsUrlInfo.url)
+            .initiateHandshakeProcess(party_name, country_code, party_id, token, url)
             .map(_.map(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), currentTime, _)))
         }
       }
