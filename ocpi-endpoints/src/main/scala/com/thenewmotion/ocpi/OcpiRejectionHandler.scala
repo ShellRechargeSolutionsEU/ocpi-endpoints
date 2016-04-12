@@ -42,7 +42,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
         ( BadRequest,
           ErrorResp(
             AuthenticationFailed.code,
-            s"${AuthenticationFailed.default_message}: $challengeHeaders"))
+            s"${AuthenticationFailed.default_message}"))
       }
 
     case (r@MissingHeaderRejection(header)) :: _ => complete {
