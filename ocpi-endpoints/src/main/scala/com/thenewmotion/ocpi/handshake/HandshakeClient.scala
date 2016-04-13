@@ -25,7 +25,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
     bimap(resp) {
       case Success(versions) => \/-(versions)
       case Failure(t) =>
-        logger.error(s"Could not retrieve the versions information from $uri with token $token", t)
+        logger.error(s"Could not retrieve the versions information from $uri with token $token. Reason: ${t.getLocalizedMessage}", t)
         -\/(VersionsRetrievalFailed)
     }
   }
@@ -37,7 +37,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
     bimap(resp) {
       case Success(versionDet) => \/-(versionDet)
       case Failure(t) =>
-        logger.error(s"Could not retrieve the version details from $uri with token $token", t)
+        logger.error(s"Could not retrieve the version details from $uri with token $token. Reason: ${t.getLocalizedMessage}", t)
         -\/(VersionDetailsRetrievalFailed)
     }
   }
@@ -50,7 +50,7 @@ class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
       case Success(theirCreds) => \/-(theirCreds)
       case Failure(t) =>
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
-          s"$tokenToConnectToThem when sending our credentials $credToConnectToUs", t )
+          s"$tokenToConnectToThem when sending our credentials $credToConnectToUs. Reason: ${t.getLocalizedMessage}", t )
         -\/(SendingCredentialsFailed)
     }
   }

@@ -24,7 +24,7 @@ class LocationsClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
     bimap(resp) {
       case Success(locations) => \/-(locations)
       case Failure(t) =>
-        logger.error(s"Failed to get locations from $uri", t)
+        logger.error(s"Failed to get locations from $uri. Reason: ${t.getLocalizedMessage}", t)
         -\/(LocationNotFound())
     }
   }
