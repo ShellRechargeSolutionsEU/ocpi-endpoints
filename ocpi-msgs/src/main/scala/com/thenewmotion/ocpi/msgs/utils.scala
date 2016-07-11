@@ -1,19 +1,7 @@
-package com.thenewmotion.ocpi.msgs
+package com.thenewmotion.ocpi
+package msgs
 
 import spray.json._
-
-/**
- *
- */
-
-  trait Nameable {
-    val name: String
-  }
-
-  trait Enumerable[T <: Nameable] {
-    def values: Seq[T]
-    def withName(name: String): Option[T] = values.find(_.name equals name)
-  }
 
 class SimpleStringEnumSerializer[T <: Nameable](enum: Enumerable[T]) {
   implicit val enumFormat = new JsonFormat[T] {
