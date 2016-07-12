@@ -1,6 +1,6 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi
+package msgs.v2_0
 
-import com.thenewmotion.ocpi.msgs.{Enumerable, Nameable}
 import com.thenewmotion.time.Imports._
 import org.joda.time.DateTime
 

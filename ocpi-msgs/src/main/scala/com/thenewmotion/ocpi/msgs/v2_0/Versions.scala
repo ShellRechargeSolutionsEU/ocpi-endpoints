@@ -1,7 +1,7 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi
+package msgs.v2_0
 
 import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResponse, Url}
-import com.thenewmotion.ocpi.msgs.{Enumerable, Nameable}
 import org.joda.time.DateTime
 
 object Versions {

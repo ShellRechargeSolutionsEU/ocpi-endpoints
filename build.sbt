@@ -36,8 +36,15 @@ val commonSettings = Seq(
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 )
 
+val `ocpi-prelude` = project
+  .enablePlugins(OssLibPlugin)
+  .settings(
+    commonSettings,
+    description := "Definitions that are useful across all OCPI modules")
+
 val `ocpi-msgs` = project
   .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-prelude`)
   .settings(
     commonSettings,
     description := "OCPI serialization library",
@@ -45,7 +52,7 @@ val `ocpi-msgs` = project
 
 val `ocpi-endpoints` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-msgs`)
+  .dependsOn(`ocpi-prelude`, `ocpi-msgs`)
   .settings(
     commonSettings,
     description := "OCPI endpoints",
@@ -53,6 +60,7 @@ val `ocpi-endpoints` = project
 
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
+    `ocpi-prelude`,
     `ocpi-msgs`,
     `ocpi-endpoints`)
   .enablePlugins(OssLibPlugin)
