@@ -10,6 +10,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.MediaTypes._
+import spray.http.StatusCodes._
 import spray.http.{ContentType, HttpCharsets, HttpEntity}
 import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
@@ -41,8 +42,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirCredsData)
 
-      Post("/credentials", body) ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
-        handled must beTrue
+      Post("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(credsToConnectToUs.token)
@@ -52,8 +52,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
       handshakeService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
 
-      Get("/credentials") ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
-        handled must beTrue
+      Get("/credentials") ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(credsToConnectToUs.token)
@@ -61,8 +60,10 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
-      Get("/credentials") ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
-        handled must beFalse
+      Get("/credentials") ~>
+      credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~>
+      check {
+        status === BadRequest
       }
     }
 
@@ -93,8 +94,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
 
-      Put("/credentials", body) ~> credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
-        handled must beTrue
+      Put("/credentials", body) ~> credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(newCredsToConnectToUs.token)
@@ -127,8 +127,10 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirNewCredsData)
 
-      Put("/credentials", body) ~>  credentialsRoute.routeWithoutRH(selectedVersion, tokenToConnectToUs) ~> check {
-        handled must beFalse
+      Put("/credentials", body) ~>
+      credentialsRoute.route(selectedVersion, tokenToConnectToUs) ~>
+      check {
+        status === BadRequest
       }
     }
   }
@@ -148,8 +150,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
 
-      Post("/initiateHandshake", body) ~> initHandshakeRoute.routeWithoutRH ~> check {
-        handled must beTrue
+      Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(credsToConnectToThem.token)
@@ -177,14 +178,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`), string = theirVersData)
 
-      Post("/initiateHandshake", body) ~> initHandshakeRoute.routeWithoutRH ~> check {
-        handled must beFalse
-        rejection mustEqual HandshakeErrorRejection(error)
-      }
-
       Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
-        handled must beTrue
-        status.isSuccess must beFalse
         responseAs[String].contains(GenericSuccess.code.toString) must beFalse
         responseAs[String] must contain(error.reason)
       }
