@@ -66,10 +66,7 @@ object CommonTypes {
     data: D
   ) extends SuccessResponse
 
-  trait DataResponse[D <: DataResponse[D]]{ // ye good ol' f-bounded polymorphism
-    type DataItem
-    def data: List[DataItem]
-    def copyData(data: List[DataItem]): D
+  case class Page[T](data: Iterable[T]) {
+    def items = data
   }
-
 }

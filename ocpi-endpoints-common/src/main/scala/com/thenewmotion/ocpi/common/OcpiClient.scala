@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.common
 import akka.actor.ActorRefFactory
 import akka.util.Timeout
 import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{DataResponse, SuccessResponse}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
 import spray.client.pipelining._
 import spray.http.HttpHeaders.Link
 import spray.http._
@@ -21,16 +21,6 @@ abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: 
   private val logResponse: HttpResponse => HttpResponse = { r => logger.debug(r.toString); r }
 
   val MaxNumItems = 100
-  val UrlRegex = """https?://[^\s/$.?#].[^\s]*""".r
-  val LinkHeaderRegex = s"""<($UrlRegex)>(?:\\s*;\\s+rel="?([a-z]+)"?)""".r
-
-  protected[ocpi] def extractNextUri(linkHeaderValue: String): Option[Uri] = {
-    val m = LinkHeaderRegex.findAllIn(linkHeaderValue).matchData.toList
-
-    if (m.isEmpty) throw UnknownLinkFormat(s"Couldn't parse Link value with regex $LinkHeaderRegex")
-
-    m.find(_.group(2) == "next").map(next => Uri(next.group(1)))
-  }
 
   protected[ocpi] def setPageLimit(linkUri: Uri) = {
     val newLimit = linkUri.query.get("limit").map(_.toInt min MaxNumItems) getOrElse MaxNumItems
@@ -55,35 +45,38 @@ abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: 
     p.future
   }
 
-  protected def traversePaginatedResource[E, R <: SuccessResponse with DataResponse[R]]
-    (uri: Uri, auth: String, error: E, limit: Int = MaxNumItems)
-    (responseTransformation: HttpResponse => R)
-    (implicit ec: ExecutionContext): Future[E \/ R] =
-    _traversePaginatedResource(uri withQuery("offset" -> "0", "limit" -> limit.toString),
-      auth, error)(responseTransformation)
+  type FTS[E, T] = Future[E \/ Iterable[T]]
 
-  private def _traversePaginatedResource[E, R <: SuccessResponse with DataResponse[R]](uri: Uri, auth: String, error: E)
-    (respUnmarshaller: HttpResponse => R)
-    (implicit ec: ExecutionContext): Future[E \/ R] = {
+  protected def traversePaginatedResource[E, R]
+    (uri: Uri, auth: String, error: E, limit: Int = MaxNumItems)
+    (page: HttpResponse => Page[R])
+    (implicit ec: ExecutionContext): FTS[E, R] =
+    _traversePaginatedResource(uri withQuery("offset" -> "0", "limit" -> limit.toString),
+      auth, error)(page)
+
+  private def _traversePaginatedResource[E, R](uri: Uri, auth: String, error: E)
+    (respUnmarshaller: HttpResponse => Page[R])
+    (implicit ec: ExecutionContext): FTS[E, R] = {
     val pipeline = request(auth)
-    lazy val resp = pipeline(Get(uri))
 
     Try {
-      resp.flatMap { r =>
-        val accResp: Option[Future[\/[E, R]]] = r.headers.find(_.name == Link.name) flatMap {
-          linkHeader =>
-            extractNextUri(linkHeader.value).map{ nextUri =>
-              logger.debug(s"following Link: $nextUri")
-              _traversePaginatedResource(setPageLimit(nextUri), auth, error)(respUnmarshaller)
-            }
-        }
-        val rsp: R = r ~> respUnmarshaller
+      pipeline(Get(uri))
+      .flatMap { response =>
+        val accResp: Option[FTS[E, R]] =
+          response
+          .header[Link]
+          .flatMap(_.values.find(_.params.contains(Link.next)).map(_.uri))
+          .map { nextUri =>
+            logger.debug(s"following Link: $nextUri")
+            _traversePaginatedResource(setPageLimit(nextUri), auth, error)(respUnmarshaller)
+          }
+
+        val entity: Page[R] = response ~> respUnmarshaller
         val accLocs = accResp.map {
           _.map { disj =>
-            val d = rsp.data ++ (disj.map(_.data) getOrElse Nil)
-            \/-(rsp.copyData(data = d.asInstanceOf[List[rsp.DataItem]] ))
+            \/-(entity.items ++ (disj.getOrElse(Iterable.empty)))
           }
-        } orElse Some(Future.successful(\/-(rsp)))
+        } orElse Some(Future.successful(\/-(entity.items)))
         accLocs getOrElse Future.successful(-\/(error))
       }
     } match {
@@ -92,8 +85,3 @@ abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: 
     }
   }
 }
-
-
-
-  case class UnknownLinkFormat(msg: String) extends Exception(msg)
-  case class NoNextRelationFound(msg: String = "Couldn't find rel value 'next'") extends Exception(msg)

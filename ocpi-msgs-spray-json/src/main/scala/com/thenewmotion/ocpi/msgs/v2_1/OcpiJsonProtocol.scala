@@ -152,6 +152,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)
   implicit val successRespFormat = jsonFormat3(SuccessResp)
+  implicit def pageFmt[T: JsonFormat] = jsonFormat1(Page[T])
   implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
 
   implicit val credentialsFormat = jsonFormat5(Creds)
