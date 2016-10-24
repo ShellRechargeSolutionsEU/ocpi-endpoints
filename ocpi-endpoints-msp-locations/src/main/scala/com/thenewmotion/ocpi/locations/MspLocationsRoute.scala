@@ -11,8 +11,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 
-case class LocationsErrorRejection(error: LocationsError) extends Rejection
-
 class MspLocationsRoute(
   service: MspLocationsService,
   currentTime: => DateTime = DateTime.now
