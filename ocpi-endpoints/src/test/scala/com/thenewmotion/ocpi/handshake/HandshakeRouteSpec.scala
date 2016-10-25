@@ -2,9 +2,10 @@ package com.thenewmotion.ocpi.handshake
 
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -202,7 +203,7 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     // our details
     val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
-    val selectedVersion = "2.0"
+    val selectedVersion = `2.0`
     val tokenToConnectToUs = "aaa3b399-779f-4497-9b9d-ac6ad3cc44aa"
     val credsToConnectToUs = Creds(
       token = tokenToConnectToUs,

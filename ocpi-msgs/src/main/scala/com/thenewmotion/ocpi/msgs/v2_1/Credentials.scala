@@ -1,6 +1,6 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResponse, Url, BusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResponse, Url, BusinessDetails}
 import org.joda.time.DateTime
 
 
@@ -16,6 +16,7 @@ object Credentials {
     ){
     require(party_id.length == 3)
     require(country_code.length == 2)
+    require(token.length <= 64)
   }
 
   case class CredsResp(

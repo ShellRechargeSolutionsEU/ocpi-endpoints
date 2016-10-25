@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package handshake
 
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 import scala.concurrent._
@@ -26,8 +26,8 @@ trait HandshakeApi extends JsonApi {
 }
 
 class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends HandshakeApi {
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.Credentials._
 
   def route(accessedVersion: Version, tokenToConnectToUs: AuthToken)(implicit ec: ExecutionContext) = {
     post {
@@ -59,9 +59,9 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
 }
 
 class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends HandshakeApi {
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_0.Credentials._
-  import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.Credentials._
+  import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 
   def route(implicit ec: ExecutionContext) = {
     post {

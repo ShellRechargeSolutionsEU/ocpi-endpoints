@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
-import com.thenewmotion.ocpi.msgs.v2_0.Locations._
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 
 import scala.concurrent.Future
 import scalaz._

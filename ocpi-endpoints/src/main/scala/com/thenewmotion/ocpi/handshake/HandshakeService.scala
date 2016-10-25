@@ -1,17 +1,15 @@
 package com.thenewmotion.ocpi.handshake
 
 import java.security.SecureRandom
-
 import akka.actor.ActorRefFactory
 import com.thenewmotion.ocpi
 import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.handshake.HandshakeError._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.Versions
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.{Endpoint, EndpointIdentifier, VersionDetailsResp}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_1.Versions
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetailsResp, VersionNumber}
 import spray.http.Uri
-
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
@@ -38,14 +36,14 @@ abstract class HandshakeService(
     * @return new credentials to connect to us
     */
   def reactToHandshakeRequest(
-    version: String,
+    version: VersionNumber,
     existingTokenToConnectToUs: String,
     credsToConnectToThem: Creds
   )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Handshake initiated by party: ${credsToConnectToThem.party_id}, " +
       s"using token: $existingTokenToConnectToUs, " +
-      s"chosen version: $version. " +
+      s"chosen version: ${version.name}. " +
       s"Credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(
@@ -75,13 +73,13 @@ abstract class HandshakeService(
     * @return new credentials to connect to us
     */
   def reactToUpdateCredsRequest(
-    version: String,
+    version: VersionNumber,
     existingTokenToConnectToUs: String,
     credsToConnectToThem: Creds
   )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.party_id} " +
-      s"using token: $existingTokenToConnectToUs, for version: $version. " +
+      s"using token: $existingTokenToConnectToUs, for version: ${version.name}. " +
       s"New credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(
@@ -145,7 +143,7 @@ abstract class HandshakeService(
     * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
     * is not still registered
     */
-  private def getTheirDetails(version: String, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
+  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
 
     def findCommonVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
@@ -167,13 +165,13 @@ abstract class HandshakeService(
 
 
   private def generateCredsToConnectToUs(tokenToConnectToUs: String, ourVersionsUrl: Uri): Creds = {
-    import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.BusinessDetails
+    import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
 
     Creds(tokenToConnectToUs, ourVersionsUrl.toString(), BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
   }
 
   protected def persistHandshakeReactResult(
-    version: String,
+    version: VersionNumber,
     existingTokenToConnectToUs: String,
     newTokenToConnectToUs: String,
     credsToConnectToThem: Creds,
@@ -181,7 +179,7 @@ abstract class HandshakeService(
   ): HandshakeError \/ Unit
 
   protected def persistUpdateCredsResult(
-    version: String,
+    version: VersionNumber,
     existingTokenToConnectToUs: String,
     newTokenToConnectToUs: String,
     credsToConnectToThem: Creds,
@@ -189,7 +187,7 @@ abstract class HandshakeService(
   ): HandshakeError \/ Unit
 
   protected def persistHandshakeInitResult(
-    version: String,
+    version: VersionNumber,
     newTokenToConnectToUs: String,
     newCredToConnectToThem: Creds,
     endpoints: Iterable[Endpoint]

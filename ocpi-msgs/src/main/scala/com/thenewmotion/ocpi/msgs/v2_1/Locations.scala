@@ -1,9 +1,7 @@
 package com.thenewmotion.ocpi
-package msgs.v2_0
+package msgs.v2_1
 
-import com.thenewmotion.time.Imports._
-import com.thenewmotion.money.CurrencyUnit
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import org.joda.time.DateTime
 
 
@@ -11,6 +9,7 @@ object Locations {
 
   case class Location(
     id: String,
+    last_updated: DateTime,
     `type`:	LocationType,
     name:	Option[String],
     address: String,
@@ -18,14 +17,18 @@ object Locations {
     postal_code: String,
     country:	String,
     coordinates:	GeoLocation,
-    related_locations: List[AdditionalGeoLocation] = List(),
-    evses: List[Evse] = List(),
-    directions:	List[DisplayText] = List(),
+    related_locations: List[AdditionalGeoLocation] = Nil,
+    evses: List[Evse] = Nil,
+    directions:	List[DisplayText] = Nil,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
+    owner: Option[BusinessDetails] = None,
+    facilities: List[Facility] = Nil,
+    time_zone: Option[String] = None,
     opening_times: Option[Hours] = None,
     charging_when_closed: Option[Boolean] = Some(true),
-    images: List[Image] = List()) {
+    images: List[Image] = Nil,
+    energy_mix: Option[EnergyMix] = None) {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
@@ -43,9 +46,13 @@ object Locations {
     directions: Option[String] = None,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
+    owner: Option[BusinessDetails] = None,
+    facilities: Option[List[Facility]] = None,
+    time_zone: Option[String] = None,
     opening_times: Option[Hours] = None,
     charging_when_closed: Option[Boolean] = None,
-    images: Option[List[Image]] = None) {
+    images: Option[List[Image]] = None,
+    energy_mix: Option[EnergyMix] = None) {
     require(country.fold(true)(_.length == 3), "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
@@ -61,6 +68,66 @@ object Locations {
       ParkingLot, Other, Unknown)
   }
 
+  sealed trait Facility extends Nameable
+  object Facility extends Enumerable[Facility] {
+    case object Hotel extends Facility {val name = "HOTEL"}
+    case object Restaurant extends Facility {val name = "RESTAURANT"}
+    case object Cafe extends Facility {val name = "CAFE"}
+    case object Mall extends Facility {val name = "MALL"}
+    case object Supermarket extends Facility {val name = "SUPERMARKET"}
+    case object Sport extends Facility {val name = "SPORT"}
+    case object RecreationArea extends Facility {val name = "RECREATION_AREA"}
+    case object Nature extends Facility {val name = "NATURE"}
+    case object Museum extends Facility {val name = "MUSEUM"}
+    case object BusStop extends Facility {val name = "BUS_STOP"}
+    case object TaxiStand extends Facility {val name = "TAXI_STAND"}
+    case object TrainStation extends Facility {val name = "TRAIN_STATION"}
+    case object Airport extends Facility {val name = "AIRPORT"}
+    case object CarpoolParking extends Facility {val name = "CARPOOL_PARKING"}
+    case object FuelStation extends Facility {val name = "FUEL_STATION"}
+    case object Wifi extends Facility {val name = "WIFI"}
+    val values = Seq(Hotel, Restaurant, Cafe, Mall, Supermarket, Sport, RecreationArea, Nature, Museum, BusStop,
+      TaxiStand, TrainStation, Airport, CarpoolParking, FuelStation, Wifi)
+  }
+
+  sealed trait EnergySourceCategory extends Nameable
+  object EnergySourceCategory extends Enumerable[EnergySourceCategory] {
+    case object Nuclear extends EnergySourceCategory {val name = "NUCLEAR"}
+    case object GeneralFossil extends EnergySourceCategory {val name = "GENERAL_FOSSIL"}
+    case object Coal extends EnergySourceCategory {val name = "COAL"}
+    case object Gas extends EnergySourceCategory {val name = "GAS"}
+    case object GeneralGreen extends EnergySourceCategory {val name = "GENERAL_GREEN"}
+    case object Solar extends EnergySourceCategory {val name = "SOLAR"}
+    case object Wind extends EnergySourceCategory {val name = "WIND"}
+    case object Water extends EnergySourceCategory {val name = "WATER"}
+    val values = Seq(Nuclear, GeneralFossil, Coal, Gas, GeneralGreen, Solar, Wind, Water)
+  }
+
+  sealed trait EnvironmentalImpactCategory extends Nameable
+  object EnvironmentalImpactCategory extends Enumerable[EnvironmentalImpactCategory] {
+    case object NuclearWaste extends EnvironmentalImpactCategory {val name = "NUCLEAR_WASTE"}
+    case object CarbonDioxide extends EnvironmentalImpactCategory {val name = "CARBON_DIOXIDE"}
+    val values = Seq(NuclearWaste, CarbonDioxide)
+  }
+
+  case class EnergySource(
+    source: EnergySourceCategory,
+    percentage: Double
+  )
+
+  case class EnvironmentalImpact(
+    source: EnvironmentalImpactCategory,
+    percentage: Double
+  )
+
+  case class EnergyMix(
+    is_green_energy: Boolean,
+    energy_sources: List[EnergySource] = Nil,
+    environ_impace: List[EnvironmentalImpact] = Nil,
+    supplier_name: Option[String] = None,
+    energy_product_name: Option[String] = None
+  )
+
   case class RegularHours(
     weekday: Int,
     period_begin: String,
@@ -74,9 +141,9 @@ object Locations {
 
   case class Hours(
     twentyfourseven: Boolean,
-    regular_hours: List[RegularHours] = List(),
-    exceptional_openings: List[ExceptionalPeriod] = List(),
-    exceptional_closings: List[ExceptionalPeriod] = List()
+    regular_hours: List[RegularHours] = Nil,
+    exceptional_openings: List[ExceptionalPeriod] = Nil,
+    exceptional_closings: List[ExceptionalPeriod] = Nil
   ) {
     require(regular_hours.nonEmpty && !twentyfourseven
       || regular_hours.isEmpty && twentyfourseven,
@@ -115,28 +182,9 @@ object Locations {
     val values = List(Charging, Parking)
   }
 
-  case class Tariff(
-    tariff_id: String,
-    price_taxed: Option[Double],
-    price_untaxed: Option[Double],
-    pricing_unit: PricingUnit,
-    tax_pct: Option[Double],
-    currency: CurrencyUnit,
-    condition: Option[String],
-    display_text: List[DisplayText]
-    )
-
-  case class  PriceScheme(
-    price_scheme_id: Int,
-    start_date: Option[DateTime],
-    expiry_date: Option[DateTime],
-    tariff: List[Tariff],
-    display_text: List[DisplayText]
-    )
-
   case class Connector(
     id: String,
-    status: ConnectorStatus,
+    last_updated: DateTime,
     standard: ConnectorType,
     format: ConnectorFormat,
     power_type:	PowerType,
@@ -148,7 +196,6 @@ object Locations {
 
   case class ConnectorPatch(
     id: String,
-    status: Option[ConnectorStatus] = None,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
     power_type:	Option[PowerType] = None,
@@ -166,22 +213,25 @@ object Locations {
     case object CreditCardPayable extends Capability {val name = "CREDIT_CARD_PAYABLE"}
     case object Reservable extends Capability {val name = "RESERVABLE"}
     case object RfidReader extends Capability {val name = "RFID_READER"}
-    val values = List(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader)
+    case object RemoteStartStopCapable extends Capability {val name = "REMOTE_START_STOP_CAPABLE"}
+    case object UnlockCapabale extends Capability {val name = "UNLOCK_CAPABLE"}
+    val values = List(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader, RemoteStartStopCapable, UnlockCapabale)
   }
 
   case class Evse(
     uid: String,
+    last_updated: DateTime,
     status: ConnectorStatus,
     connectors: List[Connector],
-    status_schedule: List[StatusSchedule] = List(),
-    capabilities: List[Capability] = List(),
+    status_schedule: List[StatusSchedule] = Nil,
+    capabilities: List[Capability] = Nil,
     evse_id: Option[String] = None,
     floor_level:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
     physical_reference:	Option[String] = None,
-    directions: List[DisplayText] = List(),
-    parking_restrictions:	List[ParkingRestriction] = List(),
-    images: List[Image] = List()
+    directions: List[DisplayText] = Nil,
+    parking_restrictions:	List[ParkingRestriction] = Nil,
+    images: List[Image] = Nil
     ){
     require(connectors.nonEmpty, "List of connector can't be empty!")
   }

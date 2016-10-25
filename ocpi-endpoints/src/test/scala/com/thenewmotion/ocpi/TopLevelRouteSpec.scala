@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.handshake.HandshakeService
-import com.thenewmotion.ocpi.msgs.v2_0.Versions.EndpointIdentifier
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.{EndpointIdentifier, VersionNumber}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -91,8 +91,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
     val invalidToken = Authorization(GenericHttpCredentials("Token", "letmein"))
 
-    val ourCredentialsRoute = (version: String, apiUser: ApiUser) => complete((StatusCodes.OK, s"credentials: $version"))
-    val ourLocationsRoute = (version: String, apiUser: ApiUser) => complete((StatusCodes.OK, s"locations: $version"))
+    val ourCredentialsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"credentials: $version"))
+    val ourLocationsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"locations: $version"))
     val mockHandshakeService = mock[HandshakeService]
     val topLevelRoute = new TopLevelRoute {
 

@@ -1,9 +1,9 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi.msgs.v2_1
 
 import com.thenewmotion.money._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes._
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericClientFailure
 import org.joda.money.Money
 import org.joda.time.DateTimeZone._
 import org.joda.time.format.ISODateTimeFormat

@@ -3,10 +3,11 @@ package com.thenewmotion.ocpi.handshake
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.HandshakeError._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{BusinessDetails, Url}
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.{Creds, CredsResp}
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
-import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Url}
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.{Creds, CredsResp}
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.Versions._
+import VersionNumber._
 import org.joda.time.DateTime
 import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
@@ -55,9 +56,9 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
             c mustEqual ourCountryCodeVal
         }.await
       }
-      "return error when not mutual version found" >> new HandshakeTestScope {
+      "return error when no mutual version found" >> new HandshakeTestScope {
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
-          Future.successful(\/-(VersionsResp(1000, None, dateTime1, List(Version("1.9", theirVersionDetailsUrl)))))
+          Future.successful(\/-(VersionsResp(1000, None, dateTime1, List(Version(`2.0`, theirVersionDetailsUrl)))))
 
         val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
           credsToConnectToThem.party_id, tokenToConnectToUs, theirVersionsUrl)
@@ -159,10 +160,10 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       BusinessDetails(ourCpoName, None, None), ourPartyIdVal, ourCountryCodeVal)
     val ourCredsResp = CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), dateTime1, ourCredentials)
 
-    val selectedVersion = "2.0"
+    val selectedVersion = `2.1`
     val tokenToConnectToThem = "456"
     val theirVersionsUrl = "http://the-awesomes/msp/versions"
-    val theirVersionDetailsUrl = "http://the-awesomes/msp/2.0"
+    val theirVersionDetailsUrl = "http://the-awesomes/msp/2.1"
     val credsToConnectToThem = Creds(
       tokenToConnectToThem,
       theirVersionsUrl,
@@ -179,20 +180,20 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
     // React to handshake request
     _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns Future.successful(
-      \/-(VersionsResp(1000, None, dateTime1, List(Version("2.0", theirVersionDetailsUrl)))))
+      \/-(VersionsResp(1000, None, dateTime1, List(Version(`2.1`, theirVersionDetailsUrl)))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-      \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
+      \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
 
     // Initiate handshake request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(
-      \/-(VersionsResp(1000, None, dateTime1, List(Version("2.0", theirVersionDetailsUrl)))))
+      \/-(VersionsResp(1000, None, dateTime1, List(Version(`2.1`, theirVersionDetailsUrl)))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToUs) returns Future.successful(
-      \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails("2.0",List(
+      \/-(VersionDetailsResp(1000,None,dateTime1, VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
@@ -220,7 +221,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ): HandshakeError \/ Unit = \/-(Unit)
 
       protected def persistHandshakeReactResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -228,7 +229,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ): Disjunction[HandshakeError, Unit] = \/-(())
 
       protected def persistUpdateCredsResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -236,7 +237,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ): HandshakeError \/ Unit = -\/(WaitingForRegistrationRequest)
 
       protected def persistHandshakeInitResult(
-        version: String,
+        version: VersionNumber,
         newTokenToConnectToUs: String,
         newCredToConnectToThem: Creds,
         endpoints: Iterable[Endpoint]
@@ -268,7 +269,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ): HandshakeError \/ Unit = \/-(Unit)
 
       protected def persistHandshakeReactResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -276,7 +277,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ) = -\/(CouldNotPersistNewToken(newTokenToConnectToUs))
 
       protected def persistUpdateCredsResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -284,7 +285,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ) = -\/(WaitingForRegistrationRequest)
 
       protected def persistHandshakeInitResult(
-        version: String,
+        version: VersionNumber,
         tokenToConnectToUs: String,
         newCredToConnectToThem: Creds,
         endpoints: Iterable[Endpoint]
@@ -316,7 +317,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ): HandshakeError \/ Unit = \/-(Unit)
 
       protected def persistHandshakeReactResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -324,7 +325,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ) = -\/(CouldNotPersistNewToken(newTokenToConnectToUs))
 
       protected def persistUpdateCredsResult(
-        version: String,
+        version: VersionNumber,
         existingTokenToConnectToUs: String,
         newTokenToConnectToUs: String,
         credsToConnectToThem: Creds,
@@ -332,7 +333,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
       ) = -\/(CouldNotUpdateEndpoints)
 
       protected def persistHandshakeInitResult(
-        version: String,
+        version: VersionNumber,
         tokenToConnectToUs: String,
         newCredToConnectToThem: Creds,
         endpoints: Iterable[Endpoint]

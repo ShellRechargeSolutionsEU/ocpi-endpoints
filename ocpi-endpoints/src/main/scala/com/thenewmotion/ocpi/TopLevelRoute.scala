@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
-import com.thenewmotion.ocpi.msgs.v2_0.Versions._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import spray.http._, HttpHeaders._
 import spray.routing._, authentication._
 import scala.concurrent.{ExecutionContext, Future}
@@ -11,7 +11,7 @@ import spray.http.Uri
 
 
 trait TopLevelRoute extends JsonApi {
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   def routingConfig: OcpiRoutingConfig
 
@@ -34,12 +34,12 @@ trait TopLevelRoute extends JsonApi {
         GenericSuccess.code,
         Some(GenericSuccess.default_message),
         currentTime,
-        v.keys.map(x => Version(x, appendPath(uri, x).toString())).toList)
+        v.keys.flatMap(x => VersionNumber.withName(x).map(Version(_, appendPath(uri, x).toString()))).toList)
       )
     case _ => reject(NoVersionsRejection())
   }
 
-  def versionRoute(version: String, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: ApiUser): Route =
+  def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: ApiUser): Route =
     pathEndOrSingleSlash {
       complete(
         VersionDetailsResp(
@@ -82,10 +82,11 @@ trait TopLevelRoute extends JsonApi {
             versionsRoute(uri)
           } ~
           pathPrefix(Segment) { version =>
-            routingConfig.versions.get(version) match {
-              case None => reject(UnsupportedVersionRejection(version))
-              case Some(validVersion) => versionRoute(version, validVersion, uri, apiUser)
-            }
+            val route = for {
+              existingVersion <- VersionNumber.withName(version)
+              supportedVersion <- routingConfig.versions.get(existingVersion.name)
+            } yield versionDetailsRoute(existingVersion, supportedVersion, uri, apiUser)
+            route getOrElse reject(UnsupportedVersionRejection(version))
           }
         }
       }

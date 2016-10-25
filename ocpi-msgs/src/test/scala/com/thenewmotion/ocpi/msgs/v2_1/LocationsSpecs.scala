@@ -1,6 +1,5 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.money.CurrencyUnit
 import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
@@ -66,6 +65,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
     val date2 = formatter.parseDateTime("2020-12-31T23:59:59Z")
+    val dateOfUpdate = formatter.parseDateTime("2016-12-31T23:59:59Z")
 
 
     val displayText_standard = List(DisplayText("nl", "Standaard Tarief"),
@@ -73,47 +73,11 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val displayText_emsp =  List(DisplayText("nl", "eMSP Tarief"),
       DisplayText("en", "eMSP Tariff") )
 
-    val tariff_standard = Tariff(
-      tariff_id = "kwrate",
-      price_untaxed = Some(0.1936),
-      price_taxed = None,
-      pricing_unit = PricingUnit.KWhToEV,
-      tax_pct = None,
-      currency = CurrencyUnit("EUR"),
-      condition = None,
-      display_text = displayText_standard
-    )
 
-    val tariff_emsp = Tariff(
-      tariff_id = "kwrate",
-      price_untaxed = Some(0.1536),
-      price_taxed = None,
-      pricing_unit = PricingUnit.KWhToEV,
-      tax_pct = None,
-      currency = CurrencyUnit("EUR"),
-      condition = None,
-      display_text = displayText_emsp
-    )
-
-    val priceScheme1 = PriceScheme(
-      1,
-      Some(date1),
-      Some(date2),
-      List(tariff_standard),
-      displayText_standard
-    )
-
-    val priceScheme2 = PriceScheme(
-      2,
-      Some(date1),
-      Some(date2),
-      List(tariff_emsp),
-      displayText_emsp
-    )
 
      val connector1 = Connector(
         "1",
-        ConnectorStatus.Available,
+        last_updated = dateOfUpdate,
         ConnectorType.`IEC_62196_T2`,
         ConnectorFormat.Cable,
         PowerType.AC3Phase,
@@ -124,7 +88,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
     val connector2 = Connector(
       "2",
-      ConnectorStatus.Available,
+      last_updated = dateOfUpdate,
       ConnectorType.`IEC_62196_T2`,
       ConnectorFormat.Socket,
       PowerType.AC3Phase,
@@ -135,6 +99,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
     val evse1 = Evse(
       "BE-BEC-E041503001",
+      last_updated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1, connector2),
@@ -144,6 +109,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
     val evse2 = Evse(
       "BE-BEC-E041503002",
+      last_updated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1),
@@ -153,6 +119,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
     val evse3 = Evse(
       "BE-BEC-E041503003",
+      last_updated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1),
@@ -183,6 +150,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val dir1 = DisplayText("en", "left, left, left, right, left")
     val location1 = Location(
       "LOC1",
+      last_updated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 3A",
@@ -202,6 +170,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
     val location2 = Location(
       "LOC2",
+      last_updated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 30",
@@ -250,6 +219,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "uid": "BE-BEC-E041503001",
+         |      "last_updated": "2016-12-31T23:59:59Z",
          |      "status": "AVAILABLE",
          |      "status_schedule": [],
          |      "capabilities": [
@@ -258,7 +228,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "connectors": [
          |        {
          |          "id": "1",
-         |          "status":"AVAILABLE",
+         |          "last_updated": "2016-12-31T23:59:59Z",
          |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
@@ -268,7 +238,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |        },
          |        {
          |          "id": "2",
-         |          "status":"AVAILABLE",
+         |          "last_updated": "2016-12-31T23:59:59Z",
          |          "standard": "IEC_62196_T2",
          |          "format": "SOCKET",
          |          "power_type": "AC_3_PHASE",
@@ -293,6 +263,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "uid": "BE-BEC-E041503002",
+         |      "last_updated": "2016-12-31T23:59:59Z",
          |      "status": "AVAILABLE",
          |      "status_schedule": [],
          |      "capabilities": [
@@ -301,7 +272,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "connectors": [
          |        {
          |          "id": "1",
-         |          "status":"AVAILABLE",
+         |          "last_updated": "2016-12-31T23:59:59Z",
          |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
@@ -323,6 +294,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "uid": "BE-BEC-E041503003",
+         |      "last_updated": "2016-12-31T23:59:59Z",
          |      "status": "AVAILABLE",
          |      "status_schedule": [],
          |      "capabilities": [
@@ -331,7 +303,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "connectors": [
          |        {
          |          "id": "1",
-         |          "status": "AVAILABLE",
+         |          "last_updated": "2016-12-31T23:59:59Z",
          |          "standard": "IEC_62196_T2",
          |          "format": "CABLE",
          |          "power_type": "AC_3_PHASE",
@@ -356,6 +328,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "id": "LOC1",
+         |      "last_updated": "2016-12-31T23:59:59Z",
          |      "type": "ON_STREET",
          |      "name": "Gent Zuid",
          |      "address": "F.Rooseveltlaan 3A",
@@ -408,6 +381,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |		      }
          |		    ]
          |		  },
+         |      "facilities": [],
          |      "images":[],
          |      "charging_when_closed": true
          |    }
@@ -417,6 +391,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       s"""
          |    {
          |      "id": "LOC2",
+         |      "last_updated": "2016-12-31T23:59:59Z",
          |      "type": "ON_STREET",
          |      "name": "Gent Zuid",
          |      "address": "F.Rooseveltlaan 30",
@@ -427,6 +402,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "related_locations": [],
          |      "evses": [$evseJson2, $evseJson3],
          |      "directions": [{"language":"en","text":"left, left, left, right, left"}],
+         |      "facilities": [],
          |      "images":[],
          |      "charging_when_closed": true
          |    }

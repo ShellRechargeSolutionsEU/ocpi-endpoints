@@ -1,5 +1,5 @@
 package com.thenewmotion.ocpi
-package msgs.v2_0
+package msgs.v2_1
 
 import com.thenewmotion.time.Imports._
 import org.joda.time.DateTime

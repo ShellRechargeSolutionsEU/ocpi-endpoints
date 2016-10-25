@@ -1,5 +1,7 @@
 package com.thenewmotion.ocpi.handshake
 
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber
+
 sealed abstract class HandshakeError(val reason: String)
 
 object HandshakeError{
@@ -12,14 +14,14 @@ object HandshakeError{
   case object SendingCredentialsFailed extends HandshakeError(
     "Failed sending the credentials to connect to us.")
 
-  case class SelectedVersionNotHostedByUs(version: String) extends HandshakeError(
-    s"The selected version: $version, is not supported by our systems.")
+  case class SelectedVersionNotHostedByUs(version: VersionNumber) extends HandshakeError(
+    s"The selected version: ${version.name}, is not supported by our systems.")
 
   case object CouldNotFindMutualVersion extends HandshakeError(
     "Could not find mutual version.")
 
-  case class SelectedVersionNotHostedByThem(version: String) extends HandshakeError(
-    s"Selected version: $version, not supported by the requester party systems.")
+  case class SelectedVersionNotHostedByThem(version: VersionNumber) extends HandshakeError(
+    s"Selected version: ${version.name}, not supported by the requester party systems.")
 
   case class UnknownEndpointType(endpointType: String) extends HandshakeError(
     s"Unknown endpoint type: $endpointType")
@@ -42,8 +44,8 @@ object HandshakeError{
   case class CouldNotPersistNewParty(partyId: String) extends HandshakeError(
     s"Could not persist new party: $partyId.")
 
-  case class AlreadyExistingParty(partyId: String, country: String, version: String) extends HandshakeError(
-    s"Already existing partyId: '$partyId' for country: '$country' and version: '$version'.")
+  case class AlreadyExistingParty(partyId: String, country: String, version: VersionNumber) extends HandshakeError(
+    s"Already existing partyId: '$partyId' for country: '$country' and version: '${version.name}'.")
 
   case class UnknownPartyToken(token: String) extends HandshakeError(
     s"Unknown party token: '$token'.")

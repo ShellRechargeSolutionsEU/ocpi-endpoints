@@ -23,6 +23,11 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     "accept a new location object without authorizing the location ID" in new LocationsTestScope {
 
+      import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
+      import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+      import spray.json._
+
+      loc2String.parseJson.convertTo[Location]
       val body = HttpEntity(contentType = ContentType(`application/json`, HttpCharsets.`UTF-8`),
         string = loc2String)
 
@@ -149,6 +154,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val loc1String = s"""
                        |{
                        |    "id": "LOC1",
+                       |    "last_updated": "2014-06-25T00:00:00+02:00",
                        |    "type": "ON_STREET",
                        |    "name": "Keizersgracht 585",
                        |    "address": "Keizersgracht 585",
@@ -162,6 +168,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |    "related_locations": [],
                        |    "evses": [{
                        |        "uid": "3256",
+                       |        "last_updated": "2014-06-25T00:00:00+02:00",
                        |        "id": "ICEEVE000123_1",
                        |        "status": "AVAILABLE",
                        |        "status_schedule": [],
@@ -170,6 +177,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        ],
                        |        "connectors": [{
                        |            "id": "1",
+                       |            "last_updated": "2014-06-25T00:00:00+02:00",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "CABLE",
@@ -179,6 +187,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |            "tariff_id": "11"
                        |        }, {
                        |            "id": "2",
+                       |            "last_updated": "2014-06-25T00:00:00+02:00",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "SOCKET",
@@ -194,6 +203,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        "images": []
                        |    }, {
                        |        "uid": "3257",
+                       |        "last_updated": "2014-06-25T00:00:00+02:00",
                        |        "id": "ICEEVE000123_2",
                        |        "status": "RESERVED",
                        |        "status_schedule": [],
@@ -202,6 +212,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        ],
                        |        "connectors": [{
                        |            "id": "1",
+                       |            "last_updated": "2014-06-25T00:00:00+02:00",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "SOCKET",
@@ -218,6 +229,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |    }],
                        |    "directions": [],
                        |    "images": [],
+                       |    "facilities":[],
                        |    "operator": {
                        |        "name": "The New Motion"
                        |    }

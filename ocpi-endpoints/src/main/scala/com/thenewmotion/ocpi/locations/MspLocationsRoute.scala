@@ -2,8 +2,8 @@ package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.SuccessResp
-import com.thenewmotion.ocpi.msgs.v2_0.Locations._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessResp
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import org.joda.time.DateTime
 import spray.http.{HttpMethods, StatusCodes}
 import spray.routing.{MethodRejection, PathMatcher1, Rejection, Route}
@@ -19,8 +19,8 @@ class MspLocationsRoute(
 ) (implicit ec: ExecutionContext) extends JsonApi {
 
 
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 
   private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
     onSuccess(errOrX) {

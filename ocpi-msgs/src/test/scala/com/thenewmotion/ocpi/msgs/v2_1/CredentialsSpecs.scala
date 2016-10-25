@@ -1,7 +1,7 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_0.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{Image, ImageCategory, BusinessDetails}
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{Image, ImageCategory, BusinessDetails}
 import Credentials._
 import OcpiJsonProtocol._
 import org.specs2.mutable.SpecificationWithJUnit

@@ -1,14 +1,14 @@
 package com.thenewmotion.ocpi
-package msgs.v2_0
+package msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.{SuccessResponse, Url}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResponse, Url}
 import org.joda.time.DateTime
 
 object Versions {
 
 
   case class Version(
-    version: String,
+    version: VersionNumber,
     url:  Url
     )
 
@@ -26,7 +26,7 @@ object Versions {
   )
 
   case class VersionDetails(
-    version: String,
+    version: VersionNumber,
     endpoints: List[Endpoint]
     )
 
@@ -47,6 +47,13 @@ object Versions {
     data: List[Version]
     ) extends SuccessResponse
 
+  sealed trait VersionNumber extends Nameable
+  object VersionNumber extends Enumerable[VersionNumber] {
+    case object `2.0` extends VersionNumber {val name = "2.0"}
+    case object `2.1` extends VersionNumber {val name = "2.1"}
+    val values = Seq(`2.0`, `2.1`)
+  }
+
   sealed trait EndpointIdentifier extends Nameable
   object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
     case object Locations extends EndpointIdentifier {val name = "locations"}
@@ -56,6 +63,7 @@ object Versions {
     case object Tokens extends EndpointIdentifier {val name = "tokens"}
     case object Cdrs extends EndpointIdentifier {val name = "cdrs"}
     case object Sessions extends EndpointIdentifier {val name = "sessions"}
+    case object Commands extends EndpointIdentifier {val name = "commands"}
 
     val values = List(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions)
   }

@@ -4,9 +4,9 @@ import spray.http._, StatusCodes._
 import spray.httpx.marshalling._
 import spray.httpx.SprayJsonSupport._
 
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes, OcpiStatusCodes._
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes, OcpiStatusCodes._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import com.thenewmotion.ocpi.common.ResponseMarshalling
 import HandshakeError._
 

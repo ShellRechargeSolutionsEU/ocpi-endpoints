@@ -1,4 +1,4 @@
-package com.thenewmotion.ocpi.msgs.v2_0
+package com.thenewmotion.ocpi.msgs.v2_1
 
 abstract class StatusCode(val code: Int, val default_message: String) {
   def isSuccess: Boolean

@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.locations.LocationsError._
-import com.thenewmotion.ocpi.msgs.v2_0.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericClientFailure
 import org.joda.time.DateTime
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
@@ -12,7 +12,7 @@ import spray.routing.directives.RouteDirectives._
 
 object LocationsRejectionHandler extends BasicDirectives with MiscDirectives with SprayJsonSupport {
 
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   val DefaultErrorMsg = "An error occurred."
   val Default = RejectionHandler {

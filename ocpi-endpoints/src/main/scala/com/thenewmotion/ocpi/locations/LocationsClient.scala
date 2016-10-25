@@ -4,7 +4,7 @@ import akka.actor.ActorRefFactory
 import akka.util.Timeout
 import com.thenewmotion.ocpi.common.OcpiClient
 import com.thenewmotion.ocpi.locations.LocationsError._
-import com.thenewmotion.ocpi.msgs.v2_0.Locations.LocationsResp
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.LocationsResp
 import spray.client.pipelining._
 import spray.httpx.SprayJsonSupport._
 import spray.http._
@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 import scalaz.{-\/, \/, \/-}
 
 class LocationsClient(implicit refFactory: ActorRefFactory, timeout: Timeout = Timeout(20.seconds)) extends OcpiClient {
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   def getLocations(uri: Uri, auth: String)(implicit ec: ExecutionContext): Future[LocationsError \/ LocationsResp] = {
     val pipeline = request(auth) ~> unmarshal[LocationsResp]
