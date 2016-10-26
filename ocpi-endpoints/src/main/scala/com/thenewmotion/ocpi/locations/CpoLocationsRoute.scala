@@ -6,6 +6,7 @@ import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import spray.routing.Route
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 import scalaz._
 
 
@@ -25,16 +26,25 @@ class CpoLocationsRoute(
       case \/-(r) => f(r)
     }
 
+  lazy val DateMin = DateTime.parse("")
+  lazy val DateMax = DateTime.now
+  val dateLimiters = parameters(('date_from.as[String] ? "", 'date_to.as[String] ? ""))
+
   def route(apiUser: ApiUser) =
     handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
+
+  private def toDateTime(dt: String) = Try(DateTime.parse(dt)).toOption
 
   private [locations] def routeWithoutRh(apiUser: ApiUser) = {
     pathEndOrSingleSlash {
       get {
-        paged { (offset: Int, limit: Int) =>
-          leftToRejection(service.locations(Pager(offset, limit))) { pagLocations =>
-            respondWithPaginationHeaders( offset, pagLocations ) {
-              complete(LocationsResp(GenericSuccess.code, None, data = pagLocations.result))
+        dateLimiters { (dateFrom: String, dateTo: String) =>
+          paged { (offset: Int, limit: Int) =>
+            leftToRejection(service.locations(Pager(offset, limit),
+              toDateTime(dateFrom), toDateTime(dateTo))) { pagLocations =>
+              respondWithPaginationHeaders( offset, pagLocations ) {
+                complete(LocationsResp(GenericSuccess.code, None, data = pagLocations.result))
+              }
             }
           }
         }
