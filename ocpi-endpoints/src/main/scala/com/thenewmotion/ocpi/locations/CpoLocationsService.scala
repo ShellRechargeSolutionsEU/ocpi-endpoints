@@ -9,6 +9,12 @@ import scalaz._
 
 trait CpoLocationsService {
 
-  def locations(pager: Pager, date_from: Option[DateTime] = None, date_to: Option[DateTime] = None): Future[LocationsError \/ PaginatedResult[Location]]
+  def locations(pager: Pager, date_from: Option[DateTime] = None, date_to: Option[DateTime] = None):
+    Future[LocationsError \/ PaginatedResult[Location]]
 
+  def location(locId: String): Future[LocationsError \/ Location]
+
+  def evse(locId: String, evseUid: String): Future[LocationsError \/ Evse]
+
+  def connector(locId: String, evseUid: String, connectorId: String): Future[LocationsError \/ Connector]
 }

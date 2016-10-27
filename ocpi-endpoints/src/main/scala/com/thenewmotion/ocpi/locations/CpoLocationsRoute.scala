@@ -36,8 +36,9 @@ class CpoLocationsRoute(
   private def toDateTime(dt: String) = Try(DateTime.parse(dt)).toOption
 
   private [locations] def routeWithoutRh(apiUser: ApiUser) = {
-    pathEndOrSingleSlash {
-      get {
+
+    get {
+      pathEndOrSingleSlash {
         dateLimiters { (dateFrom: String, dateTo: String) =>
           paged { (offset: Int, limit: Int) =>
             leftToRejection(service.locations(Pager(offset, limit),
@@ -48,6 +49,25 @@ class CpoLocationsRoute(
             }
           }
         }
+      } ~
+      pathPrefix(Segment) { locId =>
+        pathEndOrSingleSlash {
+          leftToRejection(service.location(locId)) { location =>
+            complete(LocationResp(GenericSuccess.code, None, data = location))
+          }
+        } ~
+          pathPrefix(Segment) { evseId =>
+            pathEndOrSingleSlash {
+              leftToRejection(service.evse(locId, evseId)) { evse =>
+                complete(EvseResp(GenericSuccess.code, None, data = evse))
+              }
+            } ~
+              (path(Segment) & pathEndOrSingleSlash) { connId =>
+                leftToRejection(service.connector(locId, evseId, connId)) { connector =>
+                  complete(ConnectorResp(GenericSuccess.code, None, data = connector))
+                }
+              }
+          }
       }
     }
   }

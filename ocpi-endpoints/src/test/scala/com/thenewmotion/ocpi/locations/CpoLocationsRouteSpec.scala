@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.v2_0.Locations.Location
+import com.thenewmotion.ocpi.msgs.v2_0.Locations.{Connector, Evse, Location}
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -12,13 +12,13 @@ import spray.http.Uri
 import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
-
+import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "locations endpoint" should {
-    import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-    import spray.json._
+
 
     "return paginated list of locations with headers as per OCPI specs" in new LocationsTestScope {
 
@@ -67,6 +67,26 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       }
     }
 
+    "retrieve a single..." >> {
+
+      "location object" in new LocationsTestScope {
+        Get("/LOC1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
+          there was one(cpoLocService).location(===("LOC1"))
+        }
+      }
+
+      "EVSE object" in new LocationsTestScope {
+        Get("/LOC1/3256") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
+          there was one(cpoLocService).evse(===("LOC1"), ===("3256"))
+        }
+      }
+
+      "connector object" in new LocationsTestScope {
+        Get("/LOC1/3256/1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
+          there was one(cpoLocService).connector(===("LOC1"), ===("3256"), ===("1"))
+        }
+      }
+    }
   }
 
   trait LocationsTestScope extends Scope with JsonApi{
@@ -82,6 +102,82 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val locationsRoute = new CpoLocationsRoute(cpoLocService, dateTime1)
 
+    val evse1conn1String =
+      s"""
+         |{
+         |            "id": "1",
+         |            "status": "AVAILABLE",
+         |            "standard": "IEC_62196_T2",
+         |            "format": "CABLE",
+         |            "power_type": "AC_3_PHASE",
+         |            "voltage": 220,
+         |            "amperage": 16,
+         |            "tariff_id": "11"
+         | }
+       """.stripMargin
+
+    val evse1conn2String =
+      s"""
+         |{
+         |            "id": "2",
+         |            "status": "AVAILABLE",
+         |            "standard": "IEC_62196_T2",
+         |            "format": "SOCKET",
+         |            "power_type": "AC_3_PHASE",
+         |            "voltage": 220,
+         |            "amperage": 16,
+         |            "tariff_id": "11"
+         | }
+       """.stripMargin
+
+    val evse1String =
+      s"""
+         |{
+         |        "uid": "3256",
+         |        "evse_id": "ICEEVE000123_1",
+         |        "status": "AVAILABLE",
+         |        "status_schedule": [],
+         |        "capabilities": [
+         |            "RESERVABLE"
+         |        ],
+         |        "connectors": [$evse1conn1String, $evse1conn2String],
+         |        "physical_reference": "1",
+         |        "floor_level": "-1",
+         |        "directions": [],
+         |        "parking_restrictions": [],
+         |        "images": []
+         |
+         | }
+       """.stripMargin
+
+    val evse2String =
+      s"""
+         | {
+         |        "uid": "3257",
+         |        "evse_id": "ICEEVE000123_2",
+         |        "status": "RESERVED",
+         |        "status_schedule": [],
+         |        "capabilities": [
+         |            "RESERVABLE"
+         |        ],
+         |        "connectors": [{
+         |            "id": "1",
+         |            "status": "AVAILABLE",
+         |            "standard": "IEC_62196_T2",
+         |            "format": "SOCKET",
+         |            "power_type": "AC_3_PHASE",
+         |            "voltage": 220,
+         |            "amperage": 16,
+         |            "tariff_id": "12"
+         |        }],
+         |        "physical_reference": "2",
+         |        "floor_level": "-2",
+         |        "directions": [],
+         |        "parking_restrictions": [],
+         |        "images": []
+         | }
+       """.stripMargin
+
     val loc1String = s"""
                        |{
                        |    "id": "LOC1",
@@ -96,62 +192,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        "longitude": "4.891733"
                        |    },
                        |    "related_locations": [],
-                       |    "evses": [{
-                       |        "uid": "3256",
-                       |        "id": "ICEEVE000123_1",
-                       |        "status": "AVAILABLE",
-                       |        "status_schedule": [],
-                       |        "capabilities": [
-                       |            "RESERVABLE"
-                       |        ],
-                       |        "connectors": [{
-                       |            "id": "1",
-                       |            "status": "AVAILABLE",
-                       |            "standard": "IEC_62196_T2",
-                       |            "format": "CABLE",
-                       |            "power_type": "AC_3_PHASE",
-                       |            "voltage": 220,
-                       |            "amperage": 16,
-                       |            "tariff_id": "11"
-                       |        }, {
-                       |            "id": "2",
-                       |            "status": "AVAILABLE",
-                       |            "standard": "IEC_62196_T2",
-                       |            "format": "SOCKET",
-                       |            "power_type": "AC_3_PHASE",
-                       |            "voltage": 220,
-                       |            "amperage": 16,
-                       |            "tariff_id": "11"
-                       |        }],
-                       |        "physical_reference": "1",
-                       |        "floor_level": "-1",
-                       |        "directions": [],
-                       |        "parking_restrictions": [],
-                       |        "images": []
-                       |    }, {
-                       |        "uid": "3257",
-                       |        "id": "ICEEVE000123_2",
-                       |        "status": "RESERVED",
-                       |        "status_schedule": [],
-                       |        "capabilities": [
-                       |            "RESERVABLE"
-                       |        ],
-                       |        "connectors": [{
-                       |            "id": "1",
-                       |            "status": "AVAILABLE",
-                       |            "standard": "IEC_62196_T2",
-                       |            "format": "SOCKET",
-                       |            "power_type": "AC_3_PHASE",
-                       |            "voltage": 220,
-                       |            "amperage": 16,
-                       |            "tariff_id": "12"
-                       |        }],
-                       |        "physical_reference": "2",
-                       |        "floor_level": "-2",
-                       |        "directions": [],
-                       |        "parking_restrictions": [],
-                       |        "images": []
-                       |    }],
+                       |    "evses": [$evse1String, $evse2String],
                        |    "directions": [],
                        |    "images": [],
                        |    "operator": {
@@ -162,5 +203,13 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val loc2String = loc1String.replace("LOC1","LOC2")
 
+    cpoLocService.location("LOC1") returns
+      Future(\/-(loc1String.parseJson.convertTo[Location]))
+
+    cpoLocService.evse("LOC1", "3256") returns
+      Future(\/-(evse1String.parseJson.convertTo[Evse]))
+
+    cpoLocService.connector("LOC1", "3256", "1") returns
+      Future(\/-(evse1conn1String.parseJson.convertTo[Connector]))
   }
 }
