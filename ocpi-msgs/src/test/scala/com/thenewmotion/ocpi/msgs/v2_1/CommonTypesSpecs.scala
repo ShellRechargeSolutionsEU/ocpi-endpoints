@@ -68,7 +68,7 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
     val genericErrorResp1 =
       ErrorResp(
         GenericClientFailure.code,
-        GenericClientFailure.default_message,
+        GenericClientFailure.defaultMessage,
         date1)
   }
 }

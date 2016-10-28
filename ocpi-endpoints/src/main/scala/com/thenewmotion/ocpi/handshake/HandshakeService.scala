@@ -41,7 +41,7 @@ abstract class HandshakeService(
     credsToConnectToThem: Creds
   )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
-    logger.info(s"Handshake initiated by party: ${credsToConnectToThem.party_id}, " +
+    logger.info(s"Handshake initiated by party: ${credsToConnectToThem.partyId}, " +
       s"using token: $existingTokenToConnectToUs, " +
       s"chosen version: ${version.name}. " +
       s"Credentials for us: $credsToConnectToThem")
@@ -53,7 +53,7 @@ abstract class HandshakeService(
       case e @ -\/(error) =>
         logger.error(s"error getting versions information: $error"); e
       case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.party_id}'")
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.partyId}'")
         val newTokenToConnectToUs = ApiTokenGenerator.generateToken
 
         val persistResult = persistHandshakeReactResult(
@@ -78,7 +78,7 @@ abstract class HandshakeService(
     credsToConnectToThem: Creds
   )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
 
-    logger.info(s"Update credentials request sent by ${credsToConnectToThem.party_id} " +
+    logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
       s"using token: $existingTokenToConnectToUs, for version: ${version.name}. " +
       s"New credentials for us: $credsToConnectToThem")
 
@@ -89,7 +89,7 @@ abstract class HandshakeService(
       case e @ -\/(error) =>
         logger.error(s"error getting versions information: $error"); e
       case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.party_id}'")
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.partyId}'")
         val newTokenToConnectToUs = ApiTokenGenerator.generateToken
 
         val persistResult = persistUpdateCredsResult(

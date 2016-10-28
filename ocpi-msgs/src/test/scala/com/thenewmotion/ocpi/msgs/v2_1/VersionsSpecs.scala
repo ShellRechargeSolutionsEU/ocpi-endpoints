@@ -47,7 +47,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
       `2.1`, "https://example.com/ocpi/cpo/2.1/"
     )
 
-    val versionResp = VersionsResp(GenericSuccess.code, Some(GenericSuccess.default_message),
+    val versionResp = VersionsResp(GenericSuccess.code, Some(GenericSuccess.defaultMessage),
       date1, List(version20, version21))
 
     val credentialsEndpoint = Endpoint(
@@ -64,7 +64,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
     )
 
     val version21DetailsResp = VersionDetailsResp(
-      GenericSuccess.code, Some(GenericSuccess.default_message),
+      GenericSuccess.code, Some(GenericSuccess.defaultMessage),
       date1, version21Details
     )
 

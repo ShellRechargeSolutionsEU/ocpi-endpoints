@@ -45,8 +45,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     }
     "when requesting the initiation of the handshake" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new HandshakeTestScope {
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, tokenToConnectToUs, theirVersionsUrl)
+        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, tokenToConnectToUs, theirVersionsUrl)
 
         result must beLike[\/[HandshakeError, Creds]] {
           case \/-(Creds(_, v, bd, id, c)) =>
@@ -60,22 +60,22 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
           Future.successful(\/-(VersionsResp(1000, None, dateTime1, List(Version(`2.0`, theirVersionDetailsUrl)))))
 
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, tokenToConnectToUs, theirVersionsUrl)
+        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, tokenToConnectToUs, theirVersionsUrl)
 
         result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
       }
       "return an error when failing in the storage of the other party endpoints" >> new HandshakeTestScope {
-        handshakeServicePersistError.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url) must
+        handshakeServicePersistError.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url) must
           be_-\/(CouldNotPersistNewToken(tokenToConnectToUs): HandshakeError).await
       }
       "return an error when it fails sending the credentials" >> new HandshakeTestScope{
         _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, tokenToConnectToUs, theirVersionsUrl)
+        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, tokenToConnectToUs, theirVersionsUrl)
 
         result must be_-\/(SendingCredentialsFailed: HandshakeError).await
       }
@@ -95,8 +95,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
           Future.successful(-\/(VersionsRetrievalFailed))
         val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url)
         val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
         reactResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
@@ -108,8 +108,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
           Future.successful(\/-(VersionsResp(1000, None, dateTime1,
             List())))
         val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url)
         val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
         reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
@@ -121,8 +121,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
           -\/(VersionDetailsRetrievalFailed))
 
         val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url)
         val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
 
         reactResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
@@ -135,8 +135,8 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
 
         handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem) must
           throwA[IllegalArgumentException].await
-        handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-          credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url)
+        handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+          credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url)
           throwA[IllegalArgumentException].await
         handshakeService.reactToUpdateCredsRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
           throwA[IllegalArgumentException].await
@@ -158,7 +158,7 @@ class HandshakeServiceSpec extends Specification  with Mockito with FutureMatche
     val ourCountryCodeVal = "NL"
     val ourCredentials = Creds(tokenToConnectToUs, ourVersionsUrlStr.toString(),
       BusinessDetails(ourCpoName, None, None), ourPartyIdVal, ourCountryCodeVal)
-    val ourCredsResp = CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), dateTime1, ourCredentials)
+    val ourCredsResp = CredsResp(GenericSuccess.code,Some(GenericSuccess.defaultMessage), dateTime1, ourCredentials)
 
     val selectedVersion = `2.1`
     val tokenToConnectToThem = "456"

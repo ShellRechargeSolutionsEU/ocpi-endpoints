@@ -35,7 +35,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message), currentTime, _)))
+            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.defaultMessage), currentTime, _)))
         }
       }
     } ~
@@ -51,7 +51,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.default_message), currentTime, _)))
+            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.defaultMessage), currentTime, _)))
         }
       }
     }
@@ -69,8 +69,8 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
         complete {
           import theirVersionsUrlInfo._
           service
-            .initiateHandshakeProcess(party_name, country_code, party_id, token, url)
-            .map(_.map(CredsResp(GenericSuccess.code,Some(GenericSuccess.default_message), currentTime, _)))
+            .initiateHandshakeProcess(partyName, countryCode, partyId, token, url)
+            .map(_.map(CredsResp(GenericSuccess.code,Some(GenericSuccess.defaultMessage), currentTime, _)))
         }
       }
     }

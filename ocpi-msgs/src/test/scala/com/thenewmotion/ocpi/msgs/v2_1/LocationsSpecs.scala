@@ -77,54 +77,54 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
      val connector1 = Connector(
         "1",
-        last_updated = dateOfUpdate,
+        lastUpdated = dateOfUpdate,
         ConnectorType.`IEC_62196_T2`,
         ConnectorFormat.Cable,
         PowerType.AC3Phase,
         230,
         16,
-        tariff_id = Some("kwrate")
+        tariffId = Some("kwrate")
      )
 
     val connector2 = Connector(
       "2",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       ConnectorType.`IEC_62196_T2`,
       ConnectorFormat.Socket,
       PowerType.AC3Phase,
       230,
       16,
-      tariff_id = Some("timerate")
+      tariffId = Some("timerate")
     )
 
     val evse1 = Evse(
       "BE-BEC-E041503001",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1, connector2),
-      floor_level = Some("-1"),
-      physical_reference = Some("1")
+      floorLevel = Some("-1"),
+      physicalReference = Some("1")
     )
 
     val evse2 = Evse(
       "BE-BEC-E041503002",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1),
-      floor_level = Some("-1"),
-      physical_reference = Some("1")
+      floorLevel = Some("-1"),
+      physicalReference = Some("1")
     )
 
     val evse3 = Evse(
       "BE-BEC-E041503003",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
       connectors = List(connector1),
-      floor_level = Some("-1"),
-      physical_reference = Some("2")
+      floorLevel = Some("-1"),
+      physicalReference = Some("2")
     )
 
     val excp_open_begin = formatter.parseDateTime("2014-06-21T09:00:00+02:00")
@@ -133,7 +133,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     val excp_close_end = formatter.parseDateTime("2014-06-25T00:00:00+02:00")
 
     val hours1 = Hours(
-      regular_hours = List(
+      regularHours = List(
         RegularHours(1, "08:00", "20:00"),
         RegularHours(2, "08:00", "20:00"),
         RegularHours(3, "08:00", "20:00"),
@@ -141,50 +141,50 @@ class LocationsSpecs extends SpecificationWithJUnit {
         RegularHours(5, "08:00", "20:00")
       ),
       twentyfourseven = false,
-      exceptional_openings = List(
+      exceptionalOpenings = List(
         ExceptionalPeriod(excp_open_begin, excp_open_end)),
-      exceptional_closings = List(
+      exceptionalClosings = List(
         ExceptionalPeriod(excp_close_begin, excp_close_end)
       )
     )
     val dir1 = DisplayText("en", "left, left, left, right, left")
     val location1 = Location(
       "LOC1",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 3A",
       city = "Gent",
-      postal_code = "9000",
+      postalCode = "9000",
       country = "BEL",
       coordinates = GeoLocation("3.729945", "51.047594"),
       evses = List(evse1),
       directions = List(dir1),
       operator = None,
       suboperator = None,
-      opening_times = Some(hours1),
-      related_locations = List.empty,
-      charging_when_closed = Some(true),
+      openingTimes = Some(hours1),
+      relatedLocations = List.empty,
+      chargingWhenClosed = Some(true),
       images = List.empty
     )
 
     val location2 = Location(
       "LOC2",
-      last_updated = dateOfUpdate,
+      lastUpdated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
       address = "F.Rooseveltlaan 30",
       city = "Gent",
-      postal_code = "9000",
+      postalCode = "9000",
       country = "BEL",
       coordinates = GeoLocation("3.729955", "51.047604"),
       evses = List(evse2,evse3),
       directions = List(dir1),
       operator = None,
       suboperator = None,
-      opening_times = None,
-      related_locations = List.empty,
-      charging_when_closed = Some(true),
+      openingTimes = None,
+      relatedLocations = List.empty,
+      chargingWhenClosed = Some(true),
       images = List.empty
     )
 

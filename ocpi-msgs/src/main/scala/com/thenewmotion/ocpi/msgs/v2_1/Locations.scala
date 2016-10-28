@@ -9,26 +9,26 @@ object Locations {
 
   case class Location(
     id: String,
-    last_updated: DateTime,
+    lastUpdated: DateTime,
     `type`:	LocationType,
     name:	Option[String],
     address: String,
     city:	String,
-    postal_code: String,
+    postalCode: String,
     country:	String,
     coordinates:	GeoLocation,
-    related_locations: List[AdditionalGeoLocation] = Nil,
+    relatedLocations: List[AdditionalGeoLocation] = Nil,
     evses: List[Evse] = Nil,
     directions:	List[DisplayText] = Nil,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     owner: Option[BusinessDetails] = None,
     facilities: List[Facility] = Nil,
-    time_zone: Option[String] = None,
-    opening_times: Option[Hours] = None,
-    charging_when_closed: Option[Boolean] = Some(true),
+    timeZone: Option[String] = None,
+    openingTimes: Option[Hours] = None,
+    chargingWhenClosed: Option[Boolean] = Some(true),
     images: List[Image] = Nil,
-    energy_mix: Option[EnergyMix] = None) {
+    energyMix: Option[EnergyMix] = None) {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
@@ -38,21 +38,21 @@ object Locations {
     name: Option[String] = None,
     address: Option[String] = None,
     city: Option[String] = None,
-    postal_code: Option[String] = None,
+    postalCode: Option[String] = None,
     country: Option[String] = None,
     coordinates: Option[GeoLocation] = None,
-    related_locations: Option[List[AdditionalGeoLocation]] = None,
+    relatedLocations: Option[List[AdditionalGeoLocation]] = None,
     evses: Option[List[Evse]] = None,
     directions: Option[DisplayText] = None,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     owner: Option[BusinessDetails] = None,
     facilities: Option[List[Facility]] = None,
-    time_zone: Option[String] = None,
-    opening_times: Option[Hours] = None,
-    charging_when_closed: Option[Boolean] = None,
+    timeZone: Option[String] = None,
+    openingTimes: Option[Hours] = None,
+    chargingWhenClosed: Option[Boolean] = None,
     images: Option[List[Image]] = None,
-    energy_mix: Option[EnergyMix] = None) {
+    energyMix: Option[EnergyMix] = None) {
     require(country.fold(true)(_.length == 3), "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
@@ -121,32 +121,32 @@ object Locations {
   )
 
   case class EnergyMix(
-    is_green_energy: Boolean,
-    energy_sources: List[EnergySource] = Nil,
-    environ_impact: List[EnvironmentalImpact] = Nil,
-    supplier_name: Option[String] = None,
-    energy_product_name: Option[String] = None
+    isGreenEnergy: Boolean,
+    energySources: List[EnergySource] = Nil,
+    environImpact: List[EnvironmentalImpact] = Nil,
+    supplierName: Option[String] = None,
+    energyProductName: Option[String] = None
   )
 
   case class RegularHours(
     weekday: Int,
-    period_begin: String,
-    period_end: String
+    periodBegin: String,
+    periodEnd: String
   )
 
   case class ExceptionalPeriod(
-    period_begin: DateTime,
-    period_end: DateTime
+    periodBegin: DateTime,
+    periodEnd: DateTime
   )
 
   case class Hours(
     twentyfourseven: Boolean,
-    regular_hours: List[RegularHours] = Nil,
-    exceptional_openings: List[ExceptionalPeriod] = Nil,
-    exceptional_closings: List[ExceptionalPeriod] = Nil
+    regularHours: List[RegularHours] = Nil,
+    exceptionalOpenings: List[ExceptionalPeriod] = Nil,
+    exceptionalClosings: List[ExceptionalPeriod] = Nil
   ) {
-    require(regular_hours.nonEmpty && !twentyfourseven
-      || regular_hours.isEmpty && twentyfourseven,
+    require(regularHours.nonEmpty && !twentyfourseven
+      || regularHours.isEmpty && twentyfourseven,
       "Opening hours need to be either 24/7 or have non-empty regular_hours")
   }
 
@@ -184,28 +184,26 @@ object Locations {
 
   case class Connector(
     id: String,
-    last_updated: DateTime,
+    lastUpdated: DateTime,
     standard: ConnectorType,
     format: ConnectorFormat,
-    power_type:	PowerType,
+    powerType:	PowerType,
     voltage: Int,
     amperage: Int,
-    tariff_id: Option[String],
-    terms_and_conditions: Option[Url] = None
+    tariffId: Option[String],
+    termsAndConditions: Option[Url] = None
   )
 
   case class ConnectorPatch(
     id: String,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
-    power_type:	Option[PowerType] = None,
+    powerType:	Option[PowerType] = None,
     voltage: Option[Int] = None,
     amperage: Option[Int] = None,
-    tariff_id: Option[String] = None,
-    terms_and_conditions: Option[Url] = None
+    tariffId: Option[String] = None,
+    termsAndConditions: Option[Url] = None
     )
-
-
 
   sealed trait Capability extends Nameable
   object Capability extends Enumerable[Capability]{
@@ -220,17 +218,17 @@ object Locations {
 
   case class Evse(
     uid: String,
-    last_updated: DateTime,
+    lastUpdated: DateTime,
     status: ConnectorStatus,
     connectors: List[Connector],
-    status_schedule: List[StatusSchedule] = Nil,
+    statusSchedule: List[StatusSchedule] = Nil,
     capabilities: List[Capability] = Nil,
-    evse_id: Option[String] = None,
-    floor_level:	Option[String] = None,
+    evseId: Option[String] = None,
+    floorLevel:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
-    physical_reference:	Option[String] = None,
+    physicalReference:	Option[String] = None,
     directions: List[DisplayText] = Nil,
-    parking_restrictions:	List[ParkingRestriction] = Nil,
+    parkingRestrictions:	List[ParkingRestriction] = Nil,
     images: List[Image] = Nil
     ){
     require(connectors.nonEmpty, "List of connector can't be empty!")
@@ -242,12 +240,12 @@ object Locations {
     connectors: Option[List[Connector]] = None,
     status_schedule: Option[List[StatusSchedule]] = None,
     capabilities: Option[List[Capability]] = None,
-    evse_id: Option[String] = None,
-    floor_level: Option[String] = None,
+    evseId: Option[String] = None,
+    floorLevel: Option[String] = None,
     coordinates: Option[GeoLocation] = None,
-    physical_reference: Option[String] = None,
+    physicalReference: Option[String] = None,
     directions: Option[List[DisplayText]] = None,
-    parking_restrictions: Option[List[ParkingRestriction]] = None,
+    parkingRestrictions: Option[List[ParkingRestriction]] = None,
     images: Option[List[Image]] = None
   )
 
@@ -360,29 +358,29 @@ object Locations {
   }
 
   case class LocationsResp(
-    status_code: Int,
-    status_message: Option[String] = None,
+    statusCode: Int,
+    statusMessage: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: List[Location]
     ) extends SuccessResponse
 
   case class LocationResp(
-    status_code: Int,
-    status_message: Option[String] = None,
+    statusCode: Int,
+    statusMessage: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Location
   ) extends OcpiResponse[Option[String]]
 
   case class EvseResp(
-    status_code: Int,
-    status_message: Option[String] = None,
+    statusCode: Int,
+    statusMessage: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Evse
   ) extends OcpiResponse[Option[String]]
 
   case class ConnectorResp(
-    status_code: Int,
-    status_message: Option[String] = None,
+    statusCode: Int,
+    statusMessage: Option[String] = None,
     timestamp: DateTime = DateTime.now(),
     data: Connector
   ) extends OcpiResponse[Option[String]]

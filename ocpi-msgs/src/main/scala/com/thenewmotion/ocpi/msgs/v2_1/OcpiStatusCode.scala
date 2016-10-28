@@ -1,29 +1,29 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-abstract class StatusCode(val code: Int, val default_message: String) {
+abstract class StatusCode(val code: Int, val defaultMessage: String) {
   def isSuccess: Boolean
 }
 
-abstract class SuccessCode(code: Int, default_message: String)
-  extends StatusCode(code, default_message)
+abstract class SuccessCode(code: Int, defaultMessage: String)
+  extends StatusCode(code, defaultMessage)
 {
   require(code >= 1000 && code <= 1999, "Code not in success range.")
   def isSuccess = true
 }
 
-abstract class ErrorCode(code: Int, default_message: String)
-  extends StatusCode(code, default_message)
+abstract class ErrorCode(code: Int, defaultMessage: String)
+  extends StatusCode(code, defaultMessage)
 {
   require(code >= 2000 && code <= 3999, "Code not in error range.")
   def isSuccess = false
 }
 
-abstract class ClientErrorCode(code: Int, default_message: String)
-  extends ErrorCode(code, default_message)
+abstract class ClientErrorCode(code: Int, defaultMessage: String)
+  extends ErrorCode(code, defaultMessage)
 {require(code >= 2000 && code <= 2999, "Code not in client error range.")}
 
-abstract class ServerErrorCode(code: Int, default_message: String)
-  extends ErrorCode(code, default_message)
+abstract class ServerErrorCode(code: Int, defaultMessage: String)
+  extends ErrorCode(code, defaultMessage)
 {require(code >= 3000 && code <= 3999, "Code not in server error range.")}
 
 object OcpiStatusCodes {

@@ -8,22 +8,22 @@ object Credentials {
 
 
   case class Creds(
-    token: String,
-    url:  Url,
-    business_details: BusinessDetails,
-    party_id: String,
-    country_code: String
+    token          : String,
+    url            :  Url,
+    businessDetails: BusinessDetails,
+    partyId       : String,
+    countryCode   : String
     ){
-    require(party_id.length == 3)
-    require(country_code.length == 2)
+    require(partyId.length == 3)
+    require(countryCode.length == 2)
     require(token.length <= 64)
   }
 
   case class CredsResp(
-    status_code: Int,
-    status_message: Option[String],
-    timestamp: DateTime = DateTime.now(),
-    data: Creds
+    statusCode    : Int,
+    statusMessage: Option[String],
+    timestamp     : DateTime = DateTime.now(),
+    data          : Creds
     ) extends SuccessResponse
 
 }

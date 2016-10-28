@@ -32,7 +32,7 @@ trait TopLevelRoute extends JsonApi {
     case v if v.nonEmpty =>
       complete(VersionsResp(
         GenericSuccess.code,
-        Some(GenericSuccess.default_message),
+        Some(GenericSuccess.defaultMessage),
         currentTime,
         v.keys.flatMap(x => VersionNumber.withName(x).map(Version(_, appendPath(uri, x).toString()))).toList)
       )
@@ -44,7 +44,7 @@ trait TopLevelRoute extends JsonApi {
       complete(
         VersionDetailsResp(
           GenericSuccess.code,
-          Some(GenericSuccess.default_message),
+          Some(GenericSuccess.defaultMessage),
           currentTime,
           VersionDetails(
             version, versionInfo.endPoints.map {

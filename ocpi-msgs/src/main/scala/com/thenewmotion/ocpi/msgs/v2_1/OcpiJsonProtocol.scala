@@ -10,8 +10,22 @@ import com.thenewmotion.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
 import spray.json._
 
-
 object OcpiJsonProtocol extends DefaultJsonProtocol {
+
+  import reflect._
+
+  private val PASS1 = """([A-Z]+)([A-Z][a-z])""".r
+  private val PASS2 = """([a-z\d])([A-Z])""".r
+  private val REPLACEMENT = "$1_$2"
+
+  // Convert camelCase to snake_case
+  override protected def extractFieldNames(classTag: ClassTag[_]) = {
+    import java.util.Locale
+
+    def snakify(name: String) = PASS2.replaceAllIn(PASS1.replaceAllIn(name, REPLACEMENT), REPLACEMENT).toLowerCase(Locale.US)
+
+    super.extractFieldNames(classTag).map { snakify }
+  }
 
   implicit val dateTimeOptionalMillisFormat = new JsonFormat[DateTime] {
     val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
@@ -105,24 +119,6 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val hoursFormat = jsonFormat4(Hours)
   implicit val imageFormat = jsonFormat6(Image)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
-
-  private def jsNumToStr(jsVal: JsValue) = jsVal match {
-    case JsNumber(x) => x.toString
-    case JsString(x) => x
-    case x => deserializationError(s"Expected JsNumber or JsString; got $x")
-  }
-
-  private def jsNumToOptStr(jsVal: JsValue) = jsVal match {
-    case JsNumber(x) => Some(x.toString)
-    case JsString(x) => Some(x)
-    case _      => None
-  }
-
-  private def jsNullToEmptyArray(jsVal: JsValue) = jsVal match {
-    case JsNull => JsArray()
-    case x: JsArray => x
-    case x => deserializationError(s"Expected JsNull or JsArray; got $x")
-  }
 
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)

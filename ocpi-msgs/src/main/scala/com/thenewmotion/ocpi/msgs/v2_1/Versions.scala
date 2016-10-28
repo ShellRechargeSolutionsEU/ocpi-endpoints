@@ -18,9 +18,9 @@ object Versions {
     )
 
   case class VersionsRequest(
-    party_name: String,
-    country_code: String,
-    party_id: String,
+    partyName: String,
+    countryCode: String,
+    partyId: String,
     token: String,
     url: Url
   )
@@ -31,8 +31,8 @@ object Versions {
     )
 
   case class VersionDetailsResp(
-    status_code: Int,
-    status_message: Option[String],
+    statusCode: Int,
+    statusMessage: Option[String],
     timestamp: DateTime = DateTime.now(),
     data: VersionDetails
     ) extends SuccessResponse {
@@ -41,8 +41,8 @@ object Versions {
 
 
   case class VersionsResp(
-    status_code: Int,
-    status_message: Option[String],
+    statusCode: Int,
+    statusMessage: Option[String],
     timestamp: DateTime = DateTime.now(),
     data: List[Version]
     ) extends SuccessResponse

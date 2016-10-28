@@ -40,26 +40,26 @@ object CommonTypes {
     )
 
   private[ocpi] trait OcpiResponse[StatusMessage] {
-    def status_code: Int
-    def status_message: StatusMessage
+    def statusCode: Int
+    def statusMessage: StatusMessage
     def timestamp: DateTime
   }
 
   case class ErrorResp(
-    status_code: Int,
-    status_message: String,
-    timestamp: DateTime = DateTime.now()
+    statusCode    : Int,
+    statusMessage: String,
+    timestamp     : DateTime = DateTime.now()
     ) extends OcpiResponse[String] {
-    require(status_code >= 2000 && status_code <= 3999)
+    require(statusCode >= 2000 && statusCode <= 3999)
   }
 
   private[ocpi] trait SuccessResponse extends OcpiResponse[Option[String]] {
-    require(status_code >= 1000 && status_code <= 1999)
+    require(statusCode >= 1000 && statusCode <= 1999)
   }
 
   case class SuccessResp(
-    status_code: Int,
-    status_message: Option[String] = None,
-    timestamp: DateTime = DateTime.now()
+    statusCode    : Int,
+    statusMessage: Option[String] = None,
+    timestamp     : DateTime = DateTime.now()
   ) extends SuccessResponse
 }

@@ -21,23 +21,23 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
-      val theirLog = credsToConnectToThem.business_details.logo.get
+      val theirLog = credsToConnectToThem.businessDetails.logo.get
       val theirCredsData =
         s"""
            |{
            |    "token": "${credsToConnectToThem.token}",
            |    "url": "${credsToConnectToThem.url}",
            |    "business_details": {
-           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "name": "${credsToConnectToThem.businessDetails.name}",
            |        "logo": {
            |          "url": "${theirLog.url}",
            |          "category": "${theirLog.category.name}",
            |          "type": "${theirLog.`type`}"
            |        },
-           |        "website": "${credsToConnectToThem.business_details.website.get}"
+           |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.party_id}",
-           |    "country_code": "${credsToConnectToThem.country_code}"
+           |    "party_id": "${credsToConnectToThem.partyId}",
+           |    "country_code": "${credsToConnectToThem.countryCode}"
            |}
            |""".stripMargin
 
@@ -73,23 +73,23 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
         Future.successful(\/-(newCredsToConnectToUs))
 
-      val theirLog = credsToConnectToThem.business_details.logo.get
+      val theirLog = credsToConnectToThem.businessDetails.logo.get
       val theirNewCredsData =
         s"""
            |{
            |    "token": "${credsToConnectToThem.token}",
            |    "url": "${credsToConnectToThem.url}",
            |    "business_details": {
-           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "name": "${credsToConnectToThem.businessDetails.name}",
            |        "logo": {
            |          "url": "${theirLog.url}",
            |          "category": "${theirLog.category.name}",
            |          "type": "${theirLog.`type`}"
            |        },
-           |        "website": "${credsToConnectToThem.business_details.website.get}"
+           |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.party_id}",
-           |    "country_code": "${credsToConnectToThem.country_code}"
+           |    "party_id": "${credsToConnectToThem.partyId}",
+           |    "country_code": "${credsToConnectToThem.countryCode}"
            |}
            |""".stripMargin
 
@@ -106,23 +106,23 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
         Future.successful(-\/(WaitingForRegistrationRequest))
 
 
-      val theirLog = credsToConnectToThem.business_details.logo.get
+      val theirLog = credsToConnectToThem.businessDetails.logo.get
       val theirNewCredsData =
         s"""
            |{
            |    "token": "${credsToConnectToThem.token}",
            |    "url": "${credsToConnectToThem.url}",
            |    "business_details": {
-           |        "name": "${credsToConnectToThem.business_details.name}",
+           |        "name": "${credsToConnectToThem.businessDetails.name}",
            |        "logo": {
            |          "url": "${theirLog.url}",
            |          "category": "${theirLog.category.name}",
            |          "type": "${theirLog.`type`}"
            |        },
-           |        "website": "${credsToConnectToThem.business_details.website.get}"
+           |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.party_id}",
-           |    "country_code": "${credsToConnectToThem.country_code}"
+           |    "party_id": "${credsToConnectToThem.partyId}",
+           |    "country_code": "${credsToConnectToThem.countryCode}"
            |}
            |""".stripMargin
 
@@ -141,9 +141,9 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
       val theirVersData =
         s"""
            |{
-           |"party_name": "${credsToConnectToThem.business_details.name}",
-           |"country_code": "${credsToConnectToThem.country_code}",
-           |"party_id": "${credsToConnectToThem.party_id}",
+           |"party_name": "${credsToConnectToThem.businessDetails.name}",
+           |"country_code": "${credsToConnectToThem.countryCode}",
+           |"party_id": "${credsToConnectToThem.partyId}",
            |"token": "${credsToConnectToThem.token}",
            |"url": "${credsToConnectToThem.url}"
            |}
@@ -162,16 +162,16 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     "reject indicating the reason if the initiation of the handshake failed" in new CredentialsTestScope {
       val error: HandshakeError = VersionDetailsRetrievalFailed
 
-      handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-        credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url) returns
+      handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+        credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url) returns
         Future.successful(-\/(error))
 
       val theirVersData =
         s"""
            |{
-           |"party_name": "${credsToConnectToThem.business_details.name}",
-           |"country_code": "${credsToConnectToThem.country_code}",
-           |"party_id": "${credsToConnectToThem.party_id}",
+           |"party_name": "${credsToConnectToThem.businessDetails.name}",
+           |"country_code": "${credsToConnectToThem.countryCode}",
+           |"party_id": "${credsToConnectToThem.partyId}",
            |"token": "${credsToConnectToThem.token}",
            |"url": "${credsToConnectToThem.url}"
            |}
@@ -194,12 +194,12 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     val credsToConnectToThem = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
       url = "https://them.com/ocpi/cpo/versions",
-      business_details = OcpiBusinessDetails(
+      businessDetails = OcpiBusinessDetails(
         "Example Operator",
         Some(Image("http://them.com/images/logo.png", ImageCategory.Operator, "png")),
         Some("http://them.com")),
-      party_id = "EOP",
-      country_code = "NL")
+      partyId = "EOP",
+      countryCode = "NL")
 
     // our details
     val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
@@ -208,9 +208,9 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     val credsToConnectToUs = Creds(
       token = tokenToConnectToUs,
       url = ourVersionsUrl,
-      business_details = OcpiBusinessDetails("Us", None, Some("http://us.com")),
-      party_id = "TNM",
-      country_code = "NL")
+      businessDetails = OcpiBusinessDetails("Us", None, Some("http://us.com")),
+      partyId = "TNM",
+      countryCode = "NL")
     val newCredsToConnectToUs = credsToConnectToUs.copy()
 
     // mock
@@ -219,8 +219,8 @@ class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito
     //default mocks
     handshakeService.reactToHandshakeRequest(any, any, any)(any) returns
       Future.successful(\/-(credsToConnectToUs))
-    handshakeService.initiateHandshakeProcess(credsToConnectToThem.business_details.name, credsToConnectToThem.country_code,
-      credsToConnectToThem.party_id, credsToConnectToThem.token, credsToConnectToThem.url) returns
+    handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
+      credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url) returns
       Future.successful(\/-(credsToConnectToThem))
     handshakeService.credsToConnectToUs(any) returns
       -\/(UnknownPartyToken(tokenToConnectToUs))

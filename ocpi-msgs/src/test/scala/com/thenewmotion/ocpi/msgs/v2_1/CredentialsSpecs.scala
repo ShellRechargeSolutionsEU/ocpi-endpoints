@@ -30,9 +30,9 @@ class CredentialsSpecs extends SpecificationWithJUnit {
     val credentials1 = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
       url = "https://example.com/ocpi/cpo/",
-      business_details = businessDetails1,
-      party_id = "EXA",
-      country_code = "NL"
+      businessDetails = businessDetails1,
+      partyId = "EXA",
+      countryCode = "NL"
     )
 
 
@@ -43,16 +43,16 @@ class CredentialsSpecs extends SpecificationWithJUnit {
          |    "token": "${credentials1.token}",
          |    "url": "${credentials1.url}",
          |    "business_details": {
-         |        "name": "${credentials1.business_details.name}",
+         |        "name": "${credentials1.businessDetails.name}",
          |        "logo": {
          |          "url": "${logo1.url}",
          |          "category": "${logo1.category.name}",
          |          "type": "${logo1.`type`}"
          |        },
-         |        "website": "${credentials1.business_details.website.get}"
+         |        "website": "${credentials1.businessDetails.website.get}"
          |    },
-         |    "party_id": "${credentials1.party_id}",
-         |    "country_code": "${credentials1.country_code}"
+         |    "party_id": "${credentials1.partyId}",
+         |    "country_code": "${credentials1.countryCode}"
          |}
      """.stripMargin.parseJson
 
