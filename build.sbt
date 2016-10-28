@@ -23,8 +23,9 @@ val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.1.6")
 val misc = Seq(
   "com.thenewmotion"            %% "joda-money-ext"           %   "1.0.0",
   "com.thenewmotion"            %% "time"                     %   "2.8",
-  "com.thenewmotion"            %% "mobilityid"               %   "0.13",
-  "com.chuusai"                 %% "shapeless"                %   "2.1.0")
+  "com.thenewmotion"            %% "mobilityid"               %   "0.13")
+
+val shapeless = Seq("com.chuusai" %% "shapeless"  %  "2.1.0")
 
 val testing = Seq(
   "org.specs2"                  %% "specs2-core"              %   "2.4.17" % "test",
@@ -49,11 +50,19 @@ val `ocpi-msgs` = project
   .settings(
     commonSettings,
     description := "OCPI serialization library",
-    libraryDependencies :=`spray-json` ++ misc ++ testing)
+    libraryDependencies := misc ++ testing)
+
+val `ocpi-msgs-spray-json` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-msgs`)
+  .settings(
+    commonSettings,
+    description := "OCPI serialization library Spray Json",
+    libraryDependencies :=`spray-json` ++ shapeless ++ misc ++ testing)
 
 val `ocpi-endpoints` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-prelude`, `ocpi-msgs`)
+  .dependsOn(`ocpi-prelude`, `ocpi-msgs-spray-json`)
   .settings(
     commonSettings,
     description := "OCPI endpoints",
