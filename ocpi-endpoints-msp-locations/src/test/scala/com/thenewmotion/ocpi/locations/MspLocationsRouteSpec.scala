@@ -1,10 +1,9 @@
 package com.thenewmotion.ocpi.locations
 
-
+import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
 import com.thenewmotion.ocpi.ApiUser
 import com.thenewmotion.ocpi.locations.LocationsError._
 import org.joda.time.DateTime
-import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

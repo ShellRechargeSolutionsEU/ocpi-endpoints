@@ -68,9 +68,17 @@ val `ocpi-endpoints-common` = project
     description := "OCPI endpoints common",
     libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
 
-val `ocpi-endpoints-toplevel` = project
+val `ocpi-endpoints-msp-locations` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`ocpi-endpoints-common`)
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints MSP Locations",
+    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
+
+val `ocpi-endpoints-toplevel` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-endpoints-common`, `ocpi-msgs-spray-json`)
   .settings(
     commonSettings,
     description := "OCPI endpoints toplevel",
@@ -80,8 +88,10 @@ val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
     `ocpi-prelude`,
     `ocpi-msgs`,
+    `ocpi-msgs-spray-json`,
     `ocpi-endpoints-common`,
-    `ocpi-endpoints-toplevel`)
+    `ocpi-endpoints-toplevel`,
+    `ocpi-endpoints-msp-locations`)
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
