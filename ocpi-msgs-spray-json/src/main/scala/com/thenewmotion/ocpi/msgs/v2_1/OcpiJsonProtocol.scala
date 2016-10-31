@@ -10,7 +10,7 @@ import com.thenewmotion.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
 import spray.json._
 
-object OcpiJsonProtocol extends DefaultJsonProtocol {
+trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   import reflect._
 
@@ -151,3 +151,5 @@ object OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val credentialsFormat = jsonFormat5(Creds)
   implicit val credentialsRespFormat = jsonFormat4(CredsResp)
 }
+
+object OcpiJsonProtocol extends OcpiJsonProtocol

@@ -60,19 +60,28 @@ val `ocpi-msgs-spray-json` = project
     description := "OCPI serialization library Spray Json",
     libraryDependencies :=`spray-json` ++ shapeless ++ misc ++ testing)
 
-val `ocpi-endpoints` = project
+val `ocpi-endpoints-common` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-prelude`, `ocpi-msgs-spray-json`)
+  .dependsOn(`ocpi-msgs-spray-json`)
   .settings(
     commonSettings,
-    description := "OCPI endpoints",
+    description := "OCPI endpoints common",
+    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
+
+val `ocpi-endpoints-toplevel` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-endpoints-common`)
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints toplevel",
     libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
 
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
     `ocpi-prelude`,
     `ocpi-msgs`,
-    `ocpi-endpoints`)
+    `ocpi-endpoints-common`,
+    `ocpi-endpoints-toplevel`)
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
