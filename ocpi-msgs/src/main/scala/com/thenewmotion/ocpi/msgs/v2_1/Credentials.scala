@@ -8,11 +8,11 @@ object Credentials {
 
 
   case class Creds(
-    token          : String,
-    url            :  Url,
+    token: String,
+    url:  Url,
     businessDetails: BusinessDetails,
-    partyId       : String,
-    countryCode   : String
+    partyId: String,
+    countryCode: String
     ){
     require(partyId.length == 3)
     require(countryCode.length == 2)
@@ -20,10 +20,10 @@ object Credentials {
   }
 
   case class CredsResp(
-    statusCode    : Int,
+    statusCode: Int,
     statusMessage: Option[String],
-    timestamp     : DateTime = DateTime.now(),
-    data          : Creds
+    timestamp: DateTime = DateTime.now(),
+    data: Creds
     ) extends SuccessResponse
 
 }

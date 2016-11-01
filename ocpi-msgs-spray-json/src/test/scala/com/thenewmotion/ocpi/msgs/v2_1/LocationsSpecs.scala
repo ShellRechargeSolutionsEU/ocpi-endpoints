@@ -10,6 +10,7 @@ import spray.json._
 
 class LocationsSpecs extends SpecificationWithJUnit {
 
+  import OcpiJsonProtocol._
 
   "Evses" should {
     "deserialize" in new LocationsTestScope {

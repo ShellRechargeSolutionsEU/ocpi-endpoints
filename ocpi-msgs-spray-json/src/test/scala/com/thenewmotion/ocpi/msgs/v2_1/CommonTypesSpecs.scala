@@ -13,6 +13,7 @@ import spray.json._
 
 class CommonTypesSpecs extends SpecificationWithJUnit {
 
+  import OcpiJsonProtocol._
 
   "DateTimeJsonFormat" should {
     val obj = new DateTime(2014, 1, 28, 17, 30, 0, UTC).withZone(DateTimeZone.getDefault)

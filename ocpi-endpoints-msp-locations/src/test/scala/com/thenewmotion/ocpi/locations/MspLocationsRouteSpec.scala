@@ -3,6 +3,7 @@ package com.thenewmotion.ocpi.locations
 import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
 import com.thenewmotion.ocpi.ApiUser
 import com.thenewmotion.ocpi.locations.LocationsError._
+import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -10,11 +11,8 @@ import org.specs2.specification.Scope
 import spray.http.MediaTypes._
 import spray.http.{ContentType, HttpCharsets, HttpEntity}
 import spray.routing.{AuthorizationFailedRejection, MalformedRequestContentRejection}
-import spray.testkit.Specs2RouteTest
-
 import scala.concurrent.Future
 import scalaz._
-
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 

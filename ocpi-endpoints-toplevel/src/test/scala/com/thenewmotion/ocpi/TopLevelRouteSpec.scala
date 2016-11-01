@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.{EndpointIdentifier, VersionNumber}
+import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -9,7 +10,6 @@ import spray.http.HttpHeaders._
 import spray.http.GenericHttpCredentials
 import spray.http.StatusCodes
 import spray.routing.AuthenticationFailedRejection
-import spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import spray.json._
 import lenses.JsonLenses._

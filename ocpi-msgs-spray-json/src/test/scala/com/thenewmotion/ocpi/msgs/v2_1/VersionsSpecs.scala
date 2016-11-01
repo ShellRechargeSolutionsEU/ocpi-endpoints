@@ -9,6 +9,8 @@ import spray.json._
 
 class VersionsSpecs extends SpecificationWithJUnit {
 
+  import OcpiJsonProtocol._
+
   "VersionsResp" should {
     "deserialize" in new VersionsTestScope {
       versionRespJson1.convertTo[VersionsResp] mustEqual versionResp

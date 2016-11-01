@@ -1,36 +1,28 @@
 val logging = Seq(
-  "ch.qos.logback"               % "logback-classic"          %   "1.1.3" % "test",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.15")
+  "ch.qos.logback"               % "logback-classic"          %   "1.1.7" % "test",
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.21")
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
 
 val spray = Seq(
   "io.spray"                    %% "spray-routing-shapeless2" %   "1.3.3",
-  "io.spray"                    %% "spray-testkit"            %   "1.3.3" % "test",
-  "io.spray"                    %% "spray-client"             %   "1.3.3")
+  "io.spray"                    %% "spray-client"             %   "1.3.4")
 
-def akka(scalaVersion: String) = {
-  val version = scalaVersion match {
-    case tnm.ScalaVersion.curr => "2.4.1"
-    case tnm.ScalaVersion.prev => "2.3.14"
-  }
+val sprayTestKit = Seq("com.thenewmotion" %% "spray-testkit" % "0.3" % "test")
 
-  Seq("com.typesafe.akka" %% s"akka-actor" % version)
-}
+val akka = Seq("com.typesafe.akka" %% s"akka-actor" % "2.4.12")
 
-val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.1.6")
+val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.7")
 
 val misc = Seq(
   "com.thenewmotion"            %% "joda-money-ext"           %   "1.0.0",
   "com.thenewmotion"            %% "time"                     %   "2.8",
   "com.thenewmotion"            %% "mobilityid"               %   "0.13")
 
-val shapeless = Seq("com.chuusai" %% "shapeless"  %  "2.1.0")
-
 val testing = Seq(
-  "org.specs2"                  %% "specs2-core"              %   "2.4.17" % "test",
-  "org.specs2"                  %% "specs2-junit"             %   "2.4.17" % "test",
-  "org.specs2"                  %% "specs2-mock"              %   "2.4.17" % "test",
+  "org.specs2"                  %% "specs2-core"              %   "3.8.5.1" % "test",
+  "org.specs2"                  %% "specs2-junit"             %   "3.8.5.1" % "test",
+  "org.specs2"                  %% "specs2-mock"              %   "3.8.5.1" % "test",
   "net.virtual-void"            %% "json-lenses"              %   "0.6.1"  % "test")
 
 val commonSettings = Seq(
@@ -49,7 +41,7 @@ val `ocpi-msgs` = project
   .dependsOn(`ocpi-prelude`)
   .settings(
     commonSettings,
-    description := "OCPI serialization library",
+    description := "OCPI messages",
     libraryDependencies := misc ++ testing)
 
 val `ocpi-msgs-spray-json` = project
@@ -58,7 +50,7 @@ val `ocpi-msgs-spray-json` = project
   .settings(
     commonSettings,
     description := "OCPI serialization library Spray Json",
-    libraryDependencies :=`spray-json` ++ shapeless ++ misc ++ testing)
+    libraryDependencies :=`spray-json` ++ testing ++ sprayTestKit)
 
 val `ocpi-endpoints-common` = project
   .enablePlugins(OssLibPlugin)
@@ -66,7 +58,7 @@ val `ocpi-endpoints-common` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
+    libraryDependencies := logging ++ spray ++ akka ++ scalaz ++ testing ++ sprayTestKit)
 
 val `ocpi-endpoints-msp-locations` = project
   .enablePlugins(OssLibPlugin)
@@ -74,7 +66,7 @@ val `ocpi-endpoints-msp-locations` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints MSP Locations",
-    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
+    libraryDependencies := testing ++ sprayTestKit)
 
 val `ocpi-endpoints-toplevel` = project
   .enablePlugins(OssLibPlugin)
@@ -82,7 +74,7 @@ val `ocpi-endpoints-toplevel` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints toplevel",
-    libraryDependencies := logging ++ spray ++ akka(scalaVersion.value) ++ scalaz ++ misc ++ testing)
+    libraryDependencies := testing ++ sprayTestKit)
 
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(

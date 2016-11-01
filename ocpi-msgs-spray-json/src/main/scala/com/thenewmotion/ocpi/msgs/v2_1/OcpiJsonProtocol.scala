@@ -24,7 +24,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
     def snakify(name: String) = PASS2.replaceAllIn(PASS1.replaceAllIn(name, REPLACEMENT), REPLACEMENT).toLowerCase(Locale.US)
 
-    super.extractFieldNames(classTag).map { snakify }
+    super.extractFieldNames(classTag) map snakify
   }
 
   implicit val dateTimeOptionalMillisFormat = new JsonFormat[DateTime] {

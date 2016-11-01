@@ -2,22 +2,23 @@ package com.thenewmotion.ocpi.handshake
 
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails => OcpiBusinessDetails, Image, ImageCategory}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{Image, ImageCategory, BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
+import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.MediaTypes._
 import spray.http.StatusCodes._
 import spray.http.{ContentType, HttpCharsets, HttpEntity}
-import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
 
-class HandshakeRouteSpec extends Specification with Specs2RouteTest with Mockito {
+class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {

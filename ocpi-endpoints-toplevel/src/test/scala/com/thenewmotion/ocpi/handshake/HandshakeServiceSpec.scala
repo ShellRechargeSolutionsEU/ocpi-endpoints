@@ -9,17 +9,19 @@ import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import VersionNumber._
 import org.joda.time.DateTime
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.Uri
-
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 
-class HandshakeServiceSpec extends Specification  with Mockito with FutureMatchers
+class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
   with DisjunctionMatchers{
+
+  implicit val ec = ee.executionContext
 
   "HandshakeService" should {
 
