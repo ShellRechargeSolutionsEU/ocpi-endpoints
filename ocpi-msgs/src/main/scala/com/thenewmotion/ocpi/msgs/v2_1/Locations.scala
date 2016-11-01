@@ -43,7 +43,7 @@ object Locations {
     coordinates: Option[GeoLocation] = None,
     related_locations: Option[List[AdditionalGeoLocation]] = None,
     evses: Option[List[Evse]] = None,
-    directions: Option[String] = None,
+    directions: Option[DisplayText] = None,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     owner: Option[BusinessDetails] = None,
@@ -123,7 +123,7 @@ object Locations {
   case class EnergyMix(
     is_green_energy: Boolean,
     energy_sources: List[EnergySource] = Nil,
-    environ_impace: List[EnvironmentalImpact] = Nil,
+    environ_impact: List[EnvironmentalImpact] = Nil,
     supplier_name: Option[String] = None,
     energy_product_name: Option[String] = None
   )
