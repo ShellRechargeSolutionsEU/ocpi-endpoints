@@ -6,7 +6,8 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import spray.http.{HttpMethods, StatusCodes}
-import spray.routing.{MethodRejection, PathMatcher1, Rejection, Route}
+import spray.routing.{MethodRejection, PathMatcher1, Route}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._

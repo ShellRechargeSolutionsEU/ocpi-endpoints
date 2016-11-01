@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.v2_0.Locations.{Connector, Evse, Location}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location}
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -12,7 +12,7 @@ import spray.http.Uri
 import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
-import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -106,6 +106,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       s"""
          |{
          |            "id": "1",
+         |            "last_updated": "2016-12-31T23:59:59Z",
          |            "status": "AVAILABLE",
          |            "standard": "IEC_62196_T2",
          |            "format": "CABLE",
@@ -120,6 +121,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       s"""
          |{
          |            "id": "2",
+         |            "last_updated": "2016-12-31T23:59:59Z",
          |            "status": "AVAILABLE",
          |            "standard": "IEC_62196_T2",
          |            "format": "SOCKET",
@@ -134,6 +136,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       s"""
          |{
          |        "uid": "3256",
+         |        "last_updated": "2016-12-31T23:59:59Z",
          |        "evse_id": "ICEEVE000123_1",
          |        "status": "AVAILABLE",
          |        "status_schedule": [],
@@ -154,6 +157,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       s"""
          | {
          |        "uid": "3257",
+         |        "last_updated": "2016-12-31T23:59:59Z",
          |        "evse_id": "ICEEVE000123_2",
          |        "status": "RESERVED",
          |        "status_schedule": [],
@@ -162,6 +166,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
          |        ],
          |        "connectors": [{
          |            "id": "1",
+         |            "last_updated": "2016-12-31T23:59:59Z",
          |            "status": "AVAILABLE",
          |            "standard": "IEC_62196_T2",
          |            "format": "SOCKET",
@@ -181,6 +186,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val loc1String = s"""
                        |{
                        |    "id": "LOC1",
+                       |    "last_updated": "2016-12-31T23:59:59Z",
                        |    "type": "ON_STREET",
                        |    "name": "Keizersgracht 585",
                        |    "address": "Keizersgracht 585",
@@ -195,6 +201,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |    "evses": [$evse1String, $evse2String],
                        |    "directions": [],
                        |    "images": [],
+                       |    "facilities": [],
                        |    "operator": {
                        |        "name": "The New Motion"
                        |    }

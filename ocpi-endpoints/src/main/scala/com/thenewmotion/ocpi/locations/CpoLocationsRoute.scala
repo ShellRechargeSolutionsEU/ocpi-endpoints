@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute}
-import com.thenewmotion.ocpi.msgs.v2_0.Locations._
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import spray.routing.Route
@@ -17,8 +17,8 @@ class CpoLocationsRoute(
 ) (implicit ec: ExecutionContext) extends JsonApi with PaginatedRoute {
 
 
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_0.OcpiStatusCodes.GenericSuccess
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 
   private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
     onSuccess(errOrX) {
