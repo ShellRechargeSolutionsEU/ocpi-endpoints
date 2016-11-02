@@ -9,10 +9,10 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.http.HttpHeaders.{Link, RawHeader}
 import spray.http.Uri
-import spray.testkit.Specs2RouteTest
 import scala.concurrent.Future
 import scalaz._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+import com.thenewmotion.spray.testkit.Specs2RouteTest
 import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {

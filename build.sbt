@@ -75,6 +75,13 @@ val `ocpi-endpoints-msp-locations` = project
     commonSettings,
     description := "OCPI endpoints MSP Locations")
 
+val `ocpi-endpoints-cpo-locations` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-endpoints-common`, `spray-testkit-specs2` % "test->test")
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints CPO Locations")
+
 val `ocpi-endpoints-toplevel` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`ocpi-endpoints-common`, `spray-testkit-specs2` % "test->test")
@@ -90,7 +97,8 @@ val `ocpi-endpoints-root` = (project in file("."))
     `ocpi-msgs-spray-json`,
     `ocpi-endpoints-common`,
     `ocpi-endpoints-toplevel`,
-    `ocpi-endpoints-msp-locations`)
+    `ocpi-endpoints-msp-locations`,
+    `ocpi-endpoints-cpo-locations`)
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
