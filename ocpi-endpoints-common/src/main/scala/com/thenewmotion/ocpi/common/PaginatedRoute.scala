@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.common
 import spray.http.HttpHeaders.{Link, RawHeader}
 import spray.routing.{Directive0, Directives}
 
-case class PaginatedResult[+T](result: List[T], limit: Int, total: Int)
+case class PaginatedResult[+T](result: Iterable[T], limit: Int, total: Int)
 
 case class Pager(offset: Int, limit: Int)
 

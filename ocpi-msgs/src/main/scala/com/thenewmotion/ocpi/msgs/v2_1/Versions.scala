@@ -48,7 +48,7 @@ object Versions {
     case object Sessions extends EndpointIdentifier {val name = "sessions"}
     case object Commands extends EndpointIdentifier {val name = "commands"}
 
-    val values = List(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions)
+    val values = Iterable(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions)
   }
 }
 

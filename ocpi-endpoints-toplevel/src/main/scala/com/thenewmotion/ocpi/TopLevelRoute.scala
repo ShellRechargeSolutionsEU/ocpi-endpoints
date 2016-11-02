@@ -53,7 +53,7 @@ trait TopLevelRoute extends JsonApi {
             version, versionInfo.endPoints.map {
               case (k, Right(v)) => Endpoint(k, appendPath(uri, k.name).toString() )
               case (k, Left(extUri)) => Endpoint(k, extUri)
-            }.toList
+            }
           )
         )
       )

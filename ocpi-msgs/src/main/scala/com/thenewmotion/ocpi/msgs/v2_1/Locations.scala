@@ -16,17 +16,17 @@ object Locations {
     postalCode: String,
     country:	String,
     coordinates:	GeoLocation,
-    relatedLocations: List[AdditionalGeoLocation] = Nil,
-    evses: List[Evse] = Nil,
-    directions:	List[DisplayText] = Nil,
+    relatedLocations: Iterable[AdditionalGeoLocation] = Nil,
+    evses: Iterable[Evse] = Nil,
+    directions:	Iterable[DisplayText] = Nil,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     owner: Option[BusinessDetails] = None,
-    facilities: List[Facility] = Nil,
+    facilities: Iterable[Facility] = Nil,
     timeZone: Option[String] = None,
     openingTimes: Option[Hours] = None,
     chargingWhenClosed: Option[Boolean] = Some(true),
-    images: List[Image] = Nil,
+    images: Iterable[Image] = Nil,
     energyMix: Option[EnergyMix] = None) {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
@@ -40,17 +40,17 @@ object Locations {
     postalCode: Option[String] = None,
     country: Option[String] = None,
     coordinates: Option[GeoLocation] = None,
-    relatedLocations: Option[List[AdditionalGeoLocation]] = None,
-    evses: Option[List[Evse]] = None,
+    relatedLocations: Option[Iterable[AdditionalGeoLocation]] = None,
+    evses: Option[Iterable[Evse]] = None,
     directions: Option[DisplayText] = None,
     operator: Option[BusinessDetails] = None,
     suboperator: Option[BusinessDetails] = None,
     owner: Option[BusinessDetails] = None,
-    facilities: Option[List[Facility]] = None,
+    facilities: Option[Iterable[Facility]] = None,
     timeZone: Option[String] = None,
     openingTimes: Option[Hours] = None,
     chargingWhenClosed: Option[Boolean] = None,
-    images: Option[List[Image]] = None,
+    images: Option[Iterable[Image]] = None,
     energyMix: Option[EnergyMix] = None) {
     require(country.fold(true)(_.length == 3), "Location needs 3-letter, ISO 3166-1 country code!")
   }
@@ -63,7 +63,7 @@ object Locations {
     case object ParkingLot extends LocationType {val name = "PARKING_LOT"}
     case object Other extends LocationType {val name = "OTHER"}
     case object Unknown extends LocationType {val name = "UNKNOWN"}
-    val values = List(OnStreet, ParkingGarage, UndergroundGarage,
+    val values = Iterable(OnStreet, ParkingGarage, UndergroundGarage,
       ParkingLot, Other, Unknown)
   }
 
@@ -121,8 +121,8 @@ object Locations {
 
   case class EnergyMix(
     isGreenEnergy: Boolean,
-    energySources: List[EnergySource] = Nil,
-    environImpact: List[EnvironmentalImpact] = Nil,
+    energySources: Iterable[EnergySource] = Nil,
+    environImpact: Iterable[EnvironmentalImpact] = Nil,
     supplierName: Option[String] = None,
     energyProductName: Option[String] = None
   )
@@ -140,9 +140,9 @@ object Locations {
 
   case class Hours(
     twentyfourseven: Boolean,
-    regularHours: List[RegularHours] = Nil,
-    exceptionalOpenings: List[ExceptionalPeriod] = Nil,
-    exceptionalClosings: List[ExceptionalPeriod] = Nil
+    regularHours: Iterable[RegularHours] = Nil,
+    exceptionalOpenings: Iterable[ExceptionalPeriod] = Nil,
+    exceptionalClosings: Iterable[ExceptionalPeriod] = Nil
   ) {
     require(regularHours.nonEmpty && !twentyfourseven
       || regularHours.isEmpty && twentyfourseven,
@@ -170,7 +170,7 @@ object Locations {
     case object OccupancyHours extends PricingUnit {val name = "occupancyhours"}
     case object ChargingHours extends PricingUnit {val name = "charginghours"}
     case object IdleHours extends PricingUnit {val name = "idlehours"}
-    val values = List(Session, KWhToEV, OccupancyHours, ChargingHours, IdleHours)
+    val values = Iterable(Session, KWhToEV, OccupancyHours, ChargingHours, IdleHours)
   }
 
   sealed trait PeriodType extends Nameable
@@ -178,7 +178,7 @@ object Locations {
   object PeriodType extends Enumerable[PeriodType] {
     case object Charging extends PeriodType {val name = "Charging"}
     case object Parking extends PeriodType {val name = "Parking"}
-    val values = List(Charging, Parking)
+    val values = Iterable(Charging, Parking)
   }
 
   case class Connector(
@@ -212,40 +212,40 @@ object Locations {
     case object RfidReader extends Capability {val name = "RFID_READER"}
     case object RemoteStartStopCapable extends Capability {val name = "REMOTE_START_STOP_CAPABLE"}
     case object UnlockCapabale extends Capability {val name = "UNLOCK_CAPABLE"}
-    val values = List(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader, RemoteStartStopCapable, UnlockCapabale)
+    val values = Iterable(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader, RemoteStartStopCapable, UnlockCapabale)
   }
 
   case class Evse(
     uid: String,
     lastUpdated: DateTime,
     status: ConnectorStatus,
-    connectors: List[Connector],
-    statusSchedule: List[StatusSchedule] = Nil,
-    capabilities: List[Capability] = Nil,
+    connectors: Iterable[Connector],
+    statusSchedule: Iterable[StatusSchedule] = Nil,
+    capabilities: Iterable[Capability] = Nil,
     evseId: Option[String] = None,
     floorLevel:	Option[String] = None,
     coordinates:	Option[GeoLocation] = None,
     physicalReference:	Option[String] = None,
-    directions: List[DisplayText] = Nil,
-    parkingRestrictions:	List[ParkingRestriction] = Nil,
-    images: List[Image] = Nil
+    directions: Iterable[DisplayText] = Nil,
+    parkingRestrictions:	Iterable[ParkingRestriction] = Nil,
+    images: Iterable[Image] = Nil
     ){
-    require(connectors.nonEmpty, "List of connector can't be empty!")
+    require(connectors.nonEmpty, "Iterable of connector can't be empty!")
   }
 
   case class EvsePatch(
     uid: String,
     status: Option[ConnectorStatus] = None,
-    connectors: Option[List[Connector]] = None,
-    status_schedule: Option[List[StatusSchedule]] = None,
-    capabilities: Option[List[Capability]] = None,
+    connectors: Option[Iterable[Connector]] = None,
+    status_schedule: Option[Iterable[StatusSchedule]] = None,
+    capabilities: Option[Iterable[Capability]] = None,
     evseId: Option[String] = None,
     floorLevel: Option[String] = None,
     coordinates: Option[GeoLocation] = None,
     physicalReference: Option[String] = None,
-    directions: Option[List[DisplayText]] = None,
-    parkingRestrictions: Option[List[ParkingRestriction]] = None,
-    images: Option[List[Image]] = None
+    directions: Option[Iterable[DisplayText]] = None,
+    parkingRestrictions: Option[Iterable[ParkingRestriction]] = None,
+    images: Option[Iterable[Image]] = None
   )
 
   val LatRegex = """-?[0-9]{1,2}\.[0-9]{1,6}"""
@@ -257,7 +257,7 @@ object Locations {
     name: Option[DisplayText] = None
   ){
     // we will suspend this hard validation until we have a way to continue parsing
-    // the list even if individual locations cannot be deserialized
+    // the Iterable even if individual locations cannot be deserialized
 //    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
 //    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
   }
@@ -267,7 +267,7 @@ object Locations {
     longitude: String
     ){
     // we will suspend this hard validation until we have a way to continue parsing
-    // the list even if individual locations cannot be deserialized
+    // the Iterable even if individual locations cannot be deserialized
 //    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
 //    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
   }
@@ -279,7 +279,7 @@ object Locations {
     case object Disabled extends ParkingRestriction {val name = "DISABLED"}
     case object Customers extends ParkingRestriction {val name = "CUSTOMERS"}
     case object Motorcycles extends ParkingRestriction {val name = "MOTORCYCLES"}
-    val values = List(EvOnly, Plugged, Disabled, Customers, Motorcycles)
+    val values = Iterable(EvOnly, Plugged, Disabled, Customers, Motorcycles)
   }
 
   sealed trait ConnectorStatus extends Nameable
@@ -296,7 +296,7 @@ object Locations {
 
 
     //case object Unknown extends ConnectorStatus {val name = "unknown"}
-    val values = List(Available, Blocked, Charging, Inoperative, OutOfOrder, Planned, Removed, Reserved, Unknown)
+    val values = Iterable(Available, Blocked, Charging, Inoperative, OutOfOrder, Planned, Removed, Reserved, Unknown)
   }
 
   case class StatusSchedule(
@@ -333,7 +333,7 @@ object Locations {
     case object	`IEC_60309_2_three_16`	extends ConnectorType {val name = "IEC_60309_2_three_16"}
     case object	`IEC_60309_2_three_32`	extends ConnectorType {val name = "IEC_60309_2_three_32"}
     case object	`IEC_60309_2_three_64`	extends ConnectorType {val name = "IEC_60309_2_three_64"}
-    val values = List(CHADEMO, `IEC_62196_T1`, `IEC_62196_T1_COMBO`, `IEC_62196_T2`,
+    val values = Iterable(CHADEMO, `IEC_62196_T1`, `IEC_62196_T1_COMBO`, `IEC_62196_T2`,
       `IEC_62196_T2_COMBO`, `IEC_62196_T3A`, `IEC_62196_T3C`, `DOMESTIC_A`, `DOMESTIC_B`,
       `DOMESTIC_C`, `DOMESTIC_D`, `DOMESTIC_E`, `DOMESTIC_F`, `DOMESTIC_G`, `DOMESTIC_H`,
       `DOMESTIC_I`, `DOMESTIC_J`, `DOMESTIC_K`, `DOMESTIC_L`, `TESLA_R`, `TESLA_S`,
@@ -344,7 +344,7 @@ object Locations {
   object ConnectorFormat extends Enumerable[ConnectorFormat] {
     case object Socket extends ConnectorFormat {val name = "SOCKET"}
     case object Cable extends ConnectorFormat {val name = "CABLE"}
-    val values = List(Socket, Cable)
+    val values = Iterable(Socket, Cable)
   }
 
   sealed trait PowerType extends Nameable
@@ -353,6 +353,6 @@ object Locations {
     case object AC1Phase extends PowerType {val name = "AC_1_PHASE"}
     case object AC3Phase extends PowerType {val name = "AC_3_PHASE"}
     case object DC extends PowerType {val name = "DC"}
-    val values = List(AC1Phase, AC3Phase, DC)
+    val values = Iterable(AC1Phase, AC3Phase, DC)
   }
 }

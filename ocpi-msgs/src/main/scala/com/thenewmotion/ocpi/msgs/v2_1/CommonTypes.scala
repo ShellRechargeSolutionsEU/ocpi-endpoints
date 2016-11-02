@@ -20,7 +20,7 @@ object CommonTypes {
     case object Operator extends ImageCategory {val name = "OPERATOR"}
     case object Other extends ImageCategory {val name = "OTHER"}
     case object Owner extends ImageCategory {val name = "OWNER"}
-    val values = List(Charger, Entrance, Location, Network, Operator, Other, Owner)
+    val values = Iterable(Charger, Entrance, Location, Network, Operator, Other, Owner)
   }
 
   case class Image(
