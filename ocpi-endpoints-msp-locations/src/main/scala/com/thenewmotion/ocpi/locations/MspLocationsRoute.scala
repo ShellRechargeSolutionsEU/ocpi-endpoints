@@ -1,15 +1,15 @@
 package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
-import com.thenewmotion.ocpi.{ApiUser, JsonApi}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessResp
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResp, SuccessWithDataResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
+import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import spray.http.{HttpMethods, StatusCodes}
 import spray.routing.{MethodRejection, PathMatcher1, Rejection, Route}
-
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 
 case class LocationsErrorRejection(error: LocationsError) extends Rejection
 
@@ -20,7 +20,6 @@ class MspLocationsRoute(
 
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
 
   private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
     onSuccess(errOrX) {
@@ -43,7 +42,7 @@ class MspLocationsRoute(
             authorize(CountryCode(apiUser.countryCode) == cc) {
               entity(as[Location]) { location =>
                 leftToRejection(service.createOrUpdateLocation(cc, opId, locId, location)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess.code))) }
+                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
               }
             }
           }
@@ -54,13 +53,13 @@ class MspLocationsRoute(
           patch {
             entity(as[LocationPatch]) { location =>
               leftToRejection(service.updateLocation(cc, opId, locId, location)){ _ =>
-                complete(SuccessResp(GenericSuccess.code)) }
+                complete(SuccessResp(GenericSuccess)) }
             }
           } ~
           get {
             dynamic {
               leftToRejection(service.location(cc, opId, locId)) { location =>
-                complete(LocationResp(GenericSuccess.code, None, data = location)) }
+                complete(SuccessWithDataResp(GenericSuccess, None, data = location)) }
             }
           }
         } ~
@@ -69,19 +68,19 @@ class MspLocationsRoute(
             put {
               entity(as[Evse]) { evse =>
                 leftToRejection(service.addOrUpdateEvse(cc, opId, locId, evseId, evse)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess.code))) }
+                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
               }
             } ~
             patch {
               entity(as[EvsePatch]) { evse =>
                 leftToRejection(service.updateEvse(cc, opId, locId, evseId, evse)) { _ =>
-                  complete(SuccessResp(GenericSuccess.code)) }
+                  complete(SuccessResp(GenericSuccess)) }
               }
             } ~
             get {
               dynamic {
                 leftToRejection(service.evse(cc, opId, locId, evseId)) { evse =>
-                  complete(EvseResp(GenericSuccess.code, None, data = evse)) }
+                  complete(SuccessWithDataResp(GenericSuccess, None, data = evse)) }
               }
             }
           } ~
@@ -89,19 +88,19 @@ class MspLocationsRoute(
             put {
               entity(as[Connector]) { conn =>
                 leftToRejection(service.addOrUpdateConnector(cc, opId, locId, evseId, connId, conn)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess.code))) }
+                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
               }
             } ~
             patch {
               entity(as[ConnectorPatch]) { conn =>
                 leftToRejection(service.updateConnector(cc, opId, locId, evseId, connId, conn)) { _ =>
-                  complete(SuccessResp(GenericSuccess.code)) }
+                  complete(SuccessResp(GenericSuccess)) }
               }
             } ~
             get {
               dynamic {
                 leftToRejection(service.connector(cc, opId, locId, evseId, connId)) { connector =>
-                  complete(ConnectorResp(GenericSuccess.code, None, data = connector)) }
+                  complete(SuccessWithDataResp(GenericSuccess, None, data = connector)) }
               }
             }
           }

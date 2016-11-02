@@ -1,11 +1,9 @@
 package com.thenewmotion.ocpi
 package msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResponse, Url}
-import org.joda.time.DateTime
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Url
 
 object Versions {
-
 
   case class Version(
     version: VersionNumber,
@@ -28,24 +26,9 @@ object Versions {
   case class VersionDetails(
     version: VersionNumber,
     endpoints: List[Endpoint]
-    )
-
-  case class VersionDetailsResp(
-    statusCode: Int,
-    statusMessage: Option[String],
-    timestamp: DateTime = DateTime.now(),
-    data: VersionDetails
-    ) extends SuccessResponse {
-    require(data.endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
+  ) {
+    require(endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
   }
-
-
-  case class VersionsResp(
-    statusCode: Int,
-    statusMessage: Option[String],
-    timestamp: DateTime = DateTime.now(),
-    data: List[Version]
-    ) extends SuccessResponse
 
   sealed trait VersionNumber extends Nameable
   object VersionNumber extends Enumerable[VersionNumber] {

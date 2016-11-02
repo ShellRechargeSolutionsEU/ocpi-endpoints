@@ -1,8 +1,7 @@
 package com.thenewmotion.ocpi
 
-
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode, OcpiStatusCode._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
@@ -18,45 +17,45 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
     case (MalformedRequestContentRejection(msg, cause)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
-          GenericClientFailure.code,
-          msg))
+          GenericClientFailure,
+          Some(msg)))
     }
 
     case (r@UnsupportedVersionRejection(version: String)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
-          UnsupportedVersion.code,
-          s"${UnsupportedVersion.defaultMessage}: $version"))
+          UnsupportedVersion,
+          Some(s"Unsupported version: $version")))
     }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders)) :: _ =>
       complete {
         ( BadRequest,
           ErrorResp(
-            MissingHeader.code,
-            MissingHeader.defaultMessage))
+            MissingHeader,
+            Some("Header not found")))
       }
 
     case (r@AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, challengeHeaders)) :: _ =>
       complete {
         ( BadRequest,
           ErrorResp(
-            AuthenticationFailed.code,
-            s"${AuthenticationFailed.defaultMessage}"))
+            AuthenticationFailed,
+            Some("Invalid authentication token")))
       }
 
     case (r@MissingHeaderRejection(header)) :: _ => complete {
       ( BadRequest,
         ErrorResp(
-          MissingHeader.code,
-          s"${MissingHeader.defaultMessage}: '$header'"))
+          MissingHeader,
+          Some(s"Header not found: '$header'")))
     }
 
     case rejections => complete {
       (BadRequest,
         ErrorResp(
-          GenericClientFailure.code,
-          rejections.mkString(", ")))
+          GenericClientFailure,
+          Some(rejections.mkString(", "))))
     }
 
   }

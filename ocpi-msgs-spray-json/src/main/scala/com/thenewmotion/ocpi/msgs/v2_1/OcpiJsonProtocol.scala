@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.SimpleStringEnumSerializer
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.{Creds, CredsResp}
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import com.thenewmotion.time.Imports._
@@ -128,12 +128,18 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val operatorFormat = jsonFormat3(Operator)
   implicit val locationFormat = jsonFormat21(Location)
 
+  implicit def statusCodeFormat[T <: OcpiStatusCode : ClassTag] = new JsonFormat[T] {
+    override def read(json: JsValue): T = json match {
+      case JsNumber(x) => OcpiStatusCode(x.toInt) match {
+        case y: T => y
+        case _ => deserializationError(s"StatusCode $x is not of type ${classTag[T].runtimeClass.getSimpleName}")
+      }
+      case x => deserializationError("Expected StatusCode as JsNumber, but got " + x)
+    }
+    override def write(obj: T): JsValue = JsNumber(obj.code)
+  }
 
   implicit val locationPatchFormat = jsonFormat20(LocationPatch)
-  implicit val locationsRespFormat = jsonFormat4(LocationsResp)
-  implicit val locationRespFormat = jsonFormat4(LocationResp)
-  implicit val evseRespFormat = jsonFormat4(EvseResp)
-  implicit val connectorRespFormat = jsonFormat4(ConnectorResp)
 
   implicit val endpointIdentifierFormat =
     new SimpleStringEnumSerializer[EndpointIdentifier](EndpointIdentifier).enumFormat
@@ -141,15 +147,14 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     new SimpleStringEnumSerializer[VersionNumber](VersionNumber).enumFormat
 
   implicit val versionFormat = jsonFormat2(Version)
-  implicit val versionsRespFormat = jsonFormat4(VersionsResp)
   implicit val versionsReqFormat = jsonFormat5(VersionsRequest)
   implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
-  implicit val versionDetailsRespFormat = jsonFormat4(VersionDetailsResp)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)
   implicit val successRespFormat = jsonFormat3(SuccessResp)
+  implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
+
   implicit val credentialsFormat = jsonFormat5(Creds)
-  implicit val credentialsRespFormat = jsonFormat4(CredsResp)
 }
 
 object OcpiJsonProtocol extends OcpiJsonProtocol

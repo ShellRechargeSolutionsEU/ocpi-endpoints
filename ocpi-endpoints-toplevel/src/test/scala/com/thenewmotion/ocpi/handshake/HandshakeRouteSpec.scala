@@ -4,7 +4,7 @@ import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{Image, ImageCategory, BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
 import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime

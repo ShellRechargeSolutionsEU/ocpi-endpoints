@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.msgs.v2_1
 
 import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import org.joda.money.Money
 import org.joda.time.DateTimeZone._
 import org.joda.time.format.ISODateTimeFormat
@@ -67,8 +67,8 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
 
     val genericErrorResp1 =
       ErrorResp(
-        GenericClientFailure.code,
-        GenericClientFailure.defaultMessage,
+        GenericClientFailure,
+        Some("Client error"),
         date1)
   }
 }

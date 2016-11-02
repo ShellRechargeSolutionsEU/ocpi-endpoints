@@ -1,15 +1,15 @@
 package com.thenewmotion.ocpi
 package handshake
 
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 import scala.concurrent._
-import spray.routing.{Route, Rejection}
+import spray.routing.{Rejection, Route}
 import scalaz._
 import spray.routing.directives.FutureDirectives
 import ErrorMarshalling._
-
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 
 case class HandshakeErrorRejection(error: HandshakeError) extends Rejection
 
@@ -35,7 +35,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.defaultMessage), currentTime, _)))
+            .map(_.map(SuccessWithDataResp(GenericSuccess, None, currentTime, _)))
         }
       }
     } ~
@@ -43,7 +43,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
       complete {
         service
           .credsToConnectToUs(tokenToConnectToUs)
-          .map(CredsResp(GenericSuccess.code, None, currentTime, _))
+          .map(SuccessWithDataResp(GenericSuccess, None, currentTime, _))
       }
     } ~
     put {
@@ -51,7 +51,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .map(_.map(CredsResp(GenericSuccess.code, Some(GenericSuccess.defaultMessage), currentTime, _)))
+            .map(_.map(SuccessWithDataResp(GenericSuccess, None, currentTime, _)))
         }
       }
     }
@@ -60,7 +60,6 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
 
 class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends HandshakeApi {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.Credentials._
   import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 
   def route(implicit ec: ExecutionContext) = {
@@ -70,7 +69,7 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
           import theirVersionsUrlInfo._
           service
             .initiateHandshakeProcess(partyName, countryCode, partyId, token, url)
-            .map(_.map(CredsResp(GenericSuccess.code,Some(GenericSuccess.defaultMessage), currentTime, _)))
+            .map(_.map(SuccessWithDataResp(GenericSuccess, None, currentTime, _)))
         }
       }
     }

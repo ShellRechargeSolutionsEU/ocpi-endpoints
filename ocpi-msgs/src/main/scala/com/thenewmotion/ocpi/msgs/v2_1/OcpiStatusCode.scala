@@ -1,46 +1,46 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-abstract class StatusCode(val code: Int, val defaultMessage: String) {
-  def isSuccess: Boolean
+sealed trait OcpiStatusCode {
+  def code: Int
 }
 
-abstract class SuccessCode(code: Int, defaultMessage: String)
-  extends StatusCode(code, defaultMessage)
-{
-  require(code >= 1000 && code <= 1999, "Code not in success range.")
-  def isSuccess = true
-}
+object OcpiStatusCode {
+  def apply(code: Int): OcpiStatusCode = code match {
+    case x if x >= 1000 && x <= 1999 => SuccessCode(code)
+    case x if x >= 2000 && x <= 2999 => ClientErrorCode(code)
+    case x if x >= 3000 && x <= 3999 => ServerErrorCode(code)
+    case x => throw new RuntimeException(s"$x is not a valid OCPI Status Code")
+  }
 
-abstract class ErrorCode(code: Int, defaultMessage: String)
-  extends StatusCode(code, defaultMessage)
-{
-  require(code >= 2000 && code <= 3999, "Code not in error range.")
-  def isSuccess = false
-}
+  sealed abstract case class SuccessCode private[OcpiStatusCode](code: Int) extends OcpiStatusCode
+  object SuccessCode {
+    private[OcpiStatusCode] def apply(code: Int) = new SuccessCode(code) {}
+  }
 
-abstract class ClientErrorCode(code: Int, defaultMessage: String)
-  extends ErrorCode(code, defaultMessage)
-{require(code >= 2000 && code <= 2999, "Code not in client error range.")}
+  sealed trait ErrorCode extends OcpiStatusCode
+  sealed abstract case class ClientErrorCode private[OcpiStatusCode](code: Int) extends ErrorCode
+  object ClientErrorCode {
+    private[OcpiStatusCode] def apply(code: Int) = new ClientErrorCode(code) {}
+  }
 
-abstract class ServerErrorCode(code: Int, defaultMessage: String)
-  extends ErrorCode(code, defaultMessage)
-{require(code >= 3000 && code <= 3999, "Code not in server error range.")}
+  sealed abstract case class ServerErrorCode private[OcpiStatusCode](code: Int) extends ErrorCode
+  object ServerErrorCode {
+    private[OcpiStatusCode] def apply(code: Int) = new ServerErrorCode(code) {}
+  }
 
-object OcpiStatusCodes {
-  case object GenericSuccess extends SuccessCode(1000, "Success")
+  val GenericSuccess = SuccessCode(1000)
+  val GenericClientFailure = ClientErrorCode(2000)
 
-  case object GenericClientFailure extends ClientErrorCode(2000, "Client error")
-  case object InvalidOrMissingParameters extends ClientErrorCode(2001, "Invalid or missing parameters")
-  case object AuthenticationFailed extends ClientErrorCode(2010, "Invalid authentication token")
-  case object MissingHeader extends ClientErrorCode(2011, "Header not found")
-//  case object CouldNotFindCommonVersion extends ClientErrorCode(2012, "Could not find common version")
-  case object PartyAlreadyRegistered extends ClientErrorCode(2012, "Party already registered") // When POSTing
-  case object RegistrationNotCompletedYetByParty extends ClientErrorCode(2013, "Not allowed. Party did not complete registration process yet") // When PUTing or GETing even
-  case object AuthorizationFailed extends ClientErrorCode(2014, "Not allowed. The client is not authorized to access this resource")
+  val InvalidOrMissingParameters = ClientErrorCode(2001)
+  val AuthenticationFailed = ClientErrorCode(2010)
+  val MissingHeader = ClientErrorCode(2011)
+  val PartyAlreadyRegistered = ClientErrorCode(2012) // When POSTing
+  val RegistrationNotCompletedYetByParty = ClientErrorCode(2013) // When PUTing or GETing even
+  val AuthorizationFailed = ClientErrorCode(2014)
 
-  case object GenericServerFailure extends ServerErrorCode(3000, "Server error")
-  case object UnableToUseApi extends ServerErrorCode(3001, "Unable to use the client's API")
-  case object UnsupportedVersion extends ServerErrorCode(3002, "Unsupported version")
-  case object MissingExpectedEndpoints extends ServerErrorCode(3003, "Missing expected endpoints") //TODO: TNM-2013
-  case object UnknownEndpointType extends ServerErrorCode(3010, "Missing expected endpoints")
+  val GenericServerFailure = ServerErrorCode(3000)
+  val UnableToUseApi = ServerErrorCode(3001)
+  val UnsupportedVersion = ServerErrorCode(3002)
+  val MissingExpectedEndpoints = ServerErrorCode(3003) //TODO: TNM-2013
+  val UnknownEndpointType = ServerErrorCode(3010)
 }

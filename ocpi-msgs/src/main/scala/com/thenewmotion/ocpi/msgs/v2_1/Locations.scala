@@ -4,7 +4,6 @@ package msgs.v2_1
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import org.joda.time.DateTime
 
-
 object Locations {
 
   case class Location(
@@ -301,8 +300,8 @@ object Locations {
   }
 
   case class StatusSchedule(
-    period_begin: DateTime,
-    period_end: Option[DateTime],
+    periodBegin: DateTime,
+    periodEnd: Option[DateTime],
     status: ConnectorStatus
   )
 
@@ -356,32 +355,4 @@ object Locations {
     case object DC extends PowerType {val name = "DC"}
     val values = List(AC1Phase, AC3Phase, DC)
   }
-
-  case class LocationsResp(
-    statusCode: Int,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now(),
-    data: List[Location]
-    ) extends SuccessResponse
-
-  case class LocationResp(
-    statusCode: Int,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now(),
-    data: Location
-  ) extends OcpiResponse[Option[String]]
-
-  case class EvseResp(
-    statusCode: Int,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now(),
-    data: Evse
-  ) extends OcpiResponse[Option[String]]
-
-  case class ConnectorResp(
-    statusCode: Int,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now(),
-    data: Connector
-  ) extends OcpiResponse[Option[String]]
 }

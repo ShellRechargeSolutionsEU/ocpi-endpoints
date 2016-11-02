@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi
 package msgs.v2_1
 
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.{ErrorCode, SuccessCode}
 import com.thenewmotion.time.Imports._
-import org.joda.time.DateTime
 
 object CommonTypes {
 
@@ -39,27 +39,30 @@ object CommonTypes {
     website: Option[Url]
     )
 
-  private[ocpi] trait OcpiResponse[StatusMessage] {
-    def statusCode: Int
-    def statusMessage: StatusMessage
+  private[ocpi] trait OcpiResponse[Code <: OcpiStatusCode] {
+    def statusCode: Code
+    def statusMessage: Option[String]
     def timestamp: DateTime
   }
 
   case class ErrorResp(
-    statusCode    : Int,
-    statusMessage: String,
-    timestamp     : DateTime = DateTime.now()
-    ) extends OcpiResponse[String] {
-    require(statusCode >= 2000 && statusCode <= 3999)
-  }
+    statusCode: ErrorCode,
+    statusMessage: Option[String] = None,
+    timestamp: DateTime = DateTime.now
+  ) extends OcpiResponse[ErrorCode]
 
-  private[ocpi] trait SuccessResponse extends OcpiResponse[Option[String]] {
-    require(statusCode >= 1000 && statusCode <= 1999)
-  }
+  private[ocpi] trait SuccessResponse extends OcpiResponse[SuccessCode]
 
   case class SuccessResp(
-    statusCode    : Int,
+    statusCode: SuccessCode,
     statusMessage: Option[String] = None,
-    timestamp     : DateTime = DateTime.now()
+    timestamp: DateTime = DateTime.now
+  ) extends SuccessResponse
+
+  case class SuccessWithDataResp[D](
+    statusCode: SuccessCode,
+    statusMessage: Option[String] = None,
+    timestamp: DateTime = DateTime.now,
+    data: D
   ) extends SuccessResponse
 }

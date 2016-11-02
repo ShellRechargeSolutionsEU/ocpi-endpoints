@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
 import spray.routing._
@@ -17,8 +17,8 @@ object OcpiExceptionHandler extends BasicDirectives with SprayJsonSupport {
     case exception => complete {
         ( InternalServerError,
             ErrorResp(
-              GenericClientFailure.code,
-              exception.toString))
+              GenericClientFailure,
+              Some(exception.toString)))
       }
   }
 }

@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
 import com.thenewmotion.ocpi.ApiUser
-import com.thenewmotion.ocpi.locations.LocationsError._
+import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
 import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito

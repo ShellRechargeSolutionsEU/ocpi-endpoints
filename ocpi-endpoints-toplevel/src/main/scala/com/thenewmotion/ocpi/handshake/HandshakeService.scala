@@ -8,7 +8,7 @@ import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Versions
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetailsResp, VersionNumber}
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetails, VersionNumber}
 import spray.http.Uri
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
@@ -117,7 +117,7 @@ abstract class HandshakeService(
 
     def theirDetails =
       getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
-    def theirCredEp(versionDetails: VersionDetailsResp) =
+    def theirCredEp(versionDetails: SuccessWithDataResp[VersionDetails]) =
       versionDetails.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
     def theirNewCred(credEp: Url) =
       client.sendCredentials(credEp, tokenToConnectToThem,
@@ -144,9 +144,9 @@ abstract class HandshakeService(
     * is not still registered
     */
   private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetailsResp] = {
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessWithDataResp[VersionDetails]] = {
 
-    def findCommonVersion(versionResp: Versions.VersionsResp): Future[HandshakeError \/ Versions.Version] = {
+    def findCommonVersion(versionResp: SuccessWithDataResp[List[Versions.Version]]): Future[HandshakeError \/ Versions.Version] = {
       versionResp.data.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None =>

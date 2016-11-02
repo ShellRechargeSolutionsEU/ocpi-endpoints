@@ -1,14 +1,17 @@
 package com.thenewmotion.ocpi
 
-import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
-import com.thenewmotion.ocpi.msgs.v2_1.Versions._
-import spray.http._, HttpHeaders._
-import spray.routing._, authentication._
+import handshake.InitiateHandshakeRoute
+import msgs.v2_1.OcpiStatusCode
+import OcpiStatusCode._
+import msgs.v2_1.Versions._
+import spray.http._
+import HttpHeaders._
+import spray.routing._
+import authentication._
+import msgs.v2_1.CommonTypes.SuccessWithDataResp
 import scala.concurrent.{ExecutionContext, Future}
 import org.joda.time.DateTime
 import spray.http.Uri
-
 
 trait TopLevelRoute extends JsonApi {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
@@ -30,9 +33,9 @@ trait TopLevelRoute extends JsonApi {
 
   def versionsRoute(uri: Uri): Route = routingConfig.versions match {
     case v if v.nonEmpty =>
-      complete(VersionsResp(
-        GenericSuccess.code,
-        Some(GenericSuccess.defaultMessage),
+      complete(SuccessWithDataResp(
+        GenericSuccess,
+        None,
         currentTime,
         v.keys.flatMap(x => VersionNumber.withName(x).map(Version(_, appendPath(uri, x).toString()))).toList)
       )
@@ -42,9 +45,9 @@ trait TopLevelRoute extends JsonApi {
   def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: ApiUser): Route =
     pathEndOrSingleSlash {
       complete(
-        VersionDetailsResp(
-          GenericSuccess.code,
-          Some(GenericSuccess.defaultMessage),
+        SuccessWithDataResp(
+          GenericSuccess,
+          None,
           currentTime,
           VersionDetails(
             version, versionInfo.endPoints.map {
