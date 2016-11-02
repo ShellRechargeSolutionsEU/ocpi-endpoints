@@ -26,8 +26,6 @@ class CpoLocationsRoute(
       case \/-(r) => f(r)
     }
 
-  lazy val DateMin = DateTime.parse("")
-  lazy val DateMax = DateTime.now
   val dateLimiters = parameters(('date_from.as[String] ? "", 'date_to.as[String] ? ""))
 
   def route(apiUser: ApiUser) =

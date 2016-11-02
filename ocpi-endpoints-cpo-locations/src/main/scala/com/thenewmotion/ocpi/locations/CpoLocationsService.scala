@@ -9,7 +9,7 @@ import scalaz._
 
 trait CpoLocationsService {
 
-  def locations(pager: Pager, date_from: Option[DateTime] = None, date_to: Option[DateTime] = None):
+  def locations(pager: Pager, dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None):
     Future[LocationsError \/ PaginatedResult[Location]]
 
   def location(locId: String): Future[LocationsError \/ Location]
