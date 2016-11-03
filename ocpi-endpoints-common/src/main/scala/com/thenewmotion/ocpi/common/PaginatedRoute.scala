@@ -10,7 +10,7 @@ case class Pager(offset: Int, limit: Int)
 trait PaginatedRoute extends Directives{
 
   val DefaultOffset = 0
-  val DefaultLimit = 1000
+  val DefaultLimit: Int
 
   val paged =
     parameters(('offset.as[Int] ? DefaultOffset, 'limit.as[Int] ? DefaultLimit))

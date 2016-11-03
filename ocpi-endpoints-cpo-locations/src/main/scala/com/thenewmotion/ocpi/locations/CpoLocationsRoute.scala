@@ -13,6 +13,7 @@ import scalaz._
 
 class CpoLocationsRoute(
   service: CpoLocationsService,
+  val DefaultLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
 ) (implicit ec: ExecutionContext) extends JsonApi with PaginatedRoute {
 
