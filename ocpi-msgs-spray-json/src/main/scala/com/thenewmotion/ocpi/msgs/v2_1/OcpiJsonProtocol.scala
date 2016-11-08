@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
 import com.thenewmotion.money._
-import com.thenewmotion.ocpi.msgs.SimpleStringEnumSerializer
+import com.thenewmotion.ocpi.msgs.{OcpiDatetimeParser, SimpleStringEnumSerializer}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
@@ -29,12 +29,12 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val dateTimeOptionalMillisFormat = new JsonFormat[DateTime] {
     val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
-    val formatter = ISODateTimeFormat.dateTime.withZoneUTC
     def write (x: DateTime) = JsString (formatterNoMillis.print (x) )
     def read (value: JsValue) = value match {
-      case JsString (x) => formatterNoMillis.parseOption (x) match {
+      case JsString (x) => OcpiDatetimeParser.toOcpiDateTime(x) match {
         case Some(parsed) => parsed
-        case None => formatter.parseDateTime(x)
+        case None => deserializationError ("Expected DateTime conforming to pattern " +
+          "specified in OCPI 2.1 section 14.2, but got " + x)
       }
       case x => deserializationError ("Expected DateTime as JsString, but got " + x)
     }

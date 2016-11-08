@@ -4,9 +4,9 @@ import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import spray.routing.Route
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 import scalaz._
 
 
@@ -32,17 +32,19 @@ class CpoLocationsRoute(
   def route(apiUser: ApiUser) =
     handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
 
-  private def toDateTime(dt: String) = Try(DateTime.parse(dt)).toOption
+
+
+  private def limitToUse(clientLimit: Int) = Math.min(DefaultLimit, clientLimit)
 
   private [locations] def routeWithoutRh(apiUser: ApiUser) = {
-
+    import com.thenewmotion.ocpi.msgs.OcpiDatetimeParser.toOcpiDateTime
     get {
       pathEndOrSingleSlash {
         dateLimiters { (dateFrom: String, dateTo: String) =>
-          paged { (offset: Int, limit: Int) =>
-            leftToRejection(service.locations(Pager(offset, limit),
-              toDateTime(dateFrom), toDateTime(dateTo))) { pagLocations =>
-              respondWithPaginationHeaders( offset, pagLocations ) {
+          paged { (offset: Int, clientLimit: Int) =>
+            leftToRejection(service.locations(Pager(offset, limitToUse(clientLimit)),
+              toOcpiDateTime(dateFrom), toOcpiDateTime(dateTo))) { pagLocations =>
+              respondWithPaginationHeaders( offset, limitToUse(clientLimit), pagLocations ) {
                 complete(LocationsResp(GenericSuccess.code, None, data = pagLocations.result))
               }
             }

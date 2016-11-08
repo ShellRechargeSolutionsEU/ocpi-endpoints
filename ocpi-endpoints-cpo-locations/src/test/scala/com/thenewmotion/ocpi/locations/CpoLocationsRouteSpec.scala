@@ -24,46 +24,46 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
 
       val InitialClientOffset = 0
-      val ClientLimit = 100
-      val ServerLimit = 50
-      val ResultingLimit = Math.min(ClientLimit, ServerLimit)
+      val ClientPageLimit = 100
+
+      val ResultingPageLimit = Math.min(ClientPageLimit, ServerPageLimit)
       val ServerTotal = 200
 
-      val SecondPageOffset = InitialClientOffset + ResultingLimit
-      val ThirdPageOffset = SecondPageOffset + ResultingLimit
+      val SecondPageOffset = InitialClientOffset + ResultingPageLimit
+      val ThirdPageOffset = SecondPageOffset + ResultingPageLimit
 
-      cpoLocService.locations(Pager(InitialClientOffset, ClientLimit), None, None) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ResultingLimit, ServerTotal)))
+      cpoLocService.locations(Pager(InitialClientOffset, ResultingPageLimit), None, None) returns
+        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
-      Get(s"/?offset=$InitialClientOffset&limit=$ClientLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
+      Get(s"/?offset=$InitialClientOffset&limit=$ClientPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual
-          Link(Link.Value(Uri(s"http://example.com/?offset=$SecondPageOffset&limit=$ResultingLimit"), Link.next))
-        headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", ResultingLimit.toString))
+          Link(Link.Value(Uri(s"http://example.com/?offset=$SecondPageOffset&limit=$ResultingPageLimit"), Link.next))
+        headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", ResultingPageLimit.toString))
         headers.find(_.name == "X-Total-Count") mustEqual Some(RawHeader("X-Total-Count", ServerTotal.toString))
-        there was one(cpoLocService).locations(Pager(InitialClientOffset, ClientLimit), None, None)
+        there was one(cpoLocService).locations(Pager(InitialClientOffset, ResultingPageLimit), None, None)
       }
 
 
-      cpoLocService.locations(Pager(SecondPageOffset, ResultingLimit), None, None) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ResultingLimit, ServerTotal)))
+      cpoLocService.locations(Pager(SecondPageOffset, ResultingPageLimit), None, None) returns
+        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
-      Get(s"/?offset=$SecondPageOffset&limit=$ResultingLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        response.header[Link].head mustEqual Link(Link.Value(Uri(s"http://example.com/?offset=$ThirdPageOffset&limit=$ResultingLimit"), Link.next))
+      Get(s"/?offset=$SecondPageOffset&limit=$ResultingPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
+        response.header[Link].head mustEqual Link(Link.Value(Uri(s"http://example.com/?offset=$ThirdPageOffset&limit=$ResultingPageLimit"), Link.next))
         headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "50"))
         headers.find(_.name == "X-Total-Count") mustEqual Some(RawHeader("X-Total-Count", "200"))
-        there was one(cpoLocService).locations(Pager(SecondPageOffset, ResultingLimit), None, None)
+        there was one(cpoLocService).locations(Pager(SecondPageOffset, ResultingPageLimit), None, None)
       }
     }
 
     "accept date_from and date_to" in new LocationsTestScope {
 
       cpoLocService.locations(any, any, any) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000, 1000)))
+        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
 
       val dateFrom = "2015-06-29T20:39:09Z"
       val dateTo = "2016-06-29T20:39:09Z"
       Get(s"/?date_from=$dateFrom&date_to=$dateTo") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(cpoLocService).locations(Pager(0, 1000), Some(DateTime.parse(dateFrom)), Some(DateTime.parse(dateTo)))
+        there was one(cpoLocService).locations(Pager(0, ServerPageLimit), Some(DateTime.parse(dateFrom)), Some(DateTime.parse(dateTo)))
       }
     }
 
@@ -100,7 +100,8 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val apiUser = ApiUser("1", "123", "NL", "TNM")
 
-    val locationsRoute = new CpoLocationsRoute(cpoLocService, currentTime = dateTime1)
+    val ServerPageLimit = 50
+    val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, currentTime = dateTime1)
 
     val evse1conn1String =
       s"""
