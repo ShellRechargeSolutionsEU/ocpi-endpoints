@@ -22,7 +22,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
     }
 
     case (r@UnsupportedVersionRejection(version: String)) :: _ => complete {
-      ( BadRequest,
+      ( OK,
         ErrorResp(
           UnsupportedVersion,
           Some(s"Unsupported version: $version")))

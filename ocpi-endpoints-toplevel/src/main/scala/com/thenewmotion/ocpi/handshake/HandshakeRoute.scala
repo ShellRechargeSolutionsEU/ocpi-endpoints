@@ -19,7 +19,9 @@ trait HandshakeApi extends JsonApi {
   protected def futLeftToRejection[T](errOrX: Future[HandshakeError \/ T])(f: T => Route)
     (implicit ec: ExecutionContext): Route = {
     FutureDirectives.onSuccess(errOrX) {
-      case -\/(err) => logger.error(s"HandshakeErrorRejection just happened with reason: ${err.reason}"); reject(HandshakeErrorRejection(err))
+      case -\/(err) =>
+        logger.error(s"HandshakeErrorRejection just happened with reason: ${err.reason}")
+        reject(HandshakeErrorRejection(err))
       case \/-(res) => f(res)
     }
   }

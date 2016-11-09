@@ -15,9 +15,9 @@ object OcpiExceptionHandler extends BasicDirectives with SprayJsonSupport {
   val Default = ExceptionHandler {
 
     case exception => complete {
-        ( InternalServerError,
+        ( OK,
             ErrorResp(
-              GenericClientFailure,
+              GenericServerFailure,
               Some(exception.toString)))
       }
   }

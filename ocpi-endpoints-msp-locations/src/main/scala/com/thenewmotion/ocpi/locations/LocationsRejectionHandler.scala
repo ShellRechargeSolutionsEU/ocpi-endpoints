@@ -36,7 +36,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
     }
 
     case (LocationsErrorRejection(e@LocationCreationFailed(reason))) :: _ => complete {
-        ( BadRequest,
+        ( OK,
             ErrorResp(
               GenericClientFailure,
               reason,
@@ -52,7 +52,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
       }
 
     case (LocationsErrorRejection(e@EvseCreationFailed(reason))) :: _ => complete {
-      ( BadRequest,
+      ( OK,
         ErrorResp(
           GenericClientFailure,
           reason,
@@ -68,7 +68,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
       }
 
     case (LocationsErrorRejection(e@ConnectorCreationFailed(reason))) :: _ => complete {
-      ( BadRequest,
+      ( OK,
         ErrorResp(
           GenericClientFailure,
           reason,
