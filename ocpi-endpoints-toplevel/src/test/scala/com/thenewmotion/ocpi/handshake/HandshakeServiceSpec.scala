@@ -3,10 +3,8 @@ package com.thenewmotion.ocpi.handshake
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.HandshakeError._
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, SuccessWithDataResp, Url}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Url}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
-import OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import VersionNumber._
 import org.joda.time.DateTime
@@ -61,7 +59,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
       }
       "return error when no mutual version found" >> new HandshakeTestScope {
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns
-          Future.successful(\/-(SuccessWithDataResp(OcpiStatusCode.GenericSuccess, None, dateTime1, List(Version(`2.0`, theirVersionDetailsUrl)))))
+          Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
 
         val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
           credsToConnectToThem.partyId, tokenToConnectToUs, theirVersionsUrl)
@@ -108,8 +106,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
       }
       "return error if no versions were returned" >> new HandshakeTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(\/-(SuccessWithDataResp(GenericSuccess, None, dateTime1,
-            List())))
+          Future.successful(\/-(Nil))
         val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, tokenToConnectToUs, credsToConnectToThem)
         val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
           credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url)
@@ -161,7 +158,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
     val ourCountryCodeVal = "NL"
     val ourCredentials = Creds(tokenToConnectToUs, ourVersionsUrlStr.toString(),
       BusinessDetails(ourCpoName, None, None), ourPartyIdVal, ourCountryCodeVal)
-    val ourCredsResp = SuccessWithDataResp(GenericSuccess, Some("Success"), dateTime1, ourCredentials)
+    val ourCredsResp = ourCredentials
 
     val selectedVersion = `2.1`
     val tokenToConnectToThem = "456"
@@ -183,23 +180,23 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
 
     // React to handshake request
     _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns Future.successful(
-      \/-(SuccessWithDataResp(GenericSuccess, None, dateTime1, List(Version(`2.1`, theirVersionDetailsUrl)))))
+      \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-      \/-(SuccessWithDataResp(GenericSuccess,None,dateTime1, VersionDetails(`2.1`,List(
+      \/-(VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
-        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
     // Initiate handshake request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToUs) returns Future.successful(
-      \/-(SuccessWithDataResp(GenericSuccess, None, dateTime1, List(Version(`2.1`, theirVersionDetailsUrl)))))
+      \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToUs) returns Future.successful(
-      \/-(SuccessWithDataResp(GenericSuccess,None,dateTime1, VersionDetails(`2.1`,List(
+      \/-(VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
-        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs"))))))
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
     _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(
       \/-(ourCredsResp))

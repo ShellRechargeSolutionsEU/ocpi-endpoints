@@ -18,11 +18,11 @@ import scalaz.{-\/, \/, \/-}
 class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = Timeout(20.seconds)) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  def getTheirVersions(uri: Uri, token: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessWithDataResp[List[Version]]] = {
+  def getTheirVersions(uri: Uri, token: String)(implicit ec: ExecutionContext): Future[HandshakeError \/ List[Version]] = {
     val pipeline = request(token) ~> unmarshal[SuccessWithDataResp[List[Version]]]
     val resp = pipeline(Get(uri))
     bimap(resp) {
-      case Success(versions) => \/-(versions)
+      case Success(versions) => \/-(versions.data)
       case Failure(t) =>
         logger.error(s"Could not retrieve the versions information from $uri with token $token. Reason: ${t.getLocalizedMessage}", t)
         -\/(VersionsRetrievalFailed)
@@ -30,11 +30,11 @@ class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
   }
 
   def getTheirVersionDetails(uri: Uri, token: String)
-      (implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessWithDataResp[VersionDetails]] = {
+      (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetails] = {
     val pipeline = request(token) ~> unmarshal[SuccessWithDataResp[VersionDetails]]
     val resp = pipeline(Get(uri))
     bimap(resp) {
-      case Success(versionDet) => \/-(versionDet)
+      case Success(versionDet) => \/-(versionDet.data)
       case Failure(t) =>
         logger.error(s"Could not retrieve the version details from $uri with token $token. Reason: ${t.getLocalizedMessage}", t)
         -\/(VersionDetailsRetrievalFailed)
@@ -42,11 +42,11 @@ class HandshakeClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
   }
 
   def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: String, credToConnectToUs: Creds)
-      (implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessWithDataResp[Creds]] = {
+      (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
     val pipeline = request(tokenToConnectToThem) ~> unmarshal[SuccessWithDataResp[Creds]]
     val resp = pipeline(Post(theirCredUrl, credToConnectToUs))
     bimap(resp) {
-      case Success(theirCreds) => \/-(theirCreds)
+      case Success(theirCreds) => \/-(theirCreds.data)
       case Failure(t) =>
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
           s"$tokenToConnectToThem when sending our credentials $credToConnectToUs. Reason: ${t.getLocalizedMessage}", t )

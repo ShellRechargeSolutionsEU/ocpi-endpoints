@@ -58,7 +58,7 @@ abstract class HandshakeService(
 
         val persistResult = persistHandshakeReactResult(
           version, existingTokenToConnectToUs, newTokenToConnectToUs,
-          credsToConnectToThem, verDetails.data.endpoints)
+          credsToConnectToThem, verDetails.endpoints)
 
         persistResult.bimap(
           e => { logger.error(s"error persisting handshake data: $e"); e },
@@ -94,7 +94,7 @@ abstract class HandshakeService(
 
         val persistResult = persistUpdateCredsResult(
           version, existingTokenToConnectToUs, newTokenToConnectToUs,
-          credsToConnectToThem, verDetails.data.endpoints)
+          credsToConnectToThem, verDetails.endpoints)
 
         persistResult.bimap(
           e => { logger.error(s"error persisting the update of the credentials: $e"); e },
@@ -117,8 +117,8 @@ abstract class HandshakeService(
 
     def theirDetails =
       getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
-    def theirCredEp(versionDetails: SuccessWithDataResp[VersionDetails]) =
-      versionDetails.data.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
+    def theirCredEp(versionDetails: VersionDetails) =
+      versionDetails.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
     def theirNewCred(credEp: Url) =
       client.sendCredentials(credEp, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl))
@@ -134,8 +134,8 @@ abstract class HandshakeService(
       credEndpoint = theirCredEp(verDet)
       _ <- result(Future.successful(persistPartyPendingRegistration(partyName, countryCode, partyId, newTokenToConnectToUs)))
       newCredToConnectToThem <- result(withCleanup(theirNewCred(credEndpoint.url)))
-      _ <- result(Future.successful(persist(newCredToConnectToThem.data, verDet.data.endpoints)))
-    } yield newCredToConnectToThem.data).run
+      _ <- result(Future.successful(persist(newCredToConnectToThem, verDet.endpoints)))
+    } yield newCredToConnectToThem).run
   }
 
   /**
@@ -144,10 +144,10 @@ abstract class HandshakeService(
     * is not still registered
     */
   private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ SuccessWithDataResp[VersionDetails]] = {
+    (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetails] = {
 
-    def findCommonVersion(versionResp: SuccessWithDataResp[List[Versions.Version]]): Future[HandshakeError \/ Versions.Version] = {
-      versionResp.data.find(_.version == version) match {
+    def findCommonVersion(versionResp: List[Versions.Version]): Future[HandshakeError \/ Versions.Version] = {
+      versionResp.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None =>
           if (initiatedByUs) Future.successful(-\/(CouldNotFindMutualVersion))
