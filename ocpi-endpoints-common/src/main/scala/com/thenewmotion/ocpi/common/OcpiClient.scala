@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
 import scalaz.{-\/, \/, \/-}
 
 
-abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: Timeout) {
+abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: ActorRefFactory, requestTimeout: Timeout) {
 
   protected val logger = Logger(getClass)
 
@@ -20,7 +20,6 @@ abstract class OcpiClient(implicit refFactory: ActorRefFactory, requestTimeout: 
   private val logRequest: HttpRequest => HttpRequest = { r => logger.debug(r.toString); r }
   private val logResponse: HttpResponse => HttpResponse = { r => logger.debug(r.toString); r }
 
-  val MaxNumItems = 100
 
   protected[ocpi] def setPageLimit(linkUri: Uri) = {
     val newLimit = linkUri.query.get("limit").map(_.toInt min MaxNumItems) getOrElse MaxNumItems
