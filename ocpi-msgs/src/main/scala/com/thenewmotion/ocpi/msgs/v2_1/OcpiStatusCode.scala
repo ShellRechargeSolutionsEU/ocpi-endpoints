@@ -1,7 +1,10 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.SuccessCode
+
 sealed trait OcpiStatusCode {
   def code: Int
+  def isSuccess = this.isInstanceOf[SuccessCode]
 }
 
 object OcpiStatusCode {
@@ -30,8 +33,9 @@ object OcpiStatusCode {
 
   val GenericSuccess = SuccessCode(1000)
   val GenericClientFailure = ClientErrorCode(2000)
-
   val InvalidOrMissingParameters = ClientErrorCode(2001)
+  val NotEnoughInformation = ClientErrorCode(2002)
+  val UnknownLocation = ClientErrorCode(2003)
   val AuthenticationFailed = ClientErrorCode(2010)
   val MissingHeader = ClientErrorCode(2011)
   val PartyAlreadyRegistered = ClientErrorCode(2012) // When POSTing

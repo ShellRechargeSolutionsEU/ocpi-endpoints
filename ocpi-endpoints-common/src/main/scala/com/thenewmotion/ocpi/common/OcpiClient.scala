@@ -3,7 +3,9 @@ package com.thenewmotion.ocpi.common
 import akka.actor.ActorRefFactory
 import akka.util.Timeout
 import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
+import com.thenewmotion.ocpi.common.ClientError._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{OcpiEnvelope, Page}
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
 import spray.client.pipelining._
 import spray.http.HttpHeaders.Link
 import spray.http._
@@ -28,6 +30,8 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
   }
 
   import scala.concurrent.ExecutionContext.Implicits.global
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import spray.httpx.SprayJsonSupport._
 
   def sendAndReceive = sendReceive
 
@@ -47,40 +51,73 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
 
   type FTS[E, T] = Future[E \/ Iterable[T]]
 
-  protected def traversePaginatedResource[E, R]
-    (uri: Uri, auth: String, error: E, limit: Int = MaxNumItems)
-    (page: HttpResponse => Page[R])
-    (implicit ec: ExecutionContext): FTS[E, R] =
+  protected def traversePaginatedResource[R]
+    (uri: Uri, auth: String, limit: Int = MaxNumItems)
+    (dataUnmarshaller: HttpResponse => Page[R])
+    (implicit ec: ExecutionContext): FTS[ClientError, R] =
     _traversePaginatedResource(uri withQuery("offset" -> "0", "limit" -> limit.toString),
-      auth, error)(page)
+      auth)(dataUnmarshaller)
 
-  private def _traversePaginatedResource[E, R](uri: Uri, auth: String, error: E)
-    (respUnmarshaller: HttpResponse => Page[R])
-    (implicit ec: ExecutionContext): FTS[E, R] = {
+  private def exception2ClientError: PartialFunction[Throwable,-\/[ClientError]] = {
+    case ex: spray.httpx.PipelineException =>
+      -\/(UnmarshallingFailed(Some(ex.getLocalizedMessage)))
+    case ex: spray.can.Http.ConnectionAttemptFailedException =>
+      -\/(ConnectionFailed(Some(ex.getLocalizedMessage)))
+    case NonFatal(ex) => -\/(Unknown(Some(ex.toString)))
+  }
+
+  private def httpStatusCode2ClientError(statCode: StatusCode): ClientError = statCode match {
+    case StatusCodes.NotFound => NotFound()
+    case x => Unknown(Some(x.defaultMessage))
+  }
+
+  private def ocpiEnvelope2ClientError(ocpiEnvl: OcpiEnvelope): ClientError = {
+    import OcpiStatusCode._
+    ocpiEnvl.statusCode match {
+      case GenericClientFailure       => OcpiClientError(ocpiEnvl.statusMessage)
+      case InvalidOrMissingParameters => MissingParameters(ocpiEnvl.statusMessage)
+      case GenericServerFailure       => OcpiServerError(ocpiEnvl.statusMessage)
+
+      case x => Unknown(Some(Seq(Some(s"OCPI error. Code: ${x.code}"), ocpiEnvl.statusMessage).flatten.mkString(". Msg: ")))
+    }
+  }
+
+  private def _traversePaginatedResource[R](uri: Uri, auth: String)
+    (dataUnmarshaller: HttpResponse => Page[R])
+    (implicit ec: ExecutionContext): FTS[ClientError, R] = {
     val pipeline = request(auth)
 
-    Try {
-      pipeline(Get(uri))
-      .flatMap { response =>
-        val accResp: Option[FTS[E, R]] =
+      withOcpiErrorHandler(pipeline(Get(uri))) { response: HttpResponse =>
+        val accResp: Option[FTS[ClientError, R]] =
           response
-          .header[Link]
-          .flatMap(_.values.find(_.params.contains(Link.next)).map(_.uri))
-          .map { nextUri =>
-            logger.debug(s"following Link: $nextUri")
-            _traversePaginatedResource(setPageLimit(nextUri), auth, error)(respUnmarshaller)
-          }
-        val entity: Page[R] = response ~> respUnmarshaller
+            .header[Link]
+            .flatMap(_.values.find(_.params.contains(Link.next)).map(_.uri))
+            .map { nextUri =>
+              logger.debug(s"following Link: $nextUri")
+              _traversePaginatedResource(setPageLimit(nextUri), auth)(dataUnmarshaller)
+            }
+        val entity: Page[R] = response ~> dataUnmarshaller
         val accLocs = accResp.map {
           _.map { disj => \/-(entity.items ++ disj.getOrElse(Iterable.empty)) }
         } orElse Some(Future.successful(\/-(entity.items)))
-        accLocs getOrElse Future.successful(-\/(error))
-      }.recover{
-        case NonFatal(ex) => -\/(error)
+        accLocs getOrElse Future.successful(\/-(Nil))
       }
+  }
+
+  protected def withOcpiErrorHandler[R]( resp: => Future[HttpResponse])(f: HttpResponse => FTS[ClientError, R]):
+    FTS[ClientError, R] = {
+    Try {
+      resp.flatMap { response =>
+        if (response.status.isSuccess) {
+          val envelope = response ~> unmarshal[OcpiEnvelope]
+          if(envelope.statusCode.isSuccess){
+            f(response)
+          } else Future.successful(-\/(ocpiEnvelope2ClientError(envelope)))
+        } else Future.successful(-\/(httpStatusCode2ClientError(response.status)))
+      } recover { exception2ClientError }
     } match {
       case Success(s) => s
-      case Failure(e) => Future.successful(-\/(error))
+      case Failure(e) => Future.successful(exception2ClientError(e))
     }
   }
 }
