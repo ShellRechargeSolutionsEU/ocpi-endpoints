@@ -8,6 +8,7 @@ import spray.client.pipelining._
 import spray.http.HttpHeaders.Link
 import spray.http._
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalaz.{-\/, \/, \/-}
 
@@ -69,14 +70,13 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
             logger.debug(s"following Link: $nextUri")
             _traversePaginatedResource(setPageLimit(nextUri), auth, error)(respUnmarshaller)
           }
-
         val entity: Page[R] = response ~> respUnmarshaller
         val accLocs = accResp.map {
-          _.map { disj =>
-            \/-(entity.items ++ (disj.getOrElse(Iterable.empty)))
-          }
+          _.map { disj => \/-(entity.items ++ disj.getOrElse(Iterable.empty)) }
         } orElse Some(Future.successful(\/-(entity.items)))
         accLocs getOrElse Future.successful(-\/(error))
+      }.recover{
+        case NonFatal(ex) => -\/(error)
       }
     } match {
       case Success(s) => s

@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 import com.thenewmotion.ocpi.common.OcpiClient
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
 import org.specs2.matcher.FutureMatchers
@@ -19,12 +19,12 @@ import scalaz.{-\/, \/, \/-}
 
 class OcpiClientSpec extends Specification with FutureMatchers {
 
+  import GenericRespTypes._
+
   "generic client" should {
 
     "download all paginated data" >>  { implicit ee: ExecutionEnv =>
       new TestScope {
-
-        import GenericRespTypes._
 
         override val firstPage = HttpResponse(
           OK, HttpEntity(`application/json`, firstPageBody.getBytes),
@@ -54,11 +54,19 @@ class OcpiClientSpec extends Specification with FutureMatchers {
 
     "return errors for wrong urls" >>  { implicit ee: ExecutionEnv =>
       new TestScope {
-        import GenericRespTypes._
-
         client.getData("http://localhost", "auth") must beLike[\/[GenericError, Iterable[TestData]]] {
           case -\/(r) =>
             r mustEqual GenericErrorInstance
+        }.await
+      }
+    }
+
+    "handle JSON that can't be unmarshalled" >> {implicit ee: ExecutionEnv =>
+      new TestScope {
+        import GenericRespTypes._
+
+        client.getData(s"$wrongJsonUrl", "auth") must beLike[\/[GenericError, Iterable[TestData]]] {
+          case -\/(r) => r mustEqual GenericErrorInstance
         }.await
       }
     }
@@ -106,10 +114,25 @@ class OcpiClientSpec extends Specification with FutureMatchers {
         RawHeader("X-Limit", "1"))
     )
 
+    val wrongJsonBody = s"""
+                           |{
+                           |  "status_code": 1000,
+                           |  "timestamp": "2010-01-01T00:00:00Z",
+                           |  "data": [{
+                           |    "id": "DATA1",
+                           |  }]
+                           |}
+                           |""".stripMargin
+
+    def wrongJsonPage: HttpResponse = HttpResponse(
+      OK, HttpEntity(`application/json`, wrongJsonBody.getBytes)
+    )
 
 
 
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
+
+    val wrongJsonUrl = s"$dataUrl/wrongjson"
 
     lazy val client = new OcpiClient {
 
@@ -122,12 +145,14 @@ class OcpiClientSpec extends Specification with FutureMatchers {
 
 
       val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
+      val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=100"
 
       override def sendAndReceive = (req:HttpRequest) => req.uri.toString match {
         case urlPattern(offset) if offset == "0" => Future.successful(firstPage)
         case urlPattern(offset) if offset == "1" => Future.successful(lastPage)
-        case urlPattern(offset) => println(s"got offset $offset. "); throw new RuntimeException()
-        case x => println(s"got request url |$x|. "); throw new RuntimeException()
+        case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
+        case `wrongJsonUrlWithParams` => println(s"serving wrong JSON");Future.successful(wrongJsonPage)
+        case x => println(s"got request url |$x|. "); Future.failed(throw new RuntimeException())
       }
 
       def getData(uri: Uri, auth: String)(implicit ec: ExecutionContext): Future[GenericError \/ Iterable[TestData]] =
