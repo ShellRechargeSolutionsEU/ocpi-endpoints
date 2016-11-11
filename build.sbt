@@ -17,7 +17,7 @@ val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.7")
 val misc = Seq(
   "com.thenewmotion"            %% "joda-money-ext"           %   "1.0.0",
   "com.thenewmotion"            %% "time"                     %   "2.8",
-  "com.thenewmotion"            %% "mobilityid"               %   "0.13")
+  "com.thenewmotion"            %% "mobilityid"               %   "0.14")
 
 val specs2 = Seq(
   "org.specs2"                  %% "specs2-core"              %   "3.8.5.1",

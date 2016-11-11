@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.locations
 
-import com.thenewmotion.mobilityid.{CountryCode, OperatorId}
+import com.thenewmotion.mobilityid.{CountryCode, OperatorIdIso}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResp, SuccessWithDataResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
@@ -31,7 +31,7 @@ class MspLocationsRoute(
     handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
 
   private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment map (CountryCode(_))
-  private val OperatorIdSegment: PathMatcher1[OperatorId] = Segment map (OperatorId(_))
+  private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment map (OperatorIdIso(_))
 
 
   private [locations] def routeWithoutRh(apiUser: ApiUser) = {
@@ -48,7 +48,7 @@ class MspLocationsRoute(
           }
         }
       } ~
-      authorize(CountryCode(apiUser.countryCode) == cc && OperatorId(apiUser.partyId) == opId) {
+      authorize(CountryCode(apiUser.countryCode) == cc && OperatorIdIso(apiUser.partyId) == opId) {
         pathEndOrSingleSlash {
           patch {
             entity(as[LocationPatch]) { location =>
