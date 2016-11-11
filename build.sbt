@@ -28,7 +28,8 @@ val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %   "0.6.1")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
-  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
+  crossScalaVersions := Seq(tnm.ScalaVersion.curr)
 )
 
 val `ocpi-prelude` = project
