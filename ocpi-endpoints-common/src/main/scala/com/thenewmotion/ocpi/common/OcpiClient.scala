@@ -42,6 +42,7 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
       ~> logResponse
     )
 
+  //FIXME: implement TNM-3524 to make this code reuse the OcpiErrorHandler from TNM-3460
   protected def bimap[T, M](f: Future[T])(pf: PartialFunction[Try[T], M])
     (implicit ec: ExecutionContext): Future[M] = {
     val p = Promise[M]()
