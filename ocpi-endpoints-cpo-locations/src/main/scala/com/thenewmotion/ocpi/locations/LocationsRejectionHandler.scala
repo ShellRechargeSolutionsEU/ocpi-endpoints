@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.locations.LocationsError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import org.joda.time.DateTime
 import spray.http.StatusCodes._
 import spray.httpx.SprayJsonSupport
@@ -22,8 +22,8 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
       requestUri { uri => complete {
         ( Forbidden,
           ErrorResp(
-            GenericClientFailure.code,
-            s"The client is not authorized to access ${uri.toRelative}",
+            GenericClientFailure,
+            Some(s"The client is not authorized to access ${uri.toRelative}"),
             DateTime.now()))
         }
       }
@@ -31,8 +31,8 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
     case (LocationsErrorRejection(e@LocationNotFound(reason))) :: _ => complete {
       ( NotFound,
         ErrorResp(
-          GenericClientFailure.code,
-          reason getOrElse DefaultErrorMsg,
+          GenericClientFailure,
+          Some(reason getOrElse DefaultErrorMsg),
           DateTime.now()))
     }
 
@@ -40,8 +40,8 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
     case (LocationsErrorRejection(e@EvseNotFound(reason))) :: _ => complete {
         ( NotFound,
             ErrorResp(
-              GenericClientFailure.code,
-              reason getOrElse DefaultErrorMsg,
+              GenericClientFailure,
+              Some(reason getOrElse DefaultErrorMsg),
               DateTime.now()))
       }
 
@@ -49,8 +49,8 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
     case (LocationsErrorRejection(e@ConnectorNotFound(reason))) :: _ => complete {
         ( NotFound,
             ErrorResp(
-              GenericClientFailure.code,
-              reason getOrElse DefaultErrorMsg,
+              GenericClientFailure,
+              Some(reason getOrElse DefaultErrorMsg),
               DateTime.now()))
       }
 

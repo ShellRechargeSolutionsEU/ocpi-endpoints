@@ -25,7 +25,7 @@ object Versions {
 
   case class VersionDetails(
     version: VersionNumber,
-    endpoints: List[Endpoint]
+    endpoints: Iterable[Endpoint]
   ) {
     require(endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
   }

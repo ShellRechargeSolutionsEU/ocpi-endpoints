@@ -1,10 +1,9 @@
 package com.thenewmotion.ocpi.locations
 
 import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
-import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import spray.routing.Route
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
@@ -19,7 +18,7 @@ class CpoLocationsRoute(
 
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCodes.GenericSuccess
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 
   private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
     onSuccess(errOrX) {
@@ -45,7 +44,7 @@ class CpoLocationsRoute(
             leftToRejection(service.locations(Pager(offset, limitToUse(clientLimit)),
               toOcpiDateTime(dateFrom), toOcpiDateTime(dateTo))) { pagLocations =>
               respondWithPaginationHeaders( offset, limitToUse(clientLimit), pagLocations ) {
-                complete(LocationsResp(GenericSuccess.code, None, data = pagLocations.result))
+                complete(SuccessWithDataResp(GenericSuccess, None, data = pagLocations.result))
               }
             }
           }
@@ -54,18 +53,18 @@ class CpoLocationsRoute(
       pathPrefix(Segment) { locId =>
         pathEndOrSingleSlash {
           leftToRejection(service.location(locId)) { location =>
-            complete(LocationResp(GenericSuccess.code, None, data = location))
+            complete(SuccessWithDataResp(GenericSuccess, None, data = location))
           }
         } ~
           pathPrefix(Segment) { evseId =>
             pathEndOrSingleSlash {
               leftToRejection(service.evse(locId, evseId)) { evse =>
-                complete(EvseResp(GenericSuccess.code, None, data = evse))
+                complete(SuccessWithDataResp(GenericSuccess, None, data = evse))
               }
             } ~
               (path(Segment) & pathEndOrSingleSlash) { connId =>
                 leftToRejection(service.connector(locId, evseId, connId)) { connector =>
-                  complete(ConnectorResp(GenericSuccess.code, None, data = connector))
+                  complete(SuccessWithDataResp(GenericSuccess, None, data = connector))
                 }
               }
           }

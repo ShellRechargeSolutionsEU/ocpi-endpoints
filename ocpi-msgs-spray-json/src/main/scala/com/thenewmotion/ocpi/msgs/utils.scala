@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package msgs
 
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.DateTimeZone
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
 import spray.json._
 
