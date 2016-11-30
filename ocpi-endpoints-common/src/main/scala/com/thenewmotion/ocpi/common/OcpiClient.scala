@@ -53,11 +53,15 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
   type FTS[E, T] = Future[E \/ Iterable[T]]
 
   protected def traversePaginatedResource[R]
-    (uri: Uri, auth: String, limit: Int = MaxNumItems)
+    (uri: Uri, auth: String, queryParams: Map[String, String] = Map.empty, limit: Int = MaxNumItems)
     (dataUnmarshaller: HttpResponse => Page[R])
-    (implicit ec: ExecutionContext): FTS[ClientError, R] =
-    _traversePaginatedResource(uri withQuery("offset" -> "0", "limit" -> limit.toString),
-      auth)(dataUnmarshaller)
+    (implicit ec: ExecutionContext): FTS[ClientError, R] = {
+      val fullParams: Map[String, String] =
+        Map(
+          "offset" -> "0",
+          "limit" -> limit.toString) ++ queryParams
+      _traversePaginatedResource(uri withQuery fullParams, auth)(dataUnmarshaller)
+    }
 
   private def exception2ClientError: PartialFunction[Throwable,-\/[ClientError]] = {
     case ex: spray.httpx.PipelineException =>
@@ -88,21 +92,21 @@ abstract class OcpiClient(val MaxNumItems: Int = 100)(implicit refFactory: Actor
     (implicit ec: ExecutionContext): FTS[ClientError, R] = {
     val pipeline = request(auth)
 
-      withOcpiErrorHandler(pipeline(Get(uri))) { response: HttpResponse =>
-        val accResp: Option[FTS[ClientError, R]] =
-          response
-            .header[Link]
-            .flatMap(_.values.find(_.params.contains(Link.next)).map(_.uri))
-            .map { nextUri =>
-              logger.debug(s"following Link: $nextUri")
-              _traversePaginatedResource(setPageLimit(nextUri), auth)(dataUnmarshaller)
-            }
-        val entity: Page[R] = response ~> dataUnmarshaller
-        val accLocs = accResp.map {
-          _.map { disj => \/-(entity.items ++ disj.getOrElse(Iterable.empty)) }
-        } orElse Some(Future.successful(\/-(entity.items)))
-        accLocs getOrElse Future.successful(\/-(Nil))
-      }
+    withOcpiErrorHandler(pipeline(Get(uri))) { response: HttpResponse =>
+      val accResp: Option[FTS[ClientError, R]] =
+        response
+          .header[Link]
+          .flatMap(_.values.find(_.params.contains(Link.next)).map(_.uri))
+          .map { nextUri =>
+            logger.debug(s"following Link: $nextUri")
+            _traversePaginatedResource(setPageLimit(nextUri), auth)(dataUnmarshaller)
+          }
+      val entity: Page[R] = response ~> dataUnmarshaller
+      val accLocs = accResp.map {
+        _.map { disj => \/-(entity.items ++ disj.getOrElse(Iterable.empty)) }
+      } orElse Some(Future.successful(\/-(entity.items)))
+      accLocs getOrElse Future.successful(\/-(Nil))
+    }
   }
 
   protected def withOcpiErrorHandler[R]( resp: => Future[HttpResponse])(f: HttpResponse => FTS[ClientError, R]):

@@ -17,79 +17,84 @@ import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{-\/, \/, \/-}
 
-class OcpiClientSpec extends Specification with FutureMatchers {
+class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
   import GenericRespTypes._
 
   "generic client" should {
 
-    "download all paginated data" >>  { implicit ee: ExecutionEnv =>
-      new TestScope {
-
-        override val firstPageResp = HttpResponse(
-          OK, HttpEntity(`application/json`, firstPageBody.getBytes),
-          List(
-            Link(Uri(s"$dataUrl?offset=1&limit=1"), Link.next),
-            RawHeader("X-Total-Count", "2"),
-            RawHeader("X-Limit", "1")
-          )
+    "download all paginated data" in new TestScope {
+      override val firstPageResp = HttpResponse(
+        OK, HttpEntity(`application/json`, firstPageBody.getBytes),
+        List(
+          Link(Uri(s"$dataUrl?offset=1&limit=1"), Link.next),
+          RawHeader("X-Total-Count", "2"),
+          RawHeader("X-Limit", "1")
         )
+      )
 
-        override val lastPageResp = HttpResponse(
-          OK, HttpEntity(`application/json`, lastPageBody.getBytes),
-          List(
-            RawHeader("X-Total-Count", "2"),
-            RawHeader("X-Limit", "1")
-          )
+      override val lastPageResp = HttpResponse(
+        OK, HttpEntity(`application/json`, lastPageBody.getBytes),
+        List(
+          RawHeader("X-Total-Count", "2"),
+          RawHeader("X-Limit", "1")
         )
+      )
 
-        client.getData(dataUrl, "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-          case \/-(r) =>
-            r.size === 2
-            r.head.id === "DATA1"
-            r.tail.head.id === "DATA2"
-        }.await
-      }
+      client.getData(dataUrl, "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+        case \/-(r) =>
+          r.size === 2
+          r.head.id === "DATA1"
+          r.tail.head.id === "DATA2"
+      }.await
     }
 
-    "return an error for wrong urls" >>  { implicit ee: ExecutionEnv =>
-      new TestScope {
-        client.getData("http://localhost:8095", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
-          case -\/(err) => err must haveClass[ClientError.ConnectionFailed]
-        }.await
-      }
+    "return an error for wrong urls" in new TestScope {
+      client.getData("http://localhost:8095", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
+        case -\/(err) => err must haveClass[ClientError.ConnectionFailed]
+      }.await
     }
 
-    "handle JSON that can't be unmarshalled" >> {implicit ee: ExecutionEnv =>
-      new TestScope {
-        client.getData(s"$wrongJsonUrl", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
-          case -\/(err) => err must haveClass[ClientError.UnmarshallingFailed]
-        }.await
-      }
+    "handle JSON that can't be unmarshalled" in new TestScope {
+      client.getData(s"$wrongJsonUrl", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
+        case -\/(err) => err must haveClass[ClientError.UnmarshallingFailed]
+      }.await
     }
 
-    "translate exception from 404 result to left disjuntion client error" >> {implicit ee: ExecutionEnv =>
-      new TestScope {
-        client.getData(s"$notFoundUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-          case -\/(err) => err must haveClass[ClientError.NotFound]
-        }.await
-      }
+    "translate exception from 404 result to left disjuntion client error" in new TestScope {
+      client.getData(s"$notFoundUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+        case -\/(err) => err must haveClass[ClientError.NotFound]
+      }.await
     }
 
-    "handle empty list of data items" >> {implicit ee: ExecutionEnv =>
-      new TestScope {
-        client.getData(s"$emptyUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-          case \/-(loc) => loc mustEqual Nil
-        }.await
-      }
+    "handle empty list of data items" in new TestScope {
+      client.getData(s"$emptyUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+        case \/-(loc) => loc mustEqual Nil
+      }.await
     }
 
-    "handle OCPI error codes" >> {implicit ee: ExecutionEnv =>
-      new TestScope {
-        client.getData(s"$ocpiErrorUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-          case -\/(err) => err mustEqual ClientError.OcpiClientError(Some("something went horribly wrong..."))
-        }.await
-      }
+    "handle OCPI error codes" in new TestScope {
+      client.getData(s"$ocpiErrorUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+        case -\/(err) => err mustEqual ClientError.OcpiClientError(Some("something went horribly wrong..."))
+      }.await
+    }
+
+    "address extra params with the query" in new TestScope {
+
+      override val firstPageResp = HttpResponse(
+        OK, HttpEntity(`application/json`, firstPageBody.getBytes),
+        List(
+          Link(Uri(s"$dataUrl?offset=1&limit=1&date_from=2016-11-23T08:04:01Z"), Link.next),
+          RawHeader("X-Total-Count", "2"),
+          RawHeader("X-Limit", "1")
+        )
+      )
+
+      client.getData(dataUrl, "auth", Map("date_from" -> "2016-11-23T08:04:01Z")) must beLike[\/[ClientError, Iterable[TestData]]] {
+        case \/-(r) =>
+          r.size === 1
+          r.head.id === "DATA1"
+      }.await
     }
   }
 
@@ -186,13 +191,12 @@ class OcpiClientSpec extends Specification with FutureMatchers {
 
       import GenericRespTypes._
 
-
       val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
       val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=100"
       val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=100"
       val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=100"
       val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=100"
-
+      val urlWithExtraParams = s"$dataUrl?offset=0&limit=100&date_from=2016-11-23T08:04:01Z"
 
       override def sendAndReceive = (req:HttpRequest) => req.uri.toString match {
         case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
@@ -202,13 +206,14 @@ class OcpiClientSpec extends Specification with FutureMatchers {
         case `notFoundUrlWithParams` => Future.successful(notFoundResp)
         case `emptyUrlWithParams` => Future.successful(emptyResp)
         case `ocpiErrorUrlWithParams` => Future.successful(ocpiErrorResp)
+        case `urlWithExtraParams` => Future.successful(firstPageResp)
         case x =>
           println(s"got request url |$x|. ")
           Future.failed(throw new spray.can.Http.ConnectionAttemptFailedException("localhost", 8095))
       }
 
-      def getData(uri: Uri, auth: String)(implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
-        traversePaginatedResource(uri, auth)(unmarshal[Page[TestData]])
+      def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)(implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
+        traversePaginatedResource(uri, auth, params)(unmarshal[Page[TestData]])
     }
 
   }
