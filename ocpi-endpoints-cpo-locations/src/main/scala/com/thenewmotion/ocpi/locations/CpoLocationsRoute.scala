@@ -8,8 +8,6 @@ import spray.routing.Route
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 
-
-
 class CpoLocationsRoute(
   service: CpoLocationsService,
   val DefaultLimit: Int = 1000,
@@ -26,11 +24,13 @@ class CpoLocationsRoute(
       case \/-(r) => f(r)
     }
 
-  val dateLimiters = parameters(('date_from.as[String] ? "", 'date_to.as[String] ? ""))
+  val dateFromParam = "date_from"
+  val dateToParam = "date_to"
+
+  val dateLimiters = parameters((dateFromParam.as[String].?, dateToParam.as[String].?))
 
   def route(apiUser: ApiUser) =
     handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
-
 
 
   private def limitToUse(clientLimit: Int) = Math.min(DefaultLimit, clientLimit)
@@ -39,11 +39,13 @@ class CpoLocationsRoute(
     import com.thenewmotion.ocpi.msgs.OcpiDatetimeParser.toOcpiDateTime
     get {
       pathEndOrSingleSlash {
-        dateLimiters { (dateFrom: String, dateTo: String) =>
+        dateLimiters { (dateFrom: Option[String], dateTo: Option[String]) =>
           paged { (offset: Int, clientLimit: Int) =>
             leftToRejection(service.locations(Pager(offset, limitToUse(clientLimit)),
-              toOcpiDateTime(dateFrom), toOcpiDateTime(dateTo))) { pagLocations =>
-              respondWithPaginationHeaders( offset, limitToUse(clientLimit), pagLocations ) {
+              dateFrom.flatMap(toOcpiDateTime),
+              dateTo.flatMap(toOcpiDateTime))) { pagLocations =>
+              val params = Map.empty ++ dateFrom.map(x => dateFromParam -> x) ++ dateTo.map(x => dateToParam -> x)
+              respondWithPaginationHeaders( offset, limitToUse(clientLimit), params, pagLocations ) {
                 complete(SuccessWithDataResp(GenericSuccess, None, data = pagLocations.result))
               }
             }
@@ -56,18 +58,18 @@ class CpoLocationsRoute(
             complete(SuccessWithDataResp(GenericSuccess, None, data = location))
           }
         } ~
-          pathPrefix(Segment) { evseId =>
-            pathEndOrSingleSlash {
-              leftToRejection(service.evse(locId, evseId)) { evse =>
-                complete(SuccessWithDataResp(GenericSuccess, None, data = evse))
-              }
-            } ~
-              (path(Segment) & pathEndOrSingleSlash) { connId =>
-                leftToRejection(service.connector(locId, evseId, connId)) { connector =>
-                  complete(SuccessWithDataResp(GenericSuccess, None, data = connector))
-                }
-              }
+        pathPrefix(Segment) { evseId =>
+          pathEndOrSingleSlash {
+            leftToRejection(service.evse(locId, evseId)) { evse =>
+              complete(SuccessWithDataResp(GenericSuccess, None, data = evse))
+            }
+          } ~
+          (path(Segment) & pathEndOrSingleSlash) { connId =>
+            leftToRejection(service.connector(locId, evseId, connId)) { connector =>
+              complete(SuccessWithDataResp(GenericSuccess, None, data = connector))
+            }
           }
+        }
       }
     }
   }

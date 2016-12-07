@@ -15,18 +15,27 @@ trait PaginatedRoute extends Directives{
   val paged =
     parameters(('offset.as[Int] ? DefaultOffset, 'limit.as[Int] ? DefaultLimit))
 
-  def respondWithPaginationHeaders(offset: Int, limitToUse: Int, pagRes: PaginatedResult[_]): Directive0 =
+  def respondWithPaginationHeaders(offset: Int, limitToUse: Int,
+                                   otherLinkParameters: Map[String, String], pagRes: PaginatedResult[_]): Directive0 =
     extract(identity) flatMap { ctx =>
       respondWithHeaders(
         if (offset + limitToUse >= pagRes.total) Nil
-        else
+        else {
+          val linkParams = otherLinkParameters ++
+            Map(
+              "offset" -> (offset + limitToUse).toString,
+              "limit" -> limitToUse.toString
+            )
+
           List(
-            Link(Link.Value(ctx.request.uri.withQuery(
-              ("offset", (offset + limitToUse).toString),
-              ("limit", limitToUse.toString)), Link.next)),
+            Link(Link.Value(ctx.request.uri.withQuery(linkParams), Link.next)),
             RawHeader("X-Limit", limitToUse.toString),
             RawHeader("X-Total-Count", pagRes.total.toString)
           )
+        }
+
+
+
       )
     }
 }
