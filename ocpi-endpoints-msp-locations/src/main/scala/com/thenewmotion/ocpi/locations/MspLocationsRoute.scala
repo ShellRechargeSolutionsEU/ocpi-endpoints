@@ -1,97 +1,138 @@
-package com.thenewmotion.ocpi.locations
+package com.thenewmotion.ocpi
+package locations
 
-import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
-import akka.http.scaladsl.server.{MethodRejection, PathMatcher1, Route}
-import com.thenewmotion.mobilityid.{CountryCode, OperatorIdIso}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResp, SuccessWithDataResp}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import com.thenewmotion.ocpi.{ApiUser, JsonApi}
-import org.joda.time.DateTime
-import scala.concurrent.Future
-import scalaz._
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.PathMatcher1
+import com.thenewmotion.mobilityid.CountryCode
+import com.thenewmotion.mobilityid.OperatorIdIso
+import common.AuthorizationRejectionHandler
+import common.ResponseMarshalling
+import locations.LocationsError._
+import msgs.v2_1.CommonTypes.ErrorResp
+import msgs.v2_1.CommonTypes.SuccessResp
+import msgs.v2_1.CommonTypes.SuccessWithDataResp
+import msgs.v2_1.Locations._
+import msgs.v2_1.OcpiStatusCode._
+
+import scala.concurrent.ExecutionContext
 
 class MspLocationsRoute(
-  service: MspLocationsService,
-  currentTime: => DateTime = DateTime.now
-) extends JsonApi {
+  service: MspLocationsService
+) extends JsonApi with ResponseMarshalling {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.OcpiJsonProtocol._
 
-  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route): Route =
-    onSuccess(errOrX) {
-      case -\/(e) => reject(LocationsErrorRejection(e))
-      case \/-(r) => f(r)
+  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)]): ToResponseMarshaller[LocationsError] = {
+      errorMarshaller.compose[LocationsError] { locationsError =>
+      val statusCode = locationsError match {
+        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
+        case (_: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed) => OK
+        case _ => InternalServerError
+      }
+      statusCode -> ErrorResp(GenericClientFailure, locationsError.reason)
     }
+  }
 
-  def route(apiUser: ApiUser) =
-    handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
+  def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
+    handleRejections(AuthorizationRejectionHandler.Default)(routeWithoutRh(apiUser))
 
-  private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment map (CountryCode(_))
-  private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment map (OperatorIdIso(_))
+  private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment.map(CountryCode(_))
+  private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment.map(OperatorIdIso(_))
+  private def isResourceAccessAuthorized(apiUser: ApiUser, cc: CountryCode, opId: OperatorIdIso) =
+    authorize(CountryCode(apiUser.countryCode) == cc && OperatorIdIso(apiUser.partyId) == opId)
 
-  private [locations] def routeWithoutRh(apiUser: ApiUser) = {
+  private[locations] def routeWithoutRh(apiUser: ApiUser)(implicit executionContext: ExecutionContext) = {
     pathPrefix(CountryCodeSegment / OperatorIdSegment / Segment) { (cc, opId, locId) =>
       pathEndOrSingleSlash {
-        cancelRejection(MethodRejection(HttpMethods.PUT)){
-          put {
-            authorize(CountryCode(apiUser.countryCode) == cc) {
-              entity(as[Location]) { location =>
-                leftToRejection(service.createOrUpdateLocation(cc, opId, locId, location)) { res =>
-                  complete((if(res) StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
+        put {
+          isResourceAccessAuthorized(apiUser, cc, opId) {
+            entity(as[Location]) { location =>
+              complete {
+                service.createOrUpdateLocation(cc, opId, locId, location).mapRight { created =>
+                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                }
+              }
+            }
+          }
+        } ~
+        patch {
+          isResourceAccessAuthorized(apiUser, cc, opId) {
+            entity(as[LocationPatch]) { location =>
+              complete {
+                service.updateLocation(cc, opId, locId, location).mapRight { _ =>
+                  SuccessResp(GenericSuccess)
+                }
+              }
+            }
+          }
+        } ~
+        get {
+          isResourceAccessAuthorized(apiUser, cc, opId) {
+            complete {
+              service.location(cc, opId, locId).mapRight { location =>
+                SuccessWithDataResp(GenericSuccess, None, data = location)
               }
             }
           }
         }
       } ~
-      authorize(CountryCode(apiUser.countryCode) == cc && OperatorIdIso(apiUser.partyId) == opId) {
-        pathEndOrSingleSlash {
-          patch {
-            entity(as[LocationPatch]) { location =>
-              leftToRejection(service.updateLocation(cc, opId, locId, location)){ _ =>
-                complete(SuccessResp(GenericSuccess)) }
-            }
-          } ~
-          get {
-            leftToRejection(service.location(cc, opId, locId)) { location =>
-              complete(SuccessWithDataResp(GenericSuccess, None, data = location)) }
-          }
-        } ~
+      isResourceAccessAuthorized(apiUser, cc, opId) {
         pathPrefix(Segment) { evseId =>
           pathEndOrSingleSlash {
             put {
               entity(as[Evse]) { evse =>
-                leftToRejection(service.addOrUpdateEvse(cc, opId, locId, evseId, evse)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
+                complete {
+                  service.addOrUpdateEvse(cc, opId, locId, evseId, evse).mapRight { created =>
+                    (if (created) Created else OK, SuccessResp(GenericSuccess))
+                  }
+                }
               }
             } ~
             patch {
               entity(as[EvsePatch]) { evse =>
-                leftToRejection(service.updateEvse(cc, opId, locId, evseId, evse)) { _ =>
-                  complete(SuccessResp(GenericSuccess)) }
+                complete {
+                  service.updateEvse(cc, opId, locId, evseId, evse).mapRight { _ =>
+                    SuccessResp(GenericSuccess)
+                  }
+                }
               }
             } ~
             get {
-              leftToRejection(service.evse(cc, opId, locId, evseId)) { evse =>
-                complete(SuccessWithDataResp(GenericSuccess, None, data = evse)) }
+              complete {
+                service.evse(cc, opId, locId, evseId).mapRight { evse =>
+                  SuccessWithDataResp(GenericSuccess, None, data = evse)
+                }
+              }
             }
           } ~
           (path(Segment) & pathEndOrSingleSlash) { connId =>
             put {
               entity(as[Connector]) { conn =>
-                leftToRejection(service.addOrUpdateConnector(cc, opId, locId, evseId, connId, conn)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
+                complete {
+                  service.addOrUpdateConnector(cc, opId, locId, evseId, connId, conn).mapRight { created =>
+                    (if (created) Created else OK, SuccessResp(GenericSuccess))
+                  }
+                }
               }
             } ~
             patch {
               entity(as[ConnectorPatch]) { conn =>
-                leftToRejection(service.updateConnector(cc, opId, locId, evseId, connId, conn)) { _ =>
-                  complete(SuccessResp(GenericSuccess)) }
+                complete {
+                  service.updateConnector(cc, opId, locId, evseId, connId, conn).mapRight { _ =>
+                  SuccessResp(GenericSuccess)
+                  }
+                }
               }
             } ~
             get {
-              leftToRejection(service.connector(cc, opId, locId, evseId, connId)) { connector =>
-                complete(SuccessWithDataResp(GenericSuccess, None, data = connector)) }
+              complete {
+                service.connector(cc, opId, locId, evseId, connId).mapRight {
+                  connector =>
+                    SuccessWithDataResp(GenericSuccess, None, data = connector)
+                }
+              }
             }
           }
         }
@@ -99,4 +140,3 @@ class MspLocationsRoute(
     }
   }
 }
-

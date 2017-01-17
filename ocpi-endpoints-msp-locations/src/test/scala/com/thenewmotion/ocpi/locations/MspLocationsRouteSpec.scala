@@ -3,7 +3,6 @@ package com.thenewmotion.ocpi.locations
 import akka.http.scaladsl.model.HttpEntity
 import com.thenewmotion.mobilityid.{CountryCode, OperatorIdIso}
 import com.thenewmotion.ocpi.{ApiUser, Specs2RouteTest}
-import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -17,7 +16,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
   "locations endpoint" should {
 
-    "accept a new location object without authorizing the location ID" in new LocationsTestScope {
+    "accept a new location object without authorizing the operator ID" in new LocationsTestScope {
 
       import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
       import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
@@ -129,22 +128,19 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   }
 
   trait LocationsTestScope extends Scope {
-
-    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
-
     val mspLocService = mock[MspLocationsService]
 
     mspLocService.createOrUpdateLocation(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC2"), any) returns Future(\/-(true))
-    mspLocService.updateLocation(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), any) returns Future(\/-())
+    mspLocService.updateLocation(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), any) returns Future(\/-(()))
     mspLocService.location(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1")) returns Future(-\/(LocationNotFound()))
     mspLocService.evse(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(-\/(LocationNotFound()))
     mspLocService.connector(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(-\/(LocationNotFound()))
-    mspLocService.updateEvse(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(Unit))
-    mspLocService.updateConnector(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"),any) returns Future(\/-(Unit))
+    mspLocService.updateEvse(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(()))
+    mspLocService.updateConnector(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"),any) returns Future(\/-(()))
 
     val apiUser = ApiUser("1", "123", "NL", "TNM")
 
-    val locationsRoute = new MspLocationsRoute(mspLocService, dateTime1)
+    val locationsRoute = new MspLocationsRoute(mspLocService)
 
     val loc1String = s"""
                        |{
@@ -232,6 +228,5 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |""".stripMargin
 
     val loc2String = loc1String.replace("LOC1","LOC2")
-
   }
 }

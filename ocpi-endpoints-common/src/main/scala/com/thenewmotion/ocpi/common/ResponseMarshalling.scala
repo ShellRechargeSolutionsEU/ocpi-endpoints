@@ -1,4 +1,5 @@
-package com.thenewmotion.ocpi.common
+package com.thenewmotion.ocpi
+package common
 
 import akka.http.scaladsl.marshalling._
 import scala.concurrent.ExecutionContext

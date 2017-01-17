@@ -4,6 +4,7 @@ import com.thenewmotion.ocpi.msgs.{OcpiDatetimeParser, SimpleStringEnumSerialize
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
@@ -78,6 +79,12 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val environmentalImpactCategoryTypeFormat =
     new SimpleStringEnumSerializer[EnvironmentalImpactCategory](EnvironmentalImpactCategory).enumFormat
 
+  implicit val tokenTypeFormat =
+    new SimpleStringEnumSerializer[TokenType](TokenType).enumFormat
+
+  implicit val whitelistTypeFormat =
+    new SimpleStringEnumSerializer[WhitelistType](WhitelistType).enumFormat
+
   implicit val energySourceFormat = jsonFormat2(EnergySource)
   implicit val environmentalImpactFormat = jsonFormat2(EnvironmentalImpact)
   implicit val energyMixFormat = jsonFormat5(EnergyMix)
@@ -98,6 +105,10 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val evsePatchFormat = jsonFormat12(EvsePatch)
   implicit val operatorFormat = jsonFormat3(Operator)
   implicit val locationFormat = jsonFormat21(Location)
+  implicit val tokensFormat = jsonFormat9(Token)
+
+  implicit val locationPatchFormat = jsonFormat20(LocationPatch)
+  implicit val tokenPatchFormat = jsonFormat8(TokenPatch)
 
   implicit def statusCodeFormat[T <: OcpiStatusCode : ClassTag] = new JsonFormat[T] {
     override def read(json: JsValue): T = json match {
@@ -109,8 +120,6 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     }
     override def write(obj: T): JsValue = JsNumber(obj.code)
   }
-
-  implicit val locationPatchFormat = jsonFormat20(LocationPatch)
 
   implicit val endpointIdentifierFormat =
     new SimpleStringEnumSerializer[EndpointIdentifier](EndpointIdentifier).enumFormat

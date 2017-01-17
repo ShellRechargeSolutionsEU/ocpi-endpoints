@@ -68,6 +68,10 @@ trait TopLevelRoute extends JsonApi {
     val externalUseToken = new TokenAuthenticator(routingConfig.authenticateApiUser)
     val internalUseToken = new TokenAuthenticator(routingConfig.authenticateInternalUser)
 
+    // TODO: OcpiRejectionHandler is actually part of the endpoints-toplevel package
+    // but should be moved to endpoints-common and then AuthorizationRejectionHandler can
+    // be merged into it. Also the toplevel route contains code that is mostly important
+    // for the registration part of OCPI. This should be moved to a separate module.
     (handleRejections(OcpiRejectionHandler.Default) & handleExceptions(OcpiExceptionHandler.Default)) {
       (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
         pathPrefix("initiateHandshake") {

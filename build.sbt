@@ -7,7 +7,7 @@ val logging = Seq(
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.0.1" else "2.4.16"
+  val v = if (name.startsWith("http")) "10.0.2" else "2.4.16"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -90,6 +90,15 @@ val `ocpi-endpoints-cpo-locations` = project
     libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
   )
 
+val `ocpi-endpoints-cpo-tokens` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`ocpi-endpoints-common`)
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints CPO Tokens",
+    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+  )
+
 val `ocpi-endpoints-toplevel` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`ocpi-endpoints-common`)
@@ -107,7 +116,8 @@ val `ocpi-endpoints-root` = (project in file("."))
     `ocpi-endpoints-common`,
     `ocpi-endpoints-toplevel`,
     `ocpi-endpoints-msp-locations`,
-    `ocpi-endpoints-cpo-locations`)
+    `ocpi-endpoints-cpo-locations`,
+    `ocpi-endpoints-cpo-tokens`)
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
@@ -115,10 +125,9 @@ val `ocpi-endpoints-root` = (project in file("."))
   )
 
 val `example` = project
-    .enablePlugins(AppPlugin)
-    .dependsOn(`ocpi-endpoints-toplevel`)
-    .settings(
-      commonSettings,
-      description := "OCPI endpoints example app"
-    )
-
+  .enablePlugins(AppPlugin)
+  .dependsOn(`ocpi-endpoints-toplevel`)
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints example app"
+  )

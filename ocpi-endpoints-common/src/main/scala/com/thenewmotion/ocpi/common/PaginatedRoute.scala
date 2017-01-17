@@ -1,4 +1,5 @@
-package com.thenewmotion.ocpi.common
+package com.thenewmotion.ocpi
+package common
 
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
@@ -8,7 +9,7 @@ case class PaginatedResult[+T](result: Iterable[T], total: Int)
 
 case class Pager(offset: Int, limit: Int)
 
-trait PaginatedRoute extends Directives{
+trait PaginatedRoute extends Directives {
 
   val DefaultOffset = 0
   def DefaultLimit: Int
@@ -34,9 +35,6 @@ trait PaginatedRoute extends Directives{
             RawHeader("X-Total-Count", pagRes.total.toString)
           )
         }
-
-
-
       )
     }
 }

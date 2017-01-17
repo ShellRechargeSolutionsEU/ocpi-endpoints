@@ -66,9 +66,13 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         val json = responseAs[String].parseJson
         json.extract[Int]('status_code) mustEqual 1000
         json.extract[String]('data / 'version) mustEqual "2.0"
-        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations")
+        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations", "tokens")
         json.extract[String]('data / 'endpoints / * / 'url) mustEqual
-          List("http://example.com/cpo/versions/2.0/credentials", "http://example.com/cpo/versions/2.0/locations")
+          List(
+            "http://example.com/cpo/versions/2.0/credentials",
+            "http://example.com/cpo/versions/2.0/locations",
+            "http://example.com/cpo/versions/2.0/tokens"
+          )
       }
     }
 
@@ -80,9 +84,13 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
         val json = responseAs[String].parseJson
         json.extract[Int]('status_code) mustEqual 1000
         json.extract[String]('data / 'version) mustEqual "2.0"
-        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations")
+        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations", "tokens")
         json.extract[String]('data / 'endpoints / * / 'url) mustEqual
-          List("http://example.com/cpo/versions/2.0/credentials", "http://example.com/cpo/versions/2.0/locations")
+          List(
+            "http://example.com/cpo/versions/2.0/credentials",
+            "http://example.com/cpo/versions/2.0/locations",
+            "http://example.com/cpo/versions/2.0/tokens"
+          )
       }
     }
   }
@@ -94,6 +102,7 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
     val ourCredentialsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"credentials: $version"))
     val ourLocationsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"locations: $version"))
+    val ourTokensRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"tokens: $version"))
     val mockHandshakeService = mock[HandshakeService]
     val topLevelRoute = new TopLevelRoute {
 
@@ -104,7 +113,8 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
           "2.0" -> OcpiVersionConfig(
             endPoints = Map(
               EndpointIdentifier.Credentials -> Right(ourCredentialsRoute),
-              EndpointIdentifier.Locations -> Right(ourLocationsRoute)
+              EndpointIdentifier.Locations -> Right(ourLocationsRoute),
+              EndpointIdentifier.Tokens -> Right(ourTokensRoute)
             )
           )
         ), mockHandshakeService

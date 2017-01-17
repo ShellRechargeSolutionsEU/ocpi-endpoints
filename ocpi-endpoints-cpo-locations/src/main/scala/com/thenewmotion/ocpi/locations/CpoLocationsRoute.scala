@@ -1,28 +1,30 @@
-package com.thenewmotion.ocpi.locations
+package com.thenewmotion.ocpi
+package locations
 
-import akka.http.scaladsl.server.Route
-import com.thenewmotion.ocpi.common.{DateDeserializers, Pager, PaginatedRoute}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
-import com.thenewmotion.ocpi.{ApiUser, JsonApi}
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.StatusCodes._
+import common.AuthorizationRejectionHandler
+import common.DateDeserializers
+import common.Pager
+import common.PaginatedRoute
+import common.ResponseMarshalling
+import locations.LocationsError._
+import msgs.v2_1.CommonTypes.ErrorResp
+import msgs.v2_1.CommonTypes.SuccessWithDataResp
+import msgs.v2_1.OcpiStatusCode.GenericClientFailure
+import msgs.v2_1.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import scala.concurrent.Future
-import scalaz._
+
+import scala.concurrent.ExecutionContext
 
 class CpoLocationsRoute(
   service: CpoLocationsService,
   val DefaultLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
-) extends JsonApi with PaginatedRoute with DateDeserializers {
-
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
-
-  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route): Route =
-    onSuccess(errOrX) {
-      case -\/(e) => reject(LocationsErrorRejection(e))
-      case \/-(r) => f(r)
-    }
+) extends JsonApi with PaginatedRoute with DateDeserializers
+  with ResponseMarshalling {
 
   val dateFromParam = "date_from"
   val dateToParam = "date_to"
@@ -31,45 +33,69 @@ class CpoLocationsRoute(
 
   val formatter = ISODateTimeFormat.dateTime.withZoneUTC
 
-  def route(apiUser: ApiUser) =
-    handleRejections(LocationsRejectionHandler.Default) (routeWithoutRh(apiUser))
+  private val DefaultErrorMsg = Some("An error occurred.")
+
+  import msgs.v2_1.OcpiJsonProtocol._
+
+  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)]): ToResponseMarshaller[LocationsError] = {
+      errorMarshaller.compose[LocationsError] { locationsError =>
+      val statusCode = locationsError match {
+        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
+        case _ => InternalServerError
+      }
+      statusCode -> ErrorResp(GenericClientFailure, locationsError.reason.orElse(DefaultErrorMsg))
+    }
+  }
+
+  def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
+    handleRejections(AuthorizationRejectionHandler.Default) (routeWithoutRh(apiUser))
 
   private def limitToUse(clientLimit: Int) = Math.min(DefaultLimit, clientLimit)
 
-  private [locations] def routeWithoutRh(apiUser: ApiUser) = {
+  private[locations] def routeWithoutRh(apiUser: ApiUser)(implicit executionContext: ExecutionContext) = {
     get {
       pathEndOrSingleSlash {
         dateLimiters { (dateFrom: Option[DateTime], dateTo: Option[DateTime]) =>
           paged { (offset: Int, clientLimit: Int) =>
-            leftToRejection(service.locations(Pager(offset, limitToUse(clientLimit)),
-              dateFrom, dateTo)) { pagLocations =>
-
+            onSuccess(service.locations(
+              Pager(offset, limitToUse(clientLimit)), dateFrom, dateTo
+            )) { _.fold(complete(_), pagLocations => {
               val params = Map.empty ++
                 dateFrom.map(x => dateFromParam -> formatter.print(x)) ++
                 dateTo.map(x => dateToParam -> formatter.print(x))
 
-              respondWithPaginationHeaders( offset, limitToUse(clientLimit), params, pagLocations ) {
-                complete(SuccessWithDataResp(GenericSuccess, None, data = pagLocations.result))
+              respondWithPaginationHeaders(
+                offset, limitToUse(clientLimit), params, pagLocations
+              ) {
+                complete {
+                  SuccessWithDataResp(GenericSuccess, None, data = pagLocations.result)
+                }
               }
-            }
+            })}
           }
         }
       } ~
       pathPrefix(Segment) { locId =>
         pathEndOrSingleSlash {
-          leftToRejection(service.location(locId)) { location =>
-            complete(SuccessWithDataResp(GenericSuccess, None, data = location))
+          complete {
+            service.location(locId).mapRight { location =>
+              SuccessWithDataResp(GenericSuccess, None, data = location)
+            }
           }
         } ~
         pathPrefix(Segment) { evseId =>
           pathEndOrSingleSlash {
-            leftToRejection(service.evse(locId, evseId)) { evse =>
-              complete(SuccessWithDataResp(GenericSuccess, None, data = evse))
+            complete {
+              service.evse(locId, evseId).mapRight { evse =>
+                SuccessWithDataResp(GenericSuccess, None, data = evse)
+              }
             }
           } ~
           (path(Segment) & pathEndOrSingleSlash) { connId =>
-            leftToRejection(service.connector(locId, evseId, connId)) { connector =>
-              complete(SuccessWithDataResp(GenericSuccess, None, data = connector))
+            complete {
+              service.connector(locId, evseId, connId).mapRight { connector =>
+                SuccessWithDataResp(GenericSuccess, None, data = connector)
+              }
             }
           }
         }
@@ -77,4 +103,3 @@ class CpoLocationsRoute(
     }
   }
 }
-

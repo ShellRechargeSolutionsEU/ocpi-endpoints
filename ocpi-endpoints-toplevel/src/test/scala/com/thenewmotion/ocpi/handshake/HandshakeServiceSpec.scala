@@ -219,7 +219,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
         countryCode: String,
         partyId: String,
         newTokenToConnectToUs: String
-      ): HandshakeError \/ Unit = \/-(Unit)
+      ): HandshakeError \/ Unit = \/-(())
 
       protected def persistHandshakeReactResult(
         version: VersionNumber,
@@ -267,7 +267,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
         countryCode: String,
         partyId: String,
         newTokenToConnectToUs: String
-      ): HandshakeError \/ Unit = \/-(Unit)
+      ): HandshakeError \/ Unit = \/-(())
 
       protected def persistHandshakeReactResult(
         version: VersionNumber,
@@ -315,7 +315,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
         countryCode: String,
         partyId: String,
         newTokenToConnectToUs: String
-      ): HandshakeError \/ Unit = \/-(Unit)
+      ): HandshakeError \/ Unit = \/-(())
 
       protected def persistHandshakeReactResult(
         version: VersionNumber,
