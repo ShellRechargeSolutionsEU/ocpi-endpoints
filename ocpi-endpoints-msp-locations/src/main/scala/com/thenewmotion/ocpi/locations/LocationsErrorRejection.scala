@@ -1,5 +1,5 @@
 package com.thenewmotion.ocpi.locations
 
-import spray.routing.Rejection
+import akka.http.scaladsl.server.Rejection
 
 case class LocationsErrorRejection(error: LocationsError) extends Rejection

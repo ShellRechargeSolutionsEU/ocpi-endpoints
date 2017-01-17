@@ -1,13 +1,14 @@
 package com.thenewmotion.ocpi.common
 
-import spray.httpx.marshalling._
+import akka.http.scaladsl.marshalling._
+import scala.concurrent.ExecutionContext
 import scalaz.\/
-
 
 trait ResponseMarshalling {
   implicit def eitherToResponseMarshaller[L, R]
-    (implicit lm: ToResponseMarshaller[L], rm: ToResponseMarshaller[R]) =
-    ToResponseMarshaller[\/[L, R]]{ (v, ctx) =>
-      v.fold(lm(_, ctx), rm(_, ctx))
+  (implicit lm: ToResponseMarshaller[L], rm: ToResponseMarshaller[R]) =
+    Marshaller {
+      implicit ex: ExecutionContext =>
+        value: \/[L, R] => value.fold(lm(_), rm(_))
     }
 }

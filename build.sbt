@@ -1,30 +1,40 @@
+import sbt.Keys.libraryDependencies
+
 val logging = Seq(
-  "ch.qos.logback"               % "logback-classic"          %   "1.1.7",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.21")
+  "ch.qos.logback"               % "logback-classic"          %   "1.1.8",
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.22")
 
-val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.2")
+val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
 
-val spray = Seq(
-  "io.spray"                    %% "spray-routing-shapeless2" %   "1.3.3",
-  "io.spray"                    %% "spray-client"             %   "1.3.4")
+def akkaModule(name: String) = {
+  val v = if (name.startsWith("http")) "10.0.1" else "2.4.16"
+  "com.typesafe.akka" %% s"akka-$name" % v
+}
 
-val akka = Seq("com.typesafe.akka" %% s"akka-actor" % "2.4.12")
+val akka =
+  Seq(
+    akkaModule("actor"),
+    akkaModule("http"),
+    akkaModule("http-spray-json")
+  )
 
-val akkaTestkit = Seq("com.typesafe.akka" %% s"akka-testkit" % "2.4.12")
-
-val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.7")
+val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.8")
 
 val misc = Seq(
   "com.thenewmotion"            %% "joda-money-ext"           %   "1.0.0",
   "com.thenewmotion"            %% "time"                     %   "2.8",
   "com.thenewmotion"            %% "mobilityid"               %   "0.14")
 
-val specs2 = Seq(
-  "org.specs2"                  %% "specs2-core"              %   "3.8.5.1",
-  "org.specs2"                  %% "specs2-junit"             %   "3.8.5.1",
-  "org.specs2"                  %% "specs2-mock"              %   "3.8.5.1")
+val specs2 = {
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.8.7" % "test"
+  Seq(
+    module("core"), module("junit"), module("mock")
+  )
+}
 
-val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %   "0.6.1")
+val akkaHttpTestKitSpecs2 = Seq("com.newmotion" %% "akka-http-testkit-specs2" % "0.0.1" % "test")
+
+val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.1")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
@@ -52,43 +62,44 @@ val `ocpi-msgs-spray-json` = project
   .settings(
     commonSettings,
     description := "OCPI serialization library Spray Json",
-    libraryDependencies := `spray-json` ++ specs2.map(_ % "test"))
-
-val `spray-testkit-specs2` = project
-  .enablePlugins(LibPlugin)
-  .settings(
-    description := "Spray testkit that works with Specs2 3.x",
-    libraryDependencies := spray ++ specs2 ++ akkaTestkit)
+    libraryDependencies := `spray-json` ++ specs2
+  )
 
 val `ocpi-endpoints-common` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-msgs-spray-json`, `spray-testkit-specs2` % "test->test")
+  .dependsOn(`ocpi-msgs-spray-json`)
   .settings(
     commonSettings,
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ spray ++ akka ++ scalaz)
+    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKitSpecs2
+  )
 
 val `ocpi-endpoints-msp-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`, `spray-testkit-specs2` % "test->test")
+  .dependsOn(`ocpi-endpoints-common`)
   .settings(
     commonSettings,
-    description := "OCPI endpoints MSP Locations")
+    description := "OCPI endpoints MSP Locations",
+    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+  )
 
 val `ocpi-endpoints-cpo-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`, `spray-testkit-specs2` % "test->test")
+  .dependsOn(`ocpi-endpoints-common`)
   .settings(
     commonSettings,
-    description := "OCPI endpoints CPO Locations")
+    description := "OCPI endpoints CPO Locations",
+    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+  )
 
 val `ocpi-endpoints-toplevel` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`, `spray-testkit-specs2` % "test->test")
+  .dependsOn(`ocpi-endpoints-common`)
   .settings(
     commonSettings,
     description := "OCPI endpoints toplevel",
-    libraryDependencies := jsonLenses.map(_ % "test"))
+    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2 ++ jsonLenses.map(_ % "test")
+  )
 
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
@@ -104,4 +115,12 @@ val `ocpi-endpoints-root` = (project in file("."))
     commonSettings,
     publish := {}
   )
+
+val `example` = project
+    .enablePlugins(AppPlugin)
+    .dependsOn(`ocpi-endpoints-toplevel`)
+    .settings(
+      commonSettings,
+      description := "OCPI endpoints example app"
+    )
 

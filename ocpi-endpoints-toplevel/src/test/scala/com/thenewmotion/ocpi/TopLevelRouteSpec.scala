@@ -1,15 +1,12 @@
 package com.thenewmotion.ocpi
 
+import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.{EndpointIdentifier, VersionNumber}
-import com.thenewmotion.spray.testkit.Specs2RouteTest
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import spray.http.HttpHeaders._
-import spray.http.GenericHttpCredentials
-import spray.http.StatusCodes
-import spray.routing.AuthenticationFailedRejection
 import org.joda.time.DateTime
 import spray.json._
 import lenses.JsonLenses._
@@ -25,21 +22,25 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
     }
 
-    "reject api calls without Authorization header" in new TopLevelScope {
+    "return error for api calls without Authorization header" in new TopLevelScope {
       Get("/cpo/versions") ~>
         addHeader(invalidHeaderName) ~> topLevelRoute.topLevelRoute ~> check {
-        handled must beFalse
-        rejection must haveClass[AuthenticationFailedRejection]
+        handled must beTrue
+
+        val json = responseAs[String].parseJson
+        json.extract[Int]('status_code) mustEqual 2011
       }
     }
 
-    "reject api calls without valid token" in new TopLevelScope {
+    "return error for api calls without valid token" in new TopLevelScope {
       Get("/cpo/versions") ~>
       addHeader(invalidToken) ~>
       topLevelRoute.topLevelRoute ~>
       check {
-        handled must beFalse
-        rejection must haveClass[AuthenticationFailedRejection]
+        handled must beTrue
+
+        val json = responseAs[String].parseJson
+        json.extract[Int]('status_code) mustEqual 2010
       }
     }
 

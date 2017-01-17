@@ -1,10 +1,12 @@
 package com.thenewmotion.ocpi.handshake
 
-import spray.http._, StatusCodes._
-import spray.httpx.marshalling._
-import spray.httpx.SprayJsonSupport._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.model.StatusCode
+import akka.http.scaladsl.model.StatusCodes._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode, OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
+import OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import com.thenewmotion.ocpi.common.ResponseMarshalling
 import HandshakeError._

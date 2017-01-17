@@ -1,21 +1,20 @@
 package com.thenewmotion.ocpi.locations
 
-import akka.actor.ActorRefFactory
-import akka.util.Timeout
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.Uri
 import com.thenewmotion.ocpi.common.{ClientError, OcpiClient}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
-import spray.client.pipelining._
-import spray.httpx.SprayJsonSupport._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.ActorMaterializer
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.thenewmotion.time.Imports.{DateTime, ISODateTimeFormat}
-import spray.http.Uri
 
-class LocationsClient(implicit refFactory: ActorRefFactory, timeout: Timeout = Timeout(20.seconds)) extends OcpiClient {
+class LocationsClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
   val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
 
@@ -26,7 +25,7 @@ class LocationsClient(implicit refFactory: ActorRefFactory, timeout: Timeout = T
       dateFrom.map("date_from" -> formatterNoMillis.print(_)) ++
       dateTo.map("date_to" -> formatterNoMillis.print(_))
 
-    traversePaginatedResource(uri, auth, query)(unmarshal[Page[Location]])
+    traversePaginatedResource(uri, auth, query)(res => Unmarshal(res.entity).to[Page[Location]])
   }
 
 }

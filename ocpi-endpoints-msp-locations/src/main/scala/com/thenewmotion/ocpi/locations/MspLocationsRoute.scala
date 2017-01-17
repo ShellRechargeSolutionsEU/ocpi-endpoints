@@ -1,26 +1,24 @@
 package com.thenewmotion.ocpi.locations
 
+import akka.http.scaladsl.model.{HttpMethods, StatusCodes}
+import akka.http.scaladsl.server.{MethodRejection, PathMatcher1, Route}
 import com.thenewmotion.mobilityid.{CountryCode, OperatorIdIso}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{SuccessResp, SuccessWithDataResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
-import spray.http.{HttpMethods, StatusCodes}
-import spray.routing.{MethodRejection, PathMatcher1, Route}
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scalaz._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 
 class MspLocationsRoute(
   service: MspLocationsService,
   currentTime: => DateTime = DateTime.now
-) (implicit ec: ExecutionContext) extends JsonApi {
-
+) extends JsonApi {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
+  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route): Route =
     onSuccess(errOrX) {
       case -\/(e) => reject(LocationsErrorRejection(e))
       case \/-(r) => f(r)
@@ -32,7 +30,6 @@ class MspLocationsRoute(
   private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment map (CountryCode(_))
   private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment map (OperatorIdIso(_))
 
-
   private [locations] def routeWithoutRh(apiUser: ApiUser) = {
     pathPrefix(CountryCodeSegment / OperatorIdSegment / Segment) { (cc, opId, locId) =>
       pathEndOrSingleSlash {
@@ -41,7 +38,7 @@ class MspLocationsRoute(
             authorize(CountryCode(apiUser.countryCode) == cc) {
               entity(as[Location]) { location =>
                 leftToRejection(service.createOrUpdateLocation(cc, opId, locId, location)) { res =>
-                  complete((if(res)StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
+                  complete((if(res) StatusCodes.Created else StatusCodes.OK, SuccessResp(GenericSuccess))) }
               }
             }
           }
@@ -56,10 +53,8 @@ class MspLocationsRoute(
             }
           } ~
           get {
-            dynamic {
-              leftToRejection(service.location(cc, opId, locId)) { location =>
-                complete(SuccessWithDataResp(GenericSuccess, None, data = location)) }
-            }
+            leftToRejection(service.location(cc, opId, locId)) { location =>
+              complete(SuccessWithDataResp(GenericSuccess, None, data = location)) }
           }
         } ~
         pathPrefix(Segment) { evseId =>
@@ -77,10 +72,8 @@ class MspLocationsRoute(
               }
             } ~
             get {
-              dynamic {
-                leftToRejection(service.evse(cc, opId, locId, evseId)) { evse =>
-                  complete(SuccessWithDataResp(GenericSuccess, None, data = evse)) }
-              }
+              leftToRejection(service.evse(cc, opId, locId, evseId)) { evse =>
+                complete(SuccessWithDataResp(GenericSuccess, None, data = evse)) }
             }
           } ~
           (path(Segment) & pathEndOrSingleSlash) { connId =>
@@ -97,10 +90,8 @@ class MspLocationsRoute(
               }
             } ~
             get {
-              dynamic {
-                leftToRejection(service.connector(cc, opId, locId, evseId, connId)) { connector =>
-                  complete(SuccessWithDataResp(GenericSuccess, None, data = connector)) }
-              }
+              leftToRejection(service.connector(cc, opId, locId, evseId, connId)) { connector =>
+                complete(SuccessWithDataResp(GenericSuccess, None, data = connector)) }
             }
           }
         }

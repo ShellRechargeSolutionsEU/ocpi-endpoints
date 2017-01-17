@@ -1,8 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{Image, ImageCategory, BusinessDetails}
 import Credentials._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Image, ImageCategory}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._

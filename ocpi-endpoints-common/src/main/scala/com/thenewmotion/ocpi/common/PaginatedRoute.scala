@@ -1,7 +1,8 @@
 package com.thenewmotion.ocpi.common
 
-import spray.http.HttpHeaders.{Link, RawHeader}
-import spray.routing.{Directive0, Directives}
+import akka.http.scaladsl.model.Uri.Query
+import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
+import akka.http.scaladsl.server.{Directive0, Directives}
 
 case class PaginatedResult[+T](result: Iterable[T], total: Int)
 
@@ -21,14 +22,14 @@ trait PaginatedRoute extends Directives{
       respondWithHeaders(
         if (offset + limitToUse >= pagRes.total) Nil
         else {
-          val linkParams = otherLinkParameters ++
+          val linkParams = Query(otherLinkParameters ++
             Map(
               "offset" -> (offset + limitToUse).toString,
               "limit" -> limitToUse.toString
-            )
+            ))
 
           List(
-            Link(Link.Value(ctx.request.uri.withQuery(linkParams), Link.next)),
+            Link(ctx.request.uri.withQuery(linkParams), LinkParams.next),
             RawHeader("X-Limit", limitToUse.toString),
             RawHeader("X-Total-Count", pagRes.total.toString)
           )

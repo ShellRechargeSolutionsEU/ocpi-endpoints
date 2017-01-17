@@ -1,21 +1,24 @@
 package com.thenewmotion.ocpi
 
+import java.net.UnknownHostException
 import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.util.Timeout
 import scala.concurrent.duration.FiniteDuration
-import com.thenewmotion.ocpi.common.{ClientError, OcpiClient}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import spray.http._
-import HttpHeaders._
-import StatusCodes._
-import ContentTypes._
-import org.specs2.concurrent.ExecutionEnv
+import akka.http.scaladsl.model.ContentTypes._
 import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{-\/, \/, \/-}
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import com.thenewmotion.ocpi.common.{ClientError, OcpiClient}
+import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
+import akka.stream.ActorMaterializer
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
+import org.specs2.concurrent.ExecutionEnv
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -25,17 +28,17 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 
     "download all paginated data" in new TestScope {
       override val firstPageResp = HttpResponse(
-        OK, HttpEntity(`application/json`, firstPageBody.getBytes),
-        List(
-          Link(Uri(s"$dataUrl?offset=1&limit=1"), Link.next),
+        OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
+        headers = List(
+          Link(Uri(s"$dataUrl?offset=1&limit=1"), LinkParams.next),
           RawHeader("X-Total-Count", "2"),
           RawHeader("X-Limit", "1")
         )
       )
 
       override val lastPageResp = HttpResponse(
-        OK, HttpEntity(`application/json`, lastPageBody.getBytes),
-        List(
+        OK, entity = HttpEntity(`application/json`, lastPageBody.getBytes),
+        headers = List(
           RawHeader("X-Total-Count", "2"),
           RawHeader("X-Limit", "1")
         )
@@ -82,10 +85,9 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     "address extra params with the query" in new TestScope {
 
       override val firstPageResp = HttpResponse(
-        OK, HttpEntity(`application/json`, firstPageBody.getBytes),
-        List(
-          Link(Uri(s"$dataUrl?offset=1&limit=1&date_from=2016-11-23T08:04:01Z"), Link.next),
-          RawHeader("X-Total-Count", "2"),
+        OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
+        headers = List(
+          RawHeader("X-Total-Count", "1"),
           RawHeader("X-Limit", "1")
         )
       )
@@ -109,6 +111,8 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 
     implicit val system = ActorSystem()
 
+    implicit val materializer = ActorMaterializer()
+
     val dataUrl = "http://localhost:8095/cpo/versions/2.0/somemodule"
 
     val firstPageBody = s"""
@@ -124,22 +128,22 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     val lastPageBody = firstPageBody.replace("DATA1","DATA2")
 
     def firstPageResp: HttpResponse = HttpResponse(
-      OK, HttpEntity(`application/json`,
-        firstPageBody.getBytes), List(
-        Link(Uri(s"$dataUrl?offset=1&limit=1"), Link.next),
+      OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
+      headers = List(
+        Link(Uri(s"$dataUrl?offset=1&limit=1"), LinkParams.next),
         RawHeader("X-Total-Count", "2"),
         RawHeader("X-Limit", "1")
       )
     )
     def lastPageResp: HttpResponse = HttpResponse(
-      OK, HttpEntity(`application/json`, lastPageBody.getBytes),
-      List(
+      OK, entity = HttpEntity(`application/json`, lastPageBody.getBytes),
+      headers = List(
         RawHeader("X-Total-Count", "2"),
         RawHeader("X-Limit", "1"))
     )
 
     def wrongJsonResp: HttpResponse = HttpResponse(
-      OK, HttpEntity(`application/json`,
+      OK, entity = HttpEntity(`application/json`,
         s"""
          |{
          |  "status_code": 1000,
@@ -154,7 +158,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     def notFoundResp = HttpResponse(NotFound)
 
     def emptyResp = HttpResponse(
-      OK, HttpEntity(`application/json`,
+      OK, entity = HttpEntity(`application/json`,
         s"""
            |{
            |  "status_code": 1000,
@@ -165,7 +169,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     )
 
     def ocpiErrorResp = HttpResponse(
-      OK, HttpEntity(`application/json`,
+      OK, entity = HttpEntity(`application/json`,
         s"""
            |{
            |  "status_code": 2000,
@@ -185,20 +189,19 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     lazy val client = new OcpiClient {
 
       import scala.concurrent.ExecutionContext.Implicits.global
-      import spray.client.pipelining._
-      import spray.httpx.SprayJsonSupport._
+      import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
       import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
       import GenericRespTypes._
 
       val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
-      val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=100"
-      val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=100"
-      val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=100"
-      val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=100"
-      val urlWithExtraParams = s"$dataUrl?offset=0&limit=100&date_from=2016-11-23T08:04:01Z"
+      val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=1"
+      val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=1"
+      val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=1"
+      val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
+      val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
 
-      override def sendAndReceive = (req:HttpRequest) => req.uri.toString match {
+      override def requestWithAuth(req: HttpRequest, token: String)(implicit ec: ExecutionContext): Future[HttpResponse] = req.uri.toString match {
         case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
         case urlPattern(offset) if offset == "1" => Future.successful(lastPageResp)
         case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
@@ -209,11 +212,12 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
         case `urlWithExtraParams` => Future.successful(firstPageResp)
         case x =>
           println(s"got request url |$x|. ")
-          Future.failed(throw new spray.can.Http.ConnectionAttemptFailedException("localhost", 8095))
+          Future.failed(new UnknownHostException("www.ooopsie.com"))
       }
 
-      def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)(implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
-        traversePaginatedResource(uri, auth, params)(unmarshal[Page[TestData]])
+      def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)
+                 (implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
+        traversePaginatedResource(uri, auth, params, limit = 1)(res => Unmarshal(res.entity).to[Page[TestData]])
     }
 
   }

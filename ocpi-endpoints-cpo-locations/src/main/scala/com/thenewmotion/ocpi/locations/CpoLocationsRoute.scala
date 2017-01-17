@@ -1,24 +1,24 @@
 package com.thenewmotion.ocpi.locations
 
+import akka.http.scaladsl.server.Route
 import com.thenewmotion.ocpi.common.{DateDeserializers, Pager, PaginatedRoute}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import org.joda.time.format.ISODateTimeFormat
-import spray.routing.Route
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scalaz._
 
 class CpoLocationsRoute(
   service: CpoLocationsService,
   val DefaultLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
-) (implicit ec: ExecutionContext) extends JsonApi with PaginatedRoute with DateDeserializers {
+) extends JsonApi with PaginatedRoute with DateDeserializers {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 
-  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route)(implicit ec: ExecutionContext): Route =
+  private def leftToRejection[T](errOrX: Future[LocationsError \/ T])(f: T => Route): Route =
     onSuccess(errOrX) {
       case -\/(e) => reject(LocationsErrorRejection(e))
       case \/-(r) => f(r)

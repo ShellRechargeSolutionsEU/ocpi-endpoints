@@ -2,11 +2,11 @@ package com.thenewmotion.ocpi.msgs.v2_1
 
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
+import VersionNumber._
 
 class VersionsSpecs extends SpecificationWithJUnit {
 

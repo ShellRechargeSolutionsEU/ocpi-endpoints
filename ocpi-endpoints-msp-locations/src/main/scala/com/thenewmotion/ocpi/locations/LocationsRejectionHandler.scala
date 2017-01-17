@@ -1,24 +1,25 @@
 package com.thenewmotion.ocpi.locations
 
 import LocationsError._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.server.directives.{BasicDirectives, MiscDirectives}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import org.joda.time.DateTime
-import spray.http.StatusCodes._
-import spray.httpx.SprayJsonSupport
-import spray.routing._
-import spray.routing.directives.RouteDirectives._
-import spray.routing.directives.{BasicDirectives, MiscDirectives}
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server._
+import StatusCodes._
+import Directives._
 
 object LocationsRejectionHandler extends BasicDirectives with MiscDirectives with SprayJsonSupport {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  val Default = RejectionHandler {
+  val Default = RejectionHandler.newBuilder().handle {
 
-    case AuthorizationFailedRejection :: _ =>
+    case AuthorizationFailedRejection =>
 
-      requestUri { uri => complete {
+      extractUri { uri => complete {
         ( Forbidden,
           ErrorResp(
             GenericClientFailure,
@@ -27,7 +28,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
         }
       }
 
-    case (LocationsErrorRejection(e@LocationNotFound(reason))) :: _ => complete {
+    case LocationsErrorRejection(LocationNotFound(reason)) => complete {
       ( NotFound,
         ErrorResp(
           GenericClientFailure,
@@ -35,7 +36,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
           DateTime.now()))
     }
 
-    case (LocationsErrorRejection(e@LocationCreationFailed(reason))) :: _ => complete {
+    case LocationsErrorRejection(LocationCreationFailed(reason)) => complete {
         ( OK,
             ErrorResp(
               GenericClientFailure,
@@ -43,7 +44,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
               DateTime.now()))
       }
 
-    case (LocationsErrorRejection(e@EvseNotFound(reason))) :: _ => complete {
+    case LocationsErrorRejection(EvseNotFound(reason)) => complete {
         ( NotFound,
             ErrorResp(
               GenericClientFailure,
@@ -51,7 +52,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
               DateTime.now()))
       }
 
-    case (LocationsErrorRejection(e@EvseCreationFailed(reason))) :: _ => complete {
+    case LocationsErrorRejection(EvseCreationFailed(reason)) => complete {
       ( OK,
         ErrorResp(
           GenericClientFailure,
@@ -59,7 +60,7 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
           DateTime.now()))
     }
 
-    case (LocationsErrorRejection(e@ConnectorNotFound(reason))) :: _ => complete {
+    case LocationsErrorRejection(ConnectorNotFound(reason)) => complete {
         ( NotFound,
             ErrorResp(
               GenericClientFailure,
@@ -67,12 +68,12 @@ object LocationsRejectionHandler extends BasicDirectives with MiscDirectives wit
               DateTime.now()))
       }
 
-    case (LocationsErrorRejection(e@ConnectorCreationFailed(reason))) :: _ => complete {
+    case LocationsErrorRejection(ConnectorCreationFailed(reason)) => complete {
       ( OK,
         ErrorResp(
           GenericClientFailure,
           reason,
           DateTime.now()))
     }
-  }
+  }.result()
 }

@@ -1,7 +1,9 @@
 package com.thenewmotion.ocpi.handshake
 
 import java.security.SecureRandom
-import akka.actor.ActorRefFactory
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.Uri
+import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi
 import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.handshake.HandshakeError._
@@ -9,7 +11,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Versions
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetails, VersionNumber}
-import spray.http.Uri
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
@@ -22,7 +23,7 @@ abstract class HandshakeService(
   ourBaseUrl: Uri,
   ourPartyId: String,
   ourCountryCode: String
-)(implicit system: ActorRefFactory) extends FutureEitherUtils {
+)(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
