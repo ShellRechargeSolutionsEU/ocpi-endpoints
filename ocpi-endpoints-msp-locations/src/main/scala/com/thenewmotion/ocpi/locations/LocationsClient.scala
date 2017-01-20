@@ -7,7 +7,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.github.nscala_time.time.Imports._

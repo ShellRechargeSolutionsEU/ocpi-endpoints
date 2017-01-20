@@ -1,6 +1,5 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.{OcpiDatetimeParser, SimpleStringEnumSerializer}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
@@ -37,34 +36,6 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
           "specified in OCPI 2.1 section 14.2, but got " + x)
       }
       case x => deserializationError ("Expected DateTime as JsString, but got " + x)
-    }
-  }
-
-  implicit val currencyUnitFormat = new JsonFormat[CurrencyUnit] {
-    def write(x: CurrencyUnit) = JsString(x.getCode)
-    def read(value: JsValue) = value match {
-      case JsString(x) => CurrencyUnit(x)
-      case x => deserializationError("Expected CurrencyUnit as JsString, but got " + x)
-    }
-  }
-
-
-  implicit val moneyFormat = new JsonFormat[Money] {
-    def write(x: Money) = JsObject(
-      "currency" -> JsString(x.getCurrencyUnit.toString),
-      "amount" -> JsString(x.getAmount.toString)
-    )
-
-    def read(value: JsValue) = {
-      def err(x: Any) = deserializationError( """Expected Money as ex.: {"currency": "String", "amount": "String"}, but got """ + x)
-      value match {
-        case JsObject(l) => l.toList match {
-          case List(("currency", JsString(cur)), ("amount", JsString(am))) =>
-            MoneyFromBigDecimal(BigDecimal(am).bigDecimal).of(CurrencyUnit(cur))
-          case x => err(x)
-        }
-        case x => err(x)
-      }
     }
   }
 
