@@ -1,9 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.money._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
-import org.joda.money.Money
 import org.joda.time.DateTimeZone._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
@@ -23,21 +21,6 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
     }
     "extract" in {
       JsonParser("\"" + str + "\"").convertTo[DateTime].getMillis mustEqual obj.getMillis
-    }
-  }
-
-
-  "MoneyJsonFormat" should {
-    "deserialize" in {
-      val money = 1 minorsOf EUR
-      val jData =
-        s"""
-          |{
-          | "currency": "EUR",
-          | "amount": "0.000001"
-          |}
-        """.stripMargin.parseJson
-      jData.convertTo[Money] mustEqual money
     }
   }
 
