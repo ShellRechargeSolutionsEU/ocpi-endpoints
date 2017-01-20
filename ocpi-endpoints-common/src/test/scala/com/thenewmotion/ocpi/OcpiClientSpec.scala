@@ -10,7 +10,6 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
-import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{-\/, \/, \/-}
 import akka.http.scaladsl.unmarshalling.Unmarshal
@@ -100,13 +99,6 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     }
   }
 
-  object GenericRespTypes {
-    case class TestData(id: String)
-
-    import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-    implicit val testDataFormat = jsonFormat1(TestData)
-  }
-
   trait TestScope extends Scope {
 
     implicit val system = ActorSystem()
@@ -186,39 +178,50 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     val emptyUrl = s"$dataUrl/empty"
     val ocpiErrorUrl = s"$dataUrl/ocpierror"
 
-    lazy val client = new OcpiClient {
+    val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
+    val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=1"
+    val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=1"
+    val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=1"
+    val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
+    val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
 
-      import scala.concurrent.ExecutionContext.Implicits.global
-      import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-      import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-
-      import GenericRespTypes._
-
-      val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
-      val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=1"
-      val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=1"
-      val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=1"
-      val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
-      val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
-
-      override def requestWithAuth(req: HttpRequest, token: String)(implicit ec: ExecutionContext): Future[HttpResponse] = req.uri.toString match {
-        case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
-        case urlPattern(offset) if offset == "1" => Future.successful(lastPageResp)
-        case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
-        case `wrongJsonUrlWithParams` => println(s"serving wrong JSON");Future.successful(wrongJsonResp)
-        case `notFoundUrlWithParams` => Future.successful(notFoundResp)
-        case `emptyUrlWithParams` => Future.successful(emptyResp)
-        case `ocpiErrorUrlWithParams` => Future.successful(ocpiErrorResp)
-        case `urlWithExtraParams` => Future.successful(firstPageResp)
-        case x =>
-          println(s"got request url |$x|. ")
-          Future.failed(new UnknownHostException("www.ooopsie.com"))
-      }
-
-      def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)
-                 (implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
-        traversePaginatedResource(uri, auth, params, limit = 1)(res => Unmarshal(res.entity).to[Page[TestData]])
+    def requestWithAuth(uri: String) = uri match {
+      case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
+      case urlPattern(offset) if offset == "1" => Future.successful(lastPageResp)
+      case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
+      case `wrongJsonUrlWithParams` => println(s"serving wrong JSON");Future.successful(wrongJsonResp)
+      case `notFoundUrlWithParams` => Future.successful(notFoundResp)
+      case `emptyUrlWithParams` => Future.successful(emptyResp)
+      case `ocpiErrorUrlWithParams` => Future.successful(ocpiErrorResp)
+      case `urlWithExtraParams` => Future.successful(firstPageResp)
+      case x =>
+        println(s"got request url |$x|. ")
+        Future.failed(new UnknownHostException("www.ooopsie.com"))
     }
 
+    lazy val client = new TestOcpiClient(requestWithAuth)
   }
+}
+
+object GenericRespTypes {
+  case class TestData(id: String)
+
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  implicit val testDataFormat = jsonFormat1(TestData)
+}
+
+
+class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
+  (implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
+
+  import GenericRespTypes._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+
+  override def requestWithAuth(req: HttpRequest, token: String)(implicit ec: ExecutionContext): Future[HttpResponse] =
+    req.uri.toString match { case x => reqWithAuthFunc(x) }
+
+  def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)
+             (implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
+    traversePaginatedResource(uri, auth, params, limit = 1)(res => Unmarshal(res.entity).to[Page[TestData]])
 }

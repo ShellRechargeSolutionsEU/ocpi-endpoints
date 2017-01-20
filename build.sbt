@@ -33,12 +33,11 @@ val specs2 = {
 
 val akkaHttpTestKitSpecs2 = Seq("com.newmotion" %% "akka-http-testkit-specs2" % "0.0.1" % "test")
 
-val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.1")
+val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
-  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
-  crossScalaVersions := Seq(tnm.ScalaVersion.curr)
+  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 )
 
 val `ocpi-prelude` = project
