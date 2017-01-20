@@ -6,7 +6,7 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
-import com.thenewmotion.time.Imports._
+import com.github.nscala_time.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
 import spray.json._
 

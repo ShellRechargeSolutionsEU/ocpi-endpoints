@@ -3,6 +3,7 @@ package msgs
 
 import org.joda.time.DateTimeZone
 import org.joda.time.format.{DateTimeFormat, ISODateTimeFormat}
+import com.github.nscala_time.time.Imports._
 import spray.json._
 
 class SimpleStringEnumSerializer[T <: Nameable](enum: Enumerable[T]) {
@@ -19,8 +20,6 @@ class SimpleStringEnumSerializer[T <: Nameable](enum: Enumerable[T]) {
 object OcpiDatetimeParser {
 
   def toOcpiDateTime(dt: String) = {
-    import com.thenewmotion.time.JodaImplicits._
-
     DateTimeZone.setDefault(DateTimeZone.UTC)
     val (formatterNoMillis, formatterNoTz, formatterWithTz) =
       (ISODateTimeFormat.dateTimeNoMillis.withZoneUTC.parseOption(dt),

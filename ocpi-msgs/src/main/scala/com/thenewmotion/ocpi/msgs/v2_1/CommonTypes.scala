@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 package msgs.v2_1
 
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.{ErrorCode, SuccessCode}
-import com.thenewmotion.time.Imports._
+import com.github.nscala_time.time.Imports._
 
 object CommonTypes {
 

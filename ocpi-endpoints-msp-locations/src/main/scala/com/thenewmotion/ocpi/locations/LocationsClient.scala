@@ -10,7 +10,8 @@ import akka.stream.ActorMaterializer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
-import com.thenewmotion.time.Imports.{DateTime, ISODateTimeFormat}
+import com.github.nscala_time.time.Imports._
+import org.joda.time.format.ISODateTimeFormat
 
 class LocationsClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
