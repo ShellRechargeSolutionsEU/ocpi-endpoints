@@ -2,12 +2,11 @@ package com.thenewmotion.ocpi
 package handshake
 
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
-import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 
-class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+class HandshakeRoute(service: HandshakeService) extends JsonApi {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import com.thenewmotion.ocpi.msgs.v2_1.Credentials._
 
@@ -17,7 +16,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToHandshakeRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .mapRight(SuccessWithDataResp(GenericSuccess, None, currentTime, _))
+            .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
     } ~
@@ -25,7 +24,7 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
       complete {
         service
           .credsToConnectToUs(tokenToConnectToUs)
-          .map(SuccessWithDataResp(GenericSuccess, None, currentTime, _))
+          .map(x => SuccessWithDataResp(GenericSuccess, data = x))
       }
     } ~
     put {
@@ -33,14 +32,14 @@ class HandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateT
         complete {
           service
             .reactToUpdateCredsRequest(accessedVersion, tokenToConnectToUs, credsToConnectToThem)
-            .mapRight(SuccessWithDataResp(GenericSuccess, None, currentTime, _))
+            .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
     }
   }
 }
 
-class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime = DateTime.now) extends JsonApi {
+class InitiateHandshakeRoute(service: HandshakeService) extends JsonApi {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 
@@ -51,7 +50,7 @@ class InitiateHandshakeRoute(service: HandshakeService, currentTime: => DateTime
           import theirVersionsUrlInfo._
           service
             .initiateHandshakeProcess(partyName, countryCode, partyId, token, url)
-            .mapRight(SuccessWithDataResp(GenericSuccess, None, currentTime, _))
+            .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
     }
