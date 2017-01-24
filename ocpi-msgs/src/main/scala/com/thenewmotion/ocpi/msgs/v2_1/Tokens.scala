@@ -46,8 +46,8 @@ object Tokens {
 
   case class LocationReferences(
     locationId: String,
-    evseUids: Iterable[String],
-    connectorIds: Iterable[String]
+    evseUids: Iterable[String] = Nil,
+    connectorIds: Iterable[String] = Nil
   )
 
   sealed abstract class Allowed(val name: String) extends Nameable
