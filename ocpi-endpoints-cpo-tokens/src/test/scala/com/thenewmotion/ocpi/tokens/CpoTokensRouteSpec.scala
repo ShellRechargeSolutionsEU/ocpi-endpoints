@@ -43,10 +43,10 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       )
 
       cpoTokensService.createOrUpdateToken(
-        countryCode,
-        operatorIdIso,
-        tokenUid,
-        token
+        ===(countryCode),
+        ===(operatorIdIso),
+        ===(tokenUid),
+        any[Token]
       ) returns Future(\/-(true))
 
       def beMostlyEqualTo = (be_==(_: Token)) ^^^ ((_: Token).copy(lastUpdated = new DateTime(0)))
