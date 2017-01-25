@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi
 package msgs.v2_1
 
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
 import org.joda.time.DateTime
 
 object Tokens {
@@ -41,5 +42,28 @@ object Tokens {
     valid: Option[Boolean] = None,
     whitelist: Option[WhitelistType] = None,
     language: Option[String] = None
+  )
+
+  case class LocationReferences(
+    locationId: String,
+    evseUids: Iterable[String],
+    connectorIds: Iterable[String]
+  )
+
+  sealed abstract class Allowed(val name: String) extends Nameable
+  object Allowed extends Enumerable[Allowed] {
+    case object Allowed extends Allowed("ALLOWED")
+    case object Blocked extends Allowed("BLOCKED")
+    case object Expired extends Allowed("EXPIRED")
+    case object NoCredit extends Allowed("NO_CREDIT")
+    case object NotAllowed extends Allowed("NOT_ALLOWED")
+
+    val values = Set(Allowed, Blocked, Expired, NoCredit, NotAllowed)
+  }
+
+  case class AuthorizationInfo(
+    allowed: Allowed,
+    location: Option[LocationReferences] = None,
+    info: Option[DisplayText] = None
   )
 }

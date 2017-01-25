@@ -1,24 +1,24 @@
-package com.thenewmotion.ocpi.tokens
+package com.thenewmotion.ocpi
+package tokens
 
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
-import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Token, TokenType, WhitelistType}
-import com.thenewmotion.ocpi.{ApiUser, JsonApi, Specs2RouteTest}
+import common.{Pager, PaginatedResult}
+import msgs.v2_1.CommonTypes.{SuccessWithDataResp, ErrorResp}
+import msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import scala.concurrent.Future
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+import scalaz._
+import msgs.v2_1.OcpiStatusCode._
 
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "MspTokensRoute" should {
     "return a paged set of Tokens" in new TestScope {
-
       service.tokens(Pager(0, 1000), None, None) returns Future(PaginatedResult(List(token), 1))
-
       Get() ~> route.route(apiUser) ~> check {
         header[Link] must beNone
         headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "1000"))
@@ -26,6 +26,39 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         there was one(service).tokens(Pager(0, 1000), None, None)
         val res = entityAs[SuccessWithDataResp[List[Token]]]
         res.data mustEqual List(token)
+      }
+    }
+
+    "authorize without location references" in new TestScope {
+      service.authorize("23455655A", None) returns Future(\/-(AuthorizationInfo(Allowed.Allowed)))
+
+      Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
+        there was one(service).authorize("23455655A", None)
+        val res = entityAs[SuccessWithDataResp[AuthorizationInfo]]
+        res.data.allowed mustEqual Allowed.Allowed
+      }
+    }
+
+    "authorize with location references" in new TestScope {
+
+      val lr = LocationReferences("1234", List("1234"), List("1234", "5678"))
+
+      service.authorize("23455655A", Some(lr)) returns Future(\/-(AuthorizationInfo(Allowed.Allowed)))
+
+      Post("/23455655A/authorize", lr) ~> route.route(apiUser) ~> check {
+        there was one(service).authorize("23455655A", Some(lr))
+        val res = entityAs[SuccessWithDataResp[AuthorizationInfo]]
+        res.data.allowed mustEqual Allowed.Allowed
+      }
+    }
+
+    "handle authorize failure" in new TestScope {
+      service.authorize("23455655A", None) returns Future(-\/(MustProvideLocationReferences))
+
+      Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
+        there was one(service).authorize("23455655A", None)
+        val res = entityAs[ErrorResp]
+        res.statusCode mustEqual NotEnoughInformation
       }
     }
   }

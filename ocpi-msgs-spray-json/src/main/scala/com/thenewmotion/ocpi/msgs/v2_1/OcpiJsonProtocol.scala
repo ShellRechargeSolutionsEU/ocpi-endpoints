@@ -136,6 +136,11 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
   implicit val ocpiEnvelope = jsonFormat3(OcpiEnvelope)
   implicit val credentialsFormat = jsonFormat5(Creds)
+  implicit val locationReferencesFormat = jsonFormat3(LocationReferences)
+  implicit val allowedFormat =
+    new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat
+
+  implicit val authorizationInfoFormat = jsonFormat3(AuthorizationInfo)
 }
 
 object OcpiJsonProtocol extends OcpiJsonProtocol
