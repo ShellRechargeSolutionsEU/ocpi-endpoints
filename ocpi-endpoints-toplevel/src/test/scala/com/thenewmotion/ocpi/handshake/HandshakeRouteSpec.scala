@@ -10,7 +10,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
 import com.thenewmotion.ocpi.Specs2RouteTest
-import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -189,8 +188,6 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
 
   trait CredentialsTestScope extends Scope {
 
-    val dateTime = DateTime.parse("2010-01-01T00:00:00Z")
-
     // their details
     val credsToConnectToThem = Creds(
       token = "ebf3b399-779f-4497-9b9d-ac6ad3cc44d2",
@@ -226,7 +223,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     handshakeService.credsToConnectToUs(any) returns
       -\/(UnknownPartyToken(tokenToConnectToUs))
 
-    val credentialsRoute = new HandshakeRoute(handshakeService, dateTime)
-    val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService, dateTime)
+    val credentialsRoute = new HandshakeRoute(handshakeService)
+    val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService)
   }
 }

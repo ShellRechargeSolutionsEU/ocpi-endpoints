@@ -98,7 +98,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val apiUser = ApiUser("1", "123", "NL", "TNM")
 
     val ServerPageLimit = 50
-    val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, currentTime = dateTime1)
+    val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, ServerPageLimit, currentTime = dateTime1)
 
     val evse1conn1String =
       s"""
