@@ -1,16 +1,16 @@
 package com.thenewmotion.ocpi
 
-import handshake.InitiateHandshakeRoute
-import msgs.v2_1.OcpiStatusCode
-import OcpiStatusCode._
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.model.headers.{GenericHttpCredentials, HttpChallenge, HttpCredentials}
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.SecurityDirectives._
-import msgs.v2_1.Versions._
-import msgs.v2_1.CommonTypes.SuccessWithDataResp
-import scala.concurrent.{ExecutionContext, Future}
+import com.thenewmotion.ocpi.TopLevelRouteRejections._
+import com.thenewmotion.ocpi.common.{OcpiExceptionHandler, TokenAuthenticator}
+import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import org.joda.time.DateTime
+
+import scala.concurrent.ExecutionContext
 
 trait TopLevelRoute extends JsonApi {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
@@ -68,11 +68,9 @@ trait TopLevelRoute extends JsonApi {
     val externalUseToken = new TokenAuthenticator(routingConfig.authenticateApiUser)
     val internalUseToken = new TokenAuthenticator(routingConfig.authenticateInternalUser)
 
-    // TODO: OcpiRejectionHandler is actually part of the endpoints-toplevel package
-    // but should be moved to endpoints-common and then AuthorizationRejectionHandler can
-    // be merged into it. Also the toplevel route contains code that is mostly important
+    // TODO top level route contains code that is mostly important
     // for the registration part of OCPI. This should be moved to a separate module.
-    (handleRejections(OcpiRejectionHandler.Default) & handleExceptions(OcpiExceptionHandler.Default)) {
+    (handleRejections(TopLevelRouteRejections.Handler) & handleExceptions(OcpiExceptionHandler.Default)) {
       (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
         pathPrefix("initiateHandshake") {
           pathEndOrSingleSlash {
@@ -97,23 +95,5 @@ trait TopLevelRoute extends JsonApi {
         }
       }
     }
-  }
-}
-
-class TokenAuthenticator(
-  apiUser: String => Option[ApiUser]
-) extends (Option[HttpCredentials] ⇒ Future[AuthenticationResult[ApiUser]]) {
-  override def apply(credentials: Option[HttpCredentials]): Future[AuthenticationResult[ApiUser]] = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    Future(
-      credentials
-        .flatMap {
-          case GenericHttpCredentials("Token", token, _) => Some(token)
-          case _ => None
-        } flatMap apiUser match {
-        case Some(x) => Right(x)
-        case None => Left(HttpChallenge(scheme = "Token", realm = "ocpi"))
-      }
-    )
   }
 }
