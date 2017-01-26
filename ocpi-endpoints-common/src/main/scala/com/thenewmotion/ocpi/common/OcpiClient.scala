@@ -2,21 +2,31 @@ package com.thenewmotion.ocpi.common
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.Uri.Query
-import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Link, LinkParams}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Link, LinkParams}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import akka.stream.ActorMaterializer
-import akka.http.scaladsl.client.RequestBuilding._
 import com.thenewmotion.ocpi._
 import com.thenewmotion.ocpi.common.ClientError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{OcpiEnvelope, Page}
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
 import spray.json.JsonParser
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.control.NonFatal
 import scala.util.Try
+import scala.util.control.NonFatal
 import scalaz.{-\/, \/, \/-}
+
+//cf. chapter 3.1.3 from the OCPI 2.1 spec
+class ClientObjectUri (val value: Uri) extends AnyVal
+
+object ClientObjectUri {
+  def apply(endpointUri: Uri,
+    ourCountryCode: String,
+    ourPartyId: String,
+    uid: String) = new ClientObjectUri(endpointUri.withPath(endpointUri.path / ourCountryCode / ourPartyId / uid))
+}
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) {
 
@@ -34,8 +44,8 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit actorSystem: ActorSys
     linkUri withQuery newQuery
   }
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   protected def requestWithAuth(req: HttpRequest, auth: String)(implicit ec: ExecutionContext): Future[HttpResponse] = {
     http.singleRequest(logRequest(req.addCredentials(GenericHttpCredentials("Token", auth, Map())))).map { response =>

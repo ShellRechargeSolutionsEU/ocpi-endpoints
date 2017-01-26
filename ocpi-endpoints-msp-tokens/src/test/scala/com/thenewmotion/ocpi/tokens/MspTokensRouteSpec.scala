@@ -14,6 +14,9 @@ import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import scalaz._
 import msgs.v2_1.OcpiStatusCode._
 
+import scala.concurrent.Future
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "MspTokensRoute" should {
