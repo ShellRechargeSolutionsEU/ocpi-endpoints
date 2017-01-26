@@ -4,16 +4,14 @@ package locations
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import common.AuthorizationRejectionHandler
-import common.Pager
-import common.PaginatedRoute
-import common.ResponseMarshalling
+import common._
 import locations.LocationsError._
 import msgs.v2_1.CommonTypes.ErrorResp
 import msgs.v2_1.CommonTypes.SuccessWithDataResp
 import msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import msgs.v2_1.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
+
 import scala.concurrent.ExecutionContext
 
 class CpoLocationsRoute(
@@ -27,8 +25,10 @@ class CpoLocationsRoute(
 
   import msgs.v2_1.OcpiJsonProtocol._
 
-  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)]): ToResponseMarshaller[LocationsError] = {
-    errorMarshaller.compose[LocationsError] { locationsError =>
+  implicit def locationsErrorResp(
+    implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
+  ): ToResponseMarshaller[LocationsError] = {
+    em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
         case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
         case _ => InternalServerError
@@ -38,7 +38,7 @@ class CpoLocationsRoute(
   }
 
   def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
-    handleRejections(AuthorizationRejectionHandler.Default) (routeWithoutRh(apiUser))
+    handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
 
   private [locations] def routeWithoutRh(apiUser: ApiUser)(implicit executionContext: ExecutionContext) = {
     get {

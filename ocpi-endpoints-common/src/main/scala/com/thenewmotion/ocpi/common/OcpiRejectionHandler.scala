@@ -1,14 +1,12 @@
-package com.thenewmotion.ocpi
+package com.thenewmotion.ocpi.common
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
-import OcpiStatusCode._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.server.directives.BasicDirectives
-import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import StatusCodes._
-import Directives._
+import akka.http.scaladsl.server.directives.BasicDirectives
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 
 object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
@@ -16,21 +14,14 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
   val Default = RejectionHandler.newBuilder().handle {
 
-    case MalformedRequestContentRejection(msg, cause) => complete {
+    case MalformedRequestContentRejection(msg, _) => complete {
       ( BadRequest,
         ErrorResp(
           GenericClientFailure,
           Some(msg)))
     }
 
-    case UnsupportedVersionRejection(version: String) => complete {
-      ( OK,
-        ErrorResp(
-          UnsupportedVersion,
-          Some(s"Unsupported version: $version")))
-    }
-
-    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, challengeHeaders) =>
+    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, _) =>
       complete {
         ( BadRequest,
           ErrorResp(
@@ -38,13 +29,22 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
             Some("Header not found")))
       }
 
-    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, challengeHeaders) =>
+    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, _) =>
       complete {
         ( BadRequest,
           ErrorResp(
             AuthenticationFailed,
             Some("Invalid authentication token")))
       }
+
+    case AuthorizationFailedRejection => extractUri { uri =>
+      complete {
+        Forbidden -> ErrorResp(
+          GenericClientFailure,
+          Some(s"The client is not authorized to access ${uri.toRelative}")
+        )
+      }
+    }
 
     case MissingHeaderRejection(header) => complete {
       ( BadRequest,
@@ -54,7 +54,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
     }
   }.handleAll[Rejection] { rejections =>
     complete {
-      (BadRequest,
+      ( BadRequest,
         ErrorResp(
           GenericClientFailure,
           Some(rejections.mkString(", "))))

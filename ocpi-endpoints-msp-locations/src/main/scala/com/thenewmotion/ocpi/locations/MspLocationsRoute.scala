@@ -7,8 +7,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
 import com.thenewmotion.mobilityid.CountryCode
 import com.thenewmotion.mobilityid.OperatorIdIso
-import common.AuthorizationRejectionHandler
-import common.ResponseMarshalling
+import common.{OcpiRejectionHandler, ResponseMarshalling}
 import locations.LocationsError._
 import msgs.v2_1.CommonTypes.ErrorResp
 import msgs.v2_1.CommonTypes.SuccessResp
@@ -24,8 +23,10 @@ class MspLocationsRoute(
 
   import msgs.v2_1.OcpiJsonProtocol._
 
-  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)]): ToResponseMarshaller[LocationsError] = {
-      errorMarshaller.compose[LocationsError] { locationsError =>
+  implicit def locationsErrorResp(
+    implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
+  ): ToResponseMarshaller[LocationsError] = {
+      em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
         case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
         case (_: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed) => OK
@@ -36,7 +37,7 @@ class MspLocationsRoute(
   }
 
   def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
-    handleRejections(AuthorizationRejectionHandler.Default)(routeWithoutRh(apiUser))
+    handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment.map(CountryCode(_))
   private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment.map(OperatorIdIso(_))
