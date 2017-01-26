@@ -12,20 +12,42 @@ import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{-\/, \/, \/-}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.thenewmotion.ocpi.common.{ClientError, OcpiClient}
-import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
+import com.thenewmotion.ocpi.common.{OcpiClient, UnexpectedResponseException}
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Page
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
 import org.specs2.concurrent.ExecutionEnv
+import akka.http.scaladsl.model.StatusCodes._
+import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
+import akka.http.scaladsl.client.RequestBuilding._
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
-  import GenericRespTypes._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-  "generic client" should {
+  case class TestData(id: String)
+  implicit val testDataFormat = jsonFormat1(TestData)
 
-    "download all paginated data" in new TestScope {
+  "single request" should {
+    "unmarshal success response" in new TestScope {
+      client.singleRequest[SuccessWithDataResp[TestData]](
+        Get(singleRequestOKUrl), "auth")  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
+        case \/-(r) => r.data.id mustEqual "monkey"
+      }.await
+    }
+
+    "unmarshal error response" in new TestScope {
+      client.singleRequest[SuccessWithDataResp[TestData]](
+        Get(singleRequestErrUrl), "auth")  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
+        case -\/(err) =>
+          err.statusCode mustEqual GenericClientFailure
+          err.statusMessage must beSome("something went horribly wrong...")
+      }.await
+    }
+  }
+
+  "traverse paginated resource" should {
+    "download subsequent pages" in new TestScope {
       override val firstPageResp = HttpResponse(
         OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
         headers = List(
@@ -43,7 +65,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
         )
       )
 
-      client.getData(dataUrl, "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+      client.traversePaginatedResource[TestData](dataUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
         case \/-(r) =>
           r.size === 2
           r.head.id === "DATA1"
@@ -51,38 +73,25 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
       }.await
     }
 
-    "return an error for wrong urls" in new TestScope {
-      client.getData("http://localhost:8095", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
-        case -\/(err) => err must haveClass[ClientError.ConnectionFailed]
-      }.await
-    }
-
-    "handle JSON that can't be unmarshalled" in new TestScope {
-      client.getData(s"$wrongJsonUrl", "auth") must  beLike[\/[ClientError, Iterable[TestData]]] {
-        case -\/(err) => err must haveClass[ClientError.UnmarshallingFailed]
-      }.await
-    }
-
-    "translate exception from 404 result to left disjuntion client error" in new TestScope {
-      client.getData(s"$notFoundUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-        case -\/(err) => err must haveClass[ClientError.NotFound]
-      }.await
+    "throw an exception when server returns a none successful error code" in new TestScope {
+      client.traversePaginatedResource[TestData](notFoundUrl, "auth", limit = 1) must throwA[UnexpectedResponseException].await
     }
 
     "handle empty list of data items" in new TestScope {
-      client.getData(s"$emptyUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
+      client.traversePaginatedResource[TestData](emptyUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
         case \/-(loc) => loc mustEqual Nil
       }.await
     }
 
     "handle OCPI error codes" in new TestScope {
-      client.getData(s"$ocpiErrorUrl", "auth") must beLike[\/[ClientError, Iterable[TestData]]] {
-        case -\/(err) => err mustEqual ClientError.OcpiClientError(Some("something went horribly wrong..."))
+      client.traversePaginatedResource[TestData](ocpiErrorUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
+        case -\/(err) =>
+          err.statusCode mustEqual GenericClientFailure
+          err.statusMessage must beSome("something went horribly wrong...")
       }.await
     }
 
     "address extra params with the query" in new TestScope {
-
       override val firstPageResp = HttpResponse(
         OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
         headers = List(
@@ -91,7 +100,8 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
         )
       )
 
-      client.getData(dataUrl, "auth", Map("date_from" -> "2016-11-23T08:04:01Z")) must beLike[\/[ClientError, Iterable[TestData]]] {
+      client.traversePaginatedResource[TestData](
+        dataUrl, "auth", Map("date_from" -> "2016-11-23T08:04:01Z"), limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
         case \/-(r) =>
           r.size === 1
           r.head.id === "DATA1"
@@ -171,12 +181,27 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
            |""".stripMargin.getBytes)
     )
 
+    def successResponse = HttpResponse(
+      OK, entity = HttpEntity(`application/json`,
+        s"""
+           |{
+           |  "status_code": 1000,
+           |  "timestamp": "2010-01-01T00:00:00Z",
+           |  "data": {
+           |    "id": "monkey"
+           |  }
+           |}
+           |""".stripMargin.getBytes)
+    )
+
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
 
     val wrongJsonUrl = s"$dataUrl/wrongjson"
     val notFoundUrl = s"$dataUrl/notfound"
     val emptyUrl = s"$dataUrl/empty"
     val ocpiErrorUrl = s"$dataUrl/ocpierror"
+    val singleRequestOKUrl = s"$dataUrl/animals-ok"
+    val singleRequestErrUrl = s"$dataUrl/animals-err"
 
     val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
     val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=1"
@@ -184,6 +209,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=1"
     val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
     val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
+
 
     def requestWithAuth(uri: String) = uri match {
       case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
@@ -194,6 +220,8 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
       case `emptyUrlWithParams` => Future.successful(emptyResp)
       case `ocpiErrorUrlWithParams` => Future.successful(ocpiErrorResp)
       case `urlWithExtraParams` => Future.successful(firstPageResp)
+      case `singleRequestOKUrl` => Future.successful(successResponse)
+      case `singleRequestErrUrl` => Future.successful(ocpiErrorResp)
       case x =>
         println(s"got request url |$x|. ")
         Future.failed(new UnknownHostException("www.ooopsie.com"))
@@ -203,25 +231,10 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   }
 }
 
-object GenericRespTypes {
-  case class TestData(id: String)
-
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  implicit val testDataFormat = jsonFormat1(TestData)
-}
-
 
 class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
 
-  import GenericRespTypes._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-
   override def requestWithAuth(req: HttpRequest, token: String)(implicit ec: ExecutionContext): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
-
-  def getData(uri: Uri, auth: String, params: Map[String, String] = Map.empty)
-             (implicit ec: ExecutionContext): Future[ClientError \/ Iterable[TestData]] =
-    traversePaginatedResource(uri, auth, params, limit = 1)(res => Unmarshal(res.entity).to[Page[TestData]])
 }

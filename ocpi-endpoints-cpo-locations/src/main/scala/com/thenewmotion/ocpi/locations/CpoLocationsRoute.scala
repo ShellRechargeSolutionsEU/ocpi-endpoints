@@ -11,7 +11,6 @@ import msgs.v2_1.CommonTypes.SuccessWithDataResp
 import msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import msgs.v2_1.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
-
 import scala.concurrent.ExecutionContext
 
 class CpoLocationsRoute(
@@ -19,7 +18,7 @@ class CpoLocationsRoute(
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
-) extends JsonApi with PaginatedRoute with ResponseMarshalling {
+) extends JsonApi with PaginatedRoute with OcpiResponseUnmarshalling with DisjunctionMarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
 

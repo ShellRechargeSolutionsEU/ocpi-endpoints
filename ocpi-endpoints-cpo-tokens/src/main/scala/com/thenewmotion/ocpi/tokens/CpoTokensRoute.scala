@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common.{OcpiRejectionHandler, ResponseMarshalling}
+import common.{DisjunctionMarshalling, OcpiRejectionHandler, OcpiResponseUnmarshalling}
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -16,12 +16,11 @@ import msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import msgs.v2_1.OcpiStatusCode.GenericSuccess
 import msgs.v2_1.Tokens._
 import tokens.TokenError._
-
 import scala.concurrent.ExecutionContext
 
 class CpoTokensRoute(
   service: CpoTokensService
-) extends JsonApi with ResponseMarshalling {
+) extends JsonApi with OcpiResponseUnmarshalling with DisjunctionMarshalling {
 
   private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment.map(CountryCode(_))
   private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment.map(OperatorIdIso(_))
