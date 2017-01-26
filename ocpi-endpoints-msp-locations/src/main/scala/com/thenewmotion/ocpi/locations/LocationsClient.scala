@@ -1,4 +1,5 @@
-package com.thenewmotion.ocpi.locations
+package com.thenewmotion.ocpi
+package locations
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.Uri
@@ -10,13 +11,11 @@ import akka.stream.ActorMaterializer
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.github.nscala_time.time.Imports._
-import org.joda.time.format.ISODateTimeFormat
 
 class LocationsClient(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-  val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
 
   def getLocations(uri: Uri, auth: String, dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None)
     (implicit ec: ExecutionContext): Future[ClientError \/ Iterable[Location]] = {

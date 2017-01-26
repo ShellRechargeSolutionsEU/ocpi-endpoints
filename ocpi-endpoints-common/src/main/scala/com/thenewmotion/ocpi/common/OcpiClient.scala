@@ -19,12 +19,13 @@ import scala.util.control.NonFatal
 import scalaz.{-\/, \/, \/-}
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
-class ClientObjectUriBuilder(
-  endpointUri: Uri,
-  ourCountryCode: String,
-  ourPartyId: String,
-  uid: String){
-  def uri = endpointUri.withPath(endpointUri.path / ourCountryCode / ourPartyId / uid)
+class ClientObjectUri (val value: Uri) extends AnyVal
+
+object ClientObjectUri {
+  def apply(endpointUri: Uri,
+    ourCountryCode: String,
+    ourPartyId: String,
+    uid: String) = new ClientObjectUri(endpointUri.withPath(endpointUri.path / ourCountryCode / ourPartyId / uid))
 }
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) {

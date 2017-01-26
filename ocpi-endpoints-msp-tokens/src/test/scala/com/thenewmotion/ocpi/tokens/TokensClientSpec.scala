@@ -11,7 +11,7 @@ import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{\/, \/-}
-import com.thenewmotion.ocpi.common.{ClientError, ClientObjectUriBuilder}
+import com.thenewmotion.ocpi.common.{ClientError, ClientObjectUri}
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
@@ -73,7 +73,7 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
 
     val dataUrl = "http://localhost:8095/cpo/versions/2.1/tokens"
 
-    val tokenUri = new ClientObjectUriBuilder(
+    val tokenUri = ClientObjectUri(
       endpointUri = dataUrl,
       ourCountryCode = ourCountryCode,
       ourPartyId = ourPartyId,
