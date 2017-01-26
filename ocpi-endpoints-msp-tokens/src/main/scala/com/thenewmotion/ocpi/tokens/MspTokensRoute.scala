@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute, ResponseMarshalling}
+import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute, DisjunctionMarshalling}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
@@ -17,7 +17,7 @@ class MspTokensRoute(
   service: MspTokensService,
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000
-) extends JsonApi with PaginatedRoute with ResponseMarshalling {
+) extends JsonApi with PaginatedRoute with DisjunctionMarshalling {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 

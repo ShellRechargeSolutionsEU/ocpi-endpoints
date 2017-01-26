@@ -53,12 +53,6 @@ object CommonTypes {
 
   private[ocpi] trait SuccessResponse extends OcpiResponse[SuccessCode]
 
-  case class OcpiEnvelope(
-    statusCode: OcpiStatusCode,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now
-  ) extends OcpiResponse[OcpiStatusCode]
-
   case class SuccessResp(
     statusCode: SuccessCode,
     statusMessage: Option[String] = None,
@@ -71,8 +65,4 @@ object CommonTypes {
     timestamp: DateTime = DateTime.now,
     data: D
   ) extends SuccessResponse
-
-  case class Page[T](data: Iterable[T]) {
-    def items = data
-  }
 }

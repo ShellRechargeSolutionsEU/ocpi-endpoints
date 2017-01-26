@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import common.AuthorizationRejectionHandler
 import common.Pager
 import common.PaginatedRoute
-import common.ResponseMarshalling
+import common.DisjunctionMarshalling
 import locations.LocationsError._
 import msgs.v2_1.CommonTypes.ErrorResp
 import msgs.v2_1.CommonTypes.SuccessWithDataResp
@@ -21,7 +21,7 @@ class CpoLocationsRoute(
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
-) extends JsonApi with PaginatedRoute with ResponseMarshalling {
+) extends JsonApi with PaginatedRoute with DisjunctionMarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
 

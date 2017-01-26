@@ -8,10 +8,10 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
 import OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-import com.thenewmotion.ocpi.common.ResponseMarshalling
+import com.thenewmotion.ocpi.common.DisjunctionMarshalling
 import HandshakeError._
 
-object ErrorMarshalling extends ResponseMarshalling {
+object ErrorMarshalling extends DisjunctionMarshalling {
 
   implicit val handshakeErrorToResponseMarshaller: ToResponseMarshaller[HandshakeError] =
     implicitly[ToResponseMarshaller[(StatusCode, ErrorResp)]]
