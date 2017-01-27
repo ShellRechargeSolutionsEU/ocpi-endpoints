@@ -8,11 +8,49 @@ import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
-import spray.json._
+import spray.json.{DefaultJsonProtocol, _}
+
+
 
 trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   import reflect._
+
+
+  override protected def fromField[T](value: JsValue, fieldName: String)
+    (implicit reader: JsonReader[T]) = {
+
+    val MissingMemberMsg = "Object is missing required member '"
+    def decode(x: JsObject) =
+      try reader.read(x.fields(fieldName))
+      catch {
+        case e: NoSuchElementException =>
+          deserializationError(MissingMemberMsg + fieldName + "'", e, fieldName :: Nil)
+        case DeserializationException(msg, cause, fieldNames) =>
+          deserializationError(msg, cause, fieldName :: fieldNames)
+      }
+
+    value match {
+      case x: JsObject if
+      reader.isInstanceOf[OptionFormat[_]] &
+        !x.fields.contains(fieldName) =>
+        None.asInstanceOf[T]
+
+      /*
+          This case satisfies OCPI 2.1, chapter 2.5:
+
+          '*' A list of zero or more objects. If empty, it might [...] be omitted.
+      */
+      case x: JsObject => try decode(x) catch {
+        case e@DeserializationException(msg, _, _) if msg.startsWith(MissingMemberMsg) =>
+          try decode(JsObject(x.fields + (fieldName -> JsArray.empty))) catch {
+            case _: DeserializationException => throw e
+          }
+      }
+
+      case _ => deserializationError("Object expected in field '" + fieldName + "'", fieldNames = fieldName :: Nil)
+    }
+  }
 
   private val PASS1 = """([A-Z]+)([A-Z][a-z])""".r
   private val PASS2 = """([a-z\d])([A-Z])""".r

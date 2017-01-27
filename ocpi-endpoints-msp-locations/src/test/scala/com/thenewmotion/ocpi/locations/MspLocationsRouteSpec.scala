@@ -156,13 +156,11 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        "latitude": "52.364115",
                        |        "longitude": "4.891733"
                        |    },
-                       |    "related_locations": [],
                        |    "evses": [{
                        |        "uid": "3256",
                        |        "last_updated": "2014-06-25T00:00:00+02:00",
                        |        "id": "ICEEVE000123_1",
                        |        "status": "AVAILABLE",
-                       |        "status_schedule": [],
                        |        "capabilities": [
                        |            "RESERVABLE"
                        |        ],
@@ -188,16 +186,12 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |            "tariff_id": "11"
                        |        }],
                        |        "physical_reference": "1",
-                       |        "floor_level": "-1",
-                       |        "directions": [],
-                       |        "parking_restrictions": [],
-                       |        "images": []
+                       |        "floor_level": "-1"
                        |    }, {
                        |        "uid": "3257",
                        |        "last_updated": "2014-06-25T00:00:00+02:00",
                        |        "id": "ICEEVE000123_2",
                        |        "status": "RESERVED",
-                       |        "status_schedule": [],
                        |        "capabilities": [
                        |            "RESERVABLE"
                        |        ],
@@ -213,14 +207,8 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |            "tariff_id": "12"
                        |        }],
                        |        "physical_reference": "2",
-                       |        "floor_level": "-2",
-                       |        "directions": [],
-                       |        "parking_restrictions": [],
-                       |        "images": []
+                       |        "floor_level": "-2"
                        |    }],
-                       |    "directions": [],
-                       |    "images": [],
-                       |    "facilities":[],
                        |    "operator": {
                        |        "name": "The New Motion"
                        |    }
