@@ -11,9 +11,10 @@ import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{\/, \/-}
-import com.thenewmotion.ocpi.common.{ClientError, ClientObjectUri}
+import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
@@ -24,7 +25,7 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
-      client.getToken(tokenUri, "auth", "123") must beLike[\/[ClientError, Token]] {
+      client.getToken(tokenUri, "auth", "123") must beLike[\/[ErrorResp, Token]] {
         case \/-(r) =>
           r.uid === "123"
       }.await
@@ -32,7 +33,7 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
 
     "Push new/updated Token object to the CPO" in new TestScope {
 
-      client.uploadToken(tokenUri, "auth", testToken) must beLike[\/[ClientError, Unit]] {
+      client.uploadToken(tokenUri, "auth", testToken) must beLike[\/[ErrorResp, Unit]] {
         case \/-(_) => ok
       }.await
     }
@@ -44,7 +45,7 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
         valid = Some(false)
       )
 
-      client.updateToken(tokenUri, "auth", patch) must beLike[\/[ClientError, Unit]] {
+      client.updateToken(tokenUri, "auth", patch) must beLike[\/[ErrorResp, Unit]] {
         case \/-(_) => ok
       }.await
     }

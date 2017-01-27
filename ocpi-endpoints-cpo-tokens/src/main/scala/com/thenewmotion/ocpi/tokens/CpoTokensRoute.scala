@@ -1,11 +1,11 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common.ResponseMarshalling
+import common.DisjunctionMarshalling
 
 class CpoTokensRoute(
   service: CpoTokensService
-) extends JsonApi with ResponseMarshalling {
+) extends JsonApi with DisjunctionMarshalling {
 
   import akka.http.scaladsl.marshalling.ToResponseMarshaller
   import akka.http.scaladsl.model.StatusCode
