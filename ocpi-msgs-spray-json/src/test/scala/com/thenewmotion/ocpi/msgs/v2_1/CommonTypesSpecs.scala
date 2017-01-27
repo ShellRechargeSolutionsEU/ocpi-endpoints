@@ -13,6 +13,19 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
 
   import OcpiJsonProtocol._
 
+  "OcpiJsonProtocol" should {
+    "deserialize missing fields of JSON type array to empty lists" in new TestScope {
+
+      case class S(t: String)
+      case class ListContainer(somefield: String, listField: S)
+      val json = """ { "somefield": "abc"  } """.stripMargin.parseJson
+      implicit val SFormat = jsonFormat1(S)
+      implicit val listContainerFormat = jsonFormat2(ListContainer)
+
+      json.convertTo[ListContainer].listField mustEqual S("")
+    }
+  }
+
   "DateTimeJsonFormat" should {
     val obj = new DateTime(2014, 1, 28, 17, 30, 0, UTC).withZone(DateTimeZone.getDefault)
     val str = "2014-01-28T17:30:00Z"
