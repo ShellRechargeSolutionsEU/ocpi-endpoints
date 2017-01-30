@@ -18,36 +18,38 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
 
   override protected def fromField[T](value: JsValue, fieldName: String)
-    (implicit reader: JsonReader[T]) = value match {
-    case x: JsObject if
-    reader.isInstanceOf[OptionFormat[_]] &
-      !x.fields.contains(fieldName) =>
-      None.asInstanceOf[T]
+    (implicit reader: JsonReader[T]) = {
 
-    /*
-        This case satisfies OCPI 2.1, chapter 2.5:
-
-        '*' A list of zero or more objects. If empty, it might [...] be omitted.
-    */
-    case x: JsObject if
-    reader.isInstanceOf[RootJsonFormat[List[T]]] &
-      !x.fields.contains(fieldName) =>
+    val MissingMemberMsg = "Object is missing required member '"
+    def decode(x: JsObject) =
       try reader.read(x.fields(fieldName))
       catch {
         case e: NoSuchElementException =>
-          Nil.asInstanceOf[T]
+          deserializationError(MissingMemberMsg + fieldName + "'", e, fieldName :: Nil)
         case DeserializationException(msg, cause, fieldNames) =>
           deserializationError(msg, cause, fieldName :: fieldNames)
       }
-    case x: JsObject =>
-      try reader.read(x.fields(fieldName))
-      catch {
-        case e: NoSuchElementException =>
-          deserializationError("Object is missing required member '" + fieldName + "'", e, fieldName :: Nil)
-        case DeserializationException(msg, cause, fieldNames) =>
-          deserializationError(msg, cause, fieldName :: fieldNames)
+
+    value match {
+      case x: JsObject if
+      reader.isInstanceOf[OptionFormat[_]] &
+        !x.fields.contains(fieldName) =>
+        None.asInstanceOf[T]
+
+      /*
+          This case satisfies OCPI 2.1, chapter 2.5:
+
+          '*' A list of zero or more objects. If empty, it might [...] be omitted.
+      */
+      case x: JsObject => try decode(x) catch {
+        case e@DeserializationException(msg, _, _) if msg.startsWith(MissingMemberMsg) =>
+          try decode(JsObject(x.fields + (fieldName -> JsArray.empty))) catch {
+            case _: DeserializationException => throw e
+          }
       }
-    case _ => deserializationError("Object expected in field '" + fieldName + "'", fieldNames = fieldName :: Nil)
+
+      case _ => deserializationError("Object expected in field '" + fieldName + "'", fieldNames = fieldName :: Nil)
+    }
   }
 
   private val PASS1 = """([A-Z]+)([A-Z][a-z])""".r

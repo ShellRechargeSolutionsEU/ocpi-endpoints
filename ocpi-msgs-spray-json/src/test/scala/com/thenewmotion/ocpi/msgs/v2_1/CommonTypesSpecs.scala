@@ -16,13 +16,12 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
   "OcpiJsonProtocol" should {
     "deserialize missing fields of JSON type array to empty lists" in new TestScope {
 
-      case class S(t: String)
-      case class ListContainer(somefield: String, listField: S)
-      val json = """ { "somefield": "abc"  } """.stripMargin.parseJson
-      implicit val SFormat = jsonFormat1(S)
+      case class ListContainer(stringfield: String, listfield: List[String])
+      val json = """ { "stringfield": "abc"  } """.stripMargin.parseJson
+
       implicit val listContainerFormat = jsonFormat2(ListContainer)
 
-      json.convertTo[ListContainer].listField mustEqual S("")
+      json.convertTo[ListContainer].listfield mustEqual Nil
     }
   }
 
