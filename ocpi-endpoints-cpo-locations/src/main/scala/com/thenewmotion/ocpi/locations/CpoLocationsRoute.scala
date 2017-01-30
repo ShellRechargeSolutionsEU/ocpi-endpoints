@@ -18,7 +18,7 @@ class CpoLocationsRoute(
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000,
   currentTime: => DateTime = DateTime.now
-) extends JsonApi with PaginatedRoute with OcpiResponseUnmarshalling with DisjunctionMarshalling {
+) extends JsonApi with PaginatedRoute with DisjunctionMarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
 

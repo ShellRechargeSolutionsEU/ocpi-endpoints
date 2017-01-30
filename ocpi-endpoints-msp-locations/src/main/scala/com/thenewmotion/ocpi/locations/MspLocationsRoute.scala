@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
 import com.thenewmotion.mobilityid.CountryCode
 import com.thenewmotion.mobilityid.OperatorIdIso
-import common.{DisjunctionMarshalling, OcpiRejectionHandler, OcpiResponseUnmarshalling}
+import common.{DisjunctionMarshalling, OcpiRejectionHandler}
 import locations.LocationsError._
 import msgs.v2_1.CommonTypes.ErrorResp
 import msgs.v2_1.CommonTypes.SuccessResp
@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 
 class MspLocationsRoute(
   service: MspLocationsService
-) extends JsonApi with OcpiResponseUnmarshalling with DisjunctionMarshalling {
+) extends JsonApi with DisjunctionMarshalling {
 
   import msgs.v2_1.OcpiJsonProtocol._
 
