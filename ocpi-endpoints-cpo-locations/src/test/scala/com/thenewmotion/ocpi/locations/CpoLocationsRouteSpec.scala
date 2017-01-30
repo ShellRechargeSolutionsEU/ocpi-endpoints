@@ -137,16 +137,12 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
          |        "last_updated": "2016-12-31T23:59:59Z",
          |        "evse_id": "ICEEVE000123_1",
          |        "status": "AVAILABLE",
-         |        "status_schedule": [],
          |        "capabilities": [
          |            "RESERVABLE"
          |        ],
          |        "connectors": [$evse1conn1String, $evse1conn2String],
          |        "physical_reference": "1",
-         |        "floor_level": "-1",
-         |        "directions": [],
-         |        "parking_restrictions": [],
-         |        "images": []
+         |        "floor_level": "-1"
          |
          | }
        """.stripMargin
@@ -158,7 +154,6 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
          |        "last_updated": "2016-12-31T23:59:59Z",
          |        "evse_id": "ICEEVE000123_2",
          |        "status": "RESERVED",
-         |        "status_schedule": [],
          |        "capabilities": [
          |            "RESERVABLE"
          |        ],
@@ -174,10 +169,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
          |            "tariff_id": "12"
          |        }],
          |        "physical_reference": "2",
-         |        "floor_level": "-2",
-         |        "directions": [],
-         |        "parking_restrictions": [],
-         |        "images": []
+         |        "floor_level": "-2"
          | }
        """.stripMargin
 
@@ -195,11 +187,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        "latitude": "52.364115",
                        |        "longitude": "4.891733"
                        |    },
-                       |    "related_locations": [],
                        |    "evses": [$evse1String, $evse2String],
-                       |    "directions": [],
-                       |    "images": [],
-                       |    "facilities": [],
                        |    "operator": {
                        |        "name": "The New Motion"
                        |    }
