@@ -31,7 +31,9 @@ object Tokens {
     whitelist: WhitelistType,
     language: Option[String] = None,
     lastUpdated: DateTime
-  )
+  ) {
+    require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
+  }
 
   case class TokenPatch(
     uid: String,
@@ -41,8 +43,11 @@ object Tokens {
     issuer: Option[String] = None,
     valid: Option[Boolean] = None,
     whitelist: Option[WhitelistType] = None,
-    language: Option[String] = None
-  )
+    language: Option[String] = None,
+    lastUpdated: Option[DateTime] = None
+  ) {
+    require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
+  }
 
   case class LocationReferences(
     locationId: String,

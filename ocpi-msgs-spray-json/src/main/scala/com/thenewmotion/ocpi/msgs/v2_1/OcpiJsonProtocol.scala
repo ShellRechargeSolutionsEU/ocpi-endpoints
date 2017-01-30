@@ -107,8 +107,8 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val locationFormat = jsonFormat21(Location)
   implicit val tokensFormat = jsonFormat9(Token)
 
-  implicit val locationPatchFormat = jsonFormat20(LocationPatch)
-  implicit val tokenPatchFormat = jsonFormat8(TokenPatch)
+  implicit val locationPatchFormat = jsonFormat21(LocationPatch)
+  implicit val tokenPatchFormat = jsonFormat9(TokenPatch)
 
   implicit def statusCodeFormat[T <: OcpiStatusCode : ClassTag] = new JsonFormat[T] {
     override def read(json: JsValue): T = json match {

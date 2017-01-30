@@ -33,6 +33,7 @@ object Locations {
 
   case class LocationPatch(
     id: String,
+    lastUpdated: Option[DateTime] = None,
     `type`: Option[LocationType] = None,
     name: Option[String] = None,
     address: Option[String] = None,
