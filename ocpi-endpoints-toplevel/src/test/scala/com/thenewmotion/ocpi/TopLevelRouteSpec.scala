@@ -97,9 +97,9 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
   }
 
   trait TopLevelScope extends Scope with JsonApi {
-    val validToken = Authorization(GenericHttpCredentials("Token", "12345"))
+    val validToken = Authorization(GenericHttpCredentials("Token", Map("" -> "12345")))
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
-    val invalidToken = Authorization(GenericHttpCredentials("Token", "letmein"))
+    val invalidToken = Authorization(GenericHttpCredentials("Token", Map("" -> "letmein")))
 
     val ourCredentialsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"credentials: $version"))
     val ourLocationsRoute = (version: VersionNumber, apiUser: ApiUser) => complete((StatusCodes.OK, s"locations: $version"))
