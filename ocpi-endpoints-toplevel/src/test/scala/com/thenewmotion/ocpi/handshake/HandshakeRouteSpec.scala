@@ -3,13 +3,13 @@ package com.thenewmotion.ocpi.handshake
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.handshake.HandshakeError.UnknownPartyToken
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{Image, ImageCategory, BusinessDetails => OcpiBusinessDetails}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericSuccess
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
-import com.thenewmotion.ocpi.Specs2RouteTest
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

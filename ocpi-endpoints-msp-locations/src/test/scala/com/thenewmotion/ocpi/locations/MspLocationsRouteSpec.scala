@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.locations
 
 import akka.http.scaladsl.model.HttpEntity
 import com.thenewmotion.mobilityid.{CountryCode, OperatorIdIso}
-import com.thenewmotion.ocpi.{ApiUser, Specs2RouteTest}
+import com.thenewmotion.ocpi.ApiUser
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -10,6 +10,7 @@ import scala.concurrent.Future
 import scalaz._
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {

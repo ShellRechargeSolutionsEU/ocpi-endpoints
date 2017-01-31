@@ -7,7 +7,7 @@ val logging = Seq(
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.0.2" else "2.4.16"
+  val v = if (name.startsWith("http")) "10.0.3" else "2.4.16"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -31,7 +31,7 @@ val specs2 = {
   )
 }
 
-val akkaHttpTestKitSpecs2 = Seq("com.newmotion" %% "akka-http-testkit-specs2" % "0.0.1" % "test")
+val akkaHttpTestKit = Seq(akkaModule("http-testkit") % "test")
 
 val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 
@@ -69,7 +69,7 @@ val `ocpi-endpoints-common` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKitSpecs2
+    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKit
   )
 
 val `ocpi-endpoints-msp-locations` = project
@@ -78,7 +78,7 @@ val `ocpi-endpoints-msp-locations` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints MSP Locations",
-    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+    libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
 val `ocpi-endpoints-msp-tokens` = project
@@ -87,7 +87,7 @@ val `ocpi-endpoints-msp-tokens` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints MSP Tokens",
-    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+    libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
 val `ocpi-endpoints-cpo-locations` = project
@@ -96,7 +96,7 @@ val `ocpi-endpoints-cpo-locations` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints CPO Locations",
-    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+    libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
 val `ocpi-endpoints-cpo-tokens` = project
@@ -105,7 +105,7 @@ val `ocpi-endpoints-cpo-tokens` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints CPO Tokens",
-    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2
+    libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
 val `ocpi-endpoints-toplevel` = project
@@ -114,7 +114,7 @@ val `ocpi-endpoints-toplevel` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints toplevel",
-    libraryDependencies := specs2 ++ akkaHttpTestKitSpecs2 ++ jsonLenses.map(_ % "test")
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
   )
 
 val `ocpi-endpoints-root` = (project in file("."))

@@ -2,8 +2,9 @@ package com.thenewmotion.ocpi
 package tokens
 
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import common.{Pager, PaginatedResult}
-import msgs.v2_1.CommonTypes.{SuccessWithDataResp, ErrorResp}
+import msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
 import msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
@@ -13,7 +14,6 @@ import scala.concurrent.Future
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import scalaz._
 import msgs.v2_1.OcpiStatusCode._
-
 import scala.concurrent.Future
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 

@@ -2,7 +2,8 @@ package com.thenewmotion.ocpi.locations
 
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
-import com.thenewmotion.ocpi.{ApiUser, JsonApi, Specs2RouteTest}
+import akka.http.scaladsl.testkit.Specs2RouteTest
+import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito

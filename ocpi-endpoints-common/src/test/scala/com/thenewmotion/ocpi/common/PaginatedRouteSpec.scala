@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.common
 
 import akka.http.scaladsl.model.headers._
-import com.thenewmotion.ocpi.Specs2RouteTest
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

@@ -1,10 +1,10 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.Future
 import scalaz._
 

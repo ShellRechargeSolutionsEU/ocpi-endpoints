@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
+import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.{EndpointIdentifier, VersionNumber}
 import org.specs2.mock.Mockito
