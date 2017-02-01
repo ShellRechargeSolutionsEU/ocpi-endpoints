@@ -2,7 +2,8 @@ package com.thenewmotion.ocpi
 
 import java.net.UnknownHostException
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.HttpExt
+import akka.http.scaladsl.model.{DateTime => _, _}
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.util.Timeout
 import scala.concurrent.duration.FiniteDuration
@@ -19,6 +20,7 @@ import org.specs2.concurrent.ExecutionEnv
 import akka.http.scaladsl.model.StatusCodes._
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
 import akka.http.scaladsl.client.RequestBuilding._
+import com.github.nscala_time.time.Imports._
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -47,48 +49,51 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   }
 
   "traverse paginated resource" should {
-    "download subsequent pages" in new TestScope {
-      override val firstPageResp = HttpResponse(
-        OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
-        headers = List(
-          Link(Uri(s"$dataUrl?offset=1&limit=1"), LinkParams.next),
-          RawHeader("X-Total-Count", "2"),
-          RawHeader("X-Limit", "1")
+
+    "convert the stream to a Future[ErrorResp \\/ Iterable[T]]" should {
+      "successfully handle multiple pages" in new TestScope {
+        override val firstPageResp = HttpResponse(
+          OK, entity = HttpEntity(`application/json`, firstPageBody.getBytes),
+          headers = List(
+            Link(Uri(s"$dataUrl?offset=1&limit=1"), LinkParams.next),
+            RawHeader("X-Total-Count", "2"),
+            RawHeader("X-Limit", "1")
+          )
         )
-      )
 
-      override val lastPageResp = HttpResponse(
-        OK, entity = HttpEntity(`application/json`, lastPageBody.getBytes),
-        headers = List(
-          RawHeader("X-Total-Count", "2"),
-          RawHeader("X-Limit", "1")
+        override val lastPageResp = HttpResponse(
+          OK, entity = HttpEntity(`application/json`, lastPageBody.getBytes),
+          headers = List(
+            RawHeader("X-Total-Count", "2"),
+            RawHeader("X-Limit", "1")
+          )
         )
-      )
 
-      client.traversePaginatedResource[TestData](dataUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
-        case \/-(r) =>
-          r.size === 2
-          r.head.id === "DATA1"
-          r.tail.head.id === "DATA2"
-      }.await
-    }
+        client.traversePaginatedResource[TestData](dataUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
+          case \/-(r) =>
+            r.size === 2
+            r.head.id === "DATA1"
+            r.tail.head.id === "DATA2"
+        }.await
+      }
 
-    "throw an exception when server returns a none successful error code" in new TestScope {
-      client.traversePaginatedResource[TestData](notFoundUrl, "auth", limit = 1) must throwA[UnexpectedResponseException].await
-    }
+      "throw an exception when server returns a none successful error code" in new TestScope {
+        client.traversePaginatedResource[TestData](notFoundUrl, "auth", limit = 1) must throwA[UnexpectedResponseException].await
+      }
 
-    "handle empty list of data items" in new TestScope {
-      client.traversePaginatedResource[TestData](emptyUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
-        case \/-(loc) => loc mustEqual Nil
-      }.await
-    }
+      "handle empty list of data items" in new TestScope {
+        client.traversePaginatedResource[TestData](emptyUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
+          case \/-(loc) => loc mustEqual Nil
+        }.await
+      }
 
-    "handle OCPI error codes" in new TestScope {
-      client.traversePaginatedResource[TestData](ocpiErrorUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
-        case -\/(err) =>
-          err.statusCode mustEqual GenericClientFailure
-          err.statusMessage must beSome("something went horribly wrong...")
-      }.await
+      "handle OCPI error codes" in new TestScope {
+        client.traversePaginatedResource[TestData](ocpiErrorUrl, "auth", limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
+          case -\/(err) =>
+            err.statusCode mustEqual GenericClientFailure
+            err.statusMessage must beSome("something went horribly wrong...")
+        }.await
+      }
     }
 
     "address extra params with the query" in new TestScope {
@@ -101,7 +106,8 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
       )
 
       client.traversePaginatedResource[TestData](
-        dataUrl, "auth", Map("date_from" -> "2016-11-23T08:04:01Z"), limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
+        dataUrl, "auth", dateFrom = Some(DateTime.parse("2016-11-23T08:04:01Z")),
+          limit = 1) must beLike[\/[ErrorResp, Iterable[TestData]]] {
         case \/-(r) =>
           r.size === 1
           r.head.id === "DATA1"
@@ -210,7 +216,6 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
     val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
 
-
     def requestWithAuth(uri: String) = uri match {
       case urlPattern(offset) if offset == "0" => Future.successful(firstPageResp)
       case urlPattern(offset) if offset == "1" => Future.successful(lastPageResp)
@@ -233,8 +238,9 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 
 
 class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends OcpiClient {
+  (implicit actorSystem: ActorSystem) extends OcpiClient {
 
-  override def requestWithAuth(req: HttpRequest, token: String)(implicit ec: ExecutionContext): Future[HttpResponse] =
+  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
 }
