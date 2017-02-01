@@ -39,7 +39,7 @@ object CommonTypes {
     website: Option[Url]
     )
 
-  private[ocpi] trait OcpiResponse[Code <: OcpiStatusCode] {
+  trait OcpiResponse[Code <: OcpiStatusCode] {
     def statusCode: Code
     def statusMessage: Option[String]
     def timestamp: DateTime

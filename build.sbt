@@ -32,6 +32,7 @@ val specs2 = {
 }
 
 val akkaHttpTestKit = Seq(akkaModule("http-testkit") % "test")
+val akkaStreamTestKit = Seq(akkaModule("stream-testkit") % "test")
 
 val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 
@@ -69,7 +70,7 @@ val `ocpi-endpoints-common` = project
   .settings(
     commonSettings,
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKit
+    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKit ++ akkaStreamTestKit
   )
 
 val `ocpi-endpoints-msp-locations` = project
