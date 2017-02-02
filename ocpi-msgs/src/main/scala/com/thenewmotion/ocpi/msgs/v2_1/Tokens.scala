@@ -36,7 +36,7 @@ object Tokens {
   }
 
   case class TokenPatch(
-    uid: String,
+    uid: Option[String] = None,
     `type`: Option[TokenType] = None,
     authId: Option[String] = None,
     visualNumber: Option[String] = None,

@@ -32,7 +32,7 @@ object Locations {
   }
 
   case class LocationPatch(
-    id: String,
+    id: Option[String] = None,
     lastUpdated: Option[DateTime] = None,
     `type`: Option[LocationType] = None,
     name: Option[String] = None,
@@ -195,7 +195,7 @@ object Locations {
   )
 
   case class ConnectorPatch(
-    id: String,
+    id: Option[String] = None,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
     powerType:	Option[PowerType] = None,
@@ -235,7 +235,7 @@ object Locations {
   }
 
   case class EvsePatch(
-    uid: String,
+    uid: Option[String] = None,
     status: Option[ConnectorStatus] = None,
     connectors: Option[Iterable[Connector]] = None,
     status_schedule: Option[Iterable[StatusSchedule]] = None,

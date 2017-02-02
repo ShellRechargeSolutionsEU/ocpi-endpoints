@@ -66,7 +66,6 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     "accept patches to a token object" in new TokensTestScope {
       val whitelistPatch = Some(WhitelistType.Always)
       val tokenPatch = TokenPatch(
-        uid = tokenUid,
         whitelist = whitelistPatch
       )
 

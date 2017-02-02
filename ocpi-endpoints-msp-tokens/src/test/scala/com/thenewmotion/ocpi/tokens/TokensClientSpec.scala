@@ -41,7 +41,6 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
     "Notify the CPO of partial updates to a Token" in new TestScope {
 
       val patch = TokenPatch(
-        uid = "123",
         valid = Some(false)
       )
 
