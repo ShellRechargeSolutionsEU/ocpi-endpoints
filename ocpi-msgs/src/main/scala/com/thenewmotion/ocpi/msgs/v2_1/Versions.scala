@@ -34,7 +34,7 @@ object Versions {
   object VersionNumber extends Enumerable[VersionNumber] {
     case object `2.0` extends VersionNumber {val name = "2.0"}
     case object `2.1` extends VersionNumber {val name = "2.1"}
-    val values = Seq(`2.0`, `2.1`)
+    val values = Set(`2.0`, `2.1`)
   }
 
   sealed trait EndpointIdentifier extends Nameable
@@ -48,7 +48,7 @@ object Versions {
     case object Sessions extends EndpointIdentifier {val name = "sessions"}
     case object Commands extends EndpointIdentifier {val name = "commands"}
 
-    val values = Iterable(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions)
+    val values = Set(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions, Commands)
   }
 }
 
