@@ -29,9 +29,6 @@ class VersionsSpecs extends SpecificationWithJUnit {
     "serialize" in new VersionsTestScope {
       version21DetailsResp.toJson.toString mustEqual version21DetailsRespJson.compactPrint
     }
-    "fail to deserialize if missing some expected endpoints" in new VersionsTestScope {
-      version20DetailsIncompleteRespJson.convertTo[SuccessWithDataResp[VersionDetails]] must throwA[IllegalArgumentException]
-    }
   }
 
   private trait VersionsTestScope extends Scope {

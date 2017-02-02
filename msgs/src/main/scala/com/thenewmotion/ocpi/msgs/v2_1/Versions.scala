@@ -26,9 +26,7 @@ object Versions {
   case class VersionDetails(
     version: VersionNumber,
     endpoints: Iterable[Endpoint]
-  ) {
-    require(endpoints.exists(_.identifier == EndpointIdentifier.Credentials), "Missing credentials endpoint type details")
-  }
+  )
 
   sealed trait VersionNumber extends Nameable
   object VersionNumber extends Enumerable[VersionNumber] {
