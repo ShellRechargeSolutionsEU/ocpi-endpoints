@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi
 
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
+import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.TopLevelRouteRejections._
 import com.thenewmotion.ocpi.common.{OcpiExceptionHandler, TokenAuthenticator}
 import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
@@ -9,7 +10,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import org.joda.time.DateTime
-
 import scala.concurrent.ExecutionContext
 
 trait TopLevelRoute extends JsonApi {
@@ -64,7 +64,7 @@ trait TopLevelRoute extends JsonApi {
     }
 
 
-  def topLevelRoute(implicit ec: ExecutionContext) = {
+  def topLevelRoute(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
     val externalUseToken = new TokenAuthenticator(routingConfig.authenticateApiUser)
     val internalUseToken = new TokenAuthenticator(routingConfig.authenticateInternalUser)
 

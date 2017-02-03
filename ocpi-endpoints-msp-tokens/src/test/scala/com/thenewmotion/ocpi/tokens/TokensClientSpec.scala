@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.tokens
 
 import java.net.UnknownHostException
 import akka.actor.ActorSystem
-import akka.http.scaladsl.HttpExt
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.util.Timeout
 import scala.concurrent.duration.FiniteDuration
@@ -10,7 +10,6 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
-
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{\/, \/-}
 import com.thenewmotion.ocpi.common.ClientObjectUri
@@ -57,6 +56,8 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
     implicit val system = ActorSystem()
 
     implicit val materializer = ActorMaterializer()
+
+    implicit val http = Http()
 
     val ourCountryCode = "NL"
     val ourPartyId = "TNM"
@@ -124,7 +125,7 @@ object GenericRespTypes {
 
 
 class TestTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends TokensClient {
+  (implicit httpExt: HttpExt, materializer: ActorMaterializer) extends TokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =

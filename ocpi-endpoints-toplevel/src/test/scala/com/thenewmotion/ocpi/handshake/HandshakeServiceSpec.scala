@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi.handshake
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
 import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Url}
@@ -71,7 +72,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
           be_-\/(CouldNotPersistNewToken(tokenToConnectToUs): HandshakeError).await
       }
       "return an error when it fails sending the credentials" >> new HandshakeTestScope{
-        _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns
+        _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext], any[ActorMaterializer]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
         val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
@@ -149,6 +150,8 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
 
     implicit val materializer = ActorMaterializer()
 
+    implicit val http = Http()
+
     val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
 
     val ourVersionsUrlStr = Uri("http://localhost:8080/cpo/versions")
@@ -199,7 +202,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv)  extends Specification wit
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
-    _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext]) returns Future.successful(
+    _client.sendCredentials(any[Url], any[String], any[Creds])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
       \/-(ourCredsResp))
 
     // handshakeServices

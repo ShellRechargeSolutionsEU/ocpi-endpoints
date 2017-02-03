@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi
 import java.net.UnknownHostException
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.HttpExt
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.util.Timeout
 
 import scala.concurrent.duration.FiniteDuration
@@ -54,6 +54,8 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     implicit val system = ActorSystem()
 
     implicit val materializer = ActorMaterializer()
+
+    implicit val http = Http()
 
     val dataUrl = "http://localhost:8095/cpo/versions/2.0/somemodule"
 
@@ -116,7 +118,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 
 
 class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit actorSystem: ActorSystem) extends OcpiClient {
+  (implicit http: HttpExt) extends OcpiClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =

@@ -70,7 +70,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
 
     "accept the update of the credentials they sent us to connect to them" in new CredentialsTestScope {
       handshakeService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
-      handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
+      handshakeService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
         Future.successful(\/-(newCredsToConnectToUs))
 
       val theirLog = credsToConnectToThem.businessDetails.logo.get
@@ -102,7 +102,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
       }
     }
     "reject indicating the reason if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
-      handshakeService.reactToUpdateCredsRequest(any, any, any)(any) returns
+      handshakeService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
         Future.successful(-\/(WaitingForRegistrationRequest))
 
 
@@ -215,7 +215,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     val handshakeService = mock[HandshakeService]
 
     //default mocks
-    handshakeService.reactToHandshakeRequest(any, any, any)(any) returns
+    handshakeService.reactToHandshakeRequest(any, any, any)(any, any) returns
       Future.successful(\/-(credsToConnectToUs))
     handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, credsToConnectToThem.countryCode,
       credsToConnectToThem.partyId, credsToConnectToThem.token, credsToConnectToThem.url) returns

@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.handshake
 
 import java.security.SecureRandom
-import akka.actor.ActorSystem
+import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi
@@ -23,7 +23,7 @@ abstract class HandshakeService(
   ourBaseUrl: Uri,
   ourPartyId: String,
   ourCountryCode: String
-)(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends FutureEitherUtils {
+)(implicit http: HttpExt) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
@@ -40,7 +40,7 @@ abstract class HandshakeService(
     version: VersionNumber,
     existingTokenToConnectToUs: String,
     credsToConnectToThem: Creds
-  )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Handshake initiated by party: ${credsToConnectToThem.partyId}, " +
       s"using token: $existingTokenToConnectToUs, " +
@@ -77,7 +77,7 @@ abstract class HandshakeService(
     version: VersionNumber,
     existingTokenToConnectToUs: String,
     credsToConnectToThem: Creds
-  )(implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
       s"using token: $existingTokenToConnectToUs, for version: ${version.name}. " +
@@ -111,7 +111,7 @@ abstract class HandshakeService(
     */
   def initiateHandshakeProcess(partyName: String, countryCode: String, partyId: String,
     tokenToConnectToThem: String, theirVersionsUrl: Uri)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ Creds] = {
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
     logger.info(s"initiate handshake process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
@@ -145,7 +145,7 @@ abstract class HandshakeService(
     * is not still registered
     */
   private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
-    (implicit ec: ExecutionContext): Future[HandshakeError \/ VersionDetails] = {
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ VersionDetails] = {
 
     def findCommonVersion(versionResp: List[Versions.Version]): Future[HandshakeError \/ Versions.Version] = {
       versionResp.find(_.version == version) match {
