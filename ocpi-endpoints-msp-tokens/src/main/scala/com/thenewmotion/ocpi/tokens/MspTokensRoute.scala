@@ -1,16 +1,17 @@
 package com.thenewmotion.ocpi.tokens
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
-import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import com.thenewmotion.ocpi.common.{Pager, PaginatedRoute, DisjunctionMarshalling}
+import com.thenewmotion.ocpi.common.{DisjunctionMarshalling, Pager, PaginatedRoute}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
 import com.thenewmotion.ocpi.{ApiUser, JsonApi}
 import org.joda.time.DateTime
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.LocationReferences
+import com.thenewmotion.ocpi.tokens.AuthorizeError._
 import scala.concurrent.ExecutionContext
 
 class MspTokensRoute(
@@ -21,11 +22,14 @@ class MspTokensRoute(
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)]): ToResponseMarshaller[AuthorizeError] = {
-    errorMarshaller.compose[AuthorizeError] {
-      case _: MustProvideLocationReferences.type => OK -> ErrorResp(NotEnoughInformation)
+  implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)],
+    statusMarshaller: ToResponseMarshaller[StatusCode]): ToResponseMarshaller[AuthorizeError] =
+    Marshaller {
+      implicit ex: ExecutionContext => {
+        case _: MustProvideLocationReferences.type => errorMarshaller(OK -> ErrorResp(NotEnoughInformation))
+        case _: TokenNotFound.type => statusMarshaller(NotFound)
+      }
     }
-  }
 
   // akka-http doesn't handle optional entity, see https://github.com/akka/akka-http/issues/284
   def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =

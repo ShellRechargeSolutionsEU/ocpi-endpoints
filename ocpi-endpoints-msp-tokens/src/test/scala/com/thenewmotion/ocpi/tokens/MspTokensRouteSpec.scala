@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import common.{Pager, PaginatedResult}
@@ -10,12 +11,11 @@ import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.Future
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import scalaz._
 import msgs.v2_1.OcpiStatusCode._
 import scala.concurrent.Future
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+import com.thenewmotion.ocpi.tokens.AuthorizeError._
 
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -55,13 +55,23 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       }
     }
 
-    "handle authorize failure" in new TestScope {
+    "handle MustProvideLocationReferences failure" in new TestScope {
       service.authorize("23455655A", None) returns Future(-\/(MustProvideLocationReferences))
 
       Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
         there was one(service).authorize("23455655A", None)
         val res = entityAs[ErrorResp]
         res.statusCode mustEqual NotEnoughInformation
+        status mustEqual StatusCodes.OK
+      }
+    }
+
+    "handle NotFound failure" in new TestScope {
+      service.authorize("23455655A", None) returns Future(-\/(TokenNotFound))
+
+      Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
+        there was one(service).authorize("23455655A", None)
+        status mustEqual StatusCodes.NotFound
       }
     }
   }
