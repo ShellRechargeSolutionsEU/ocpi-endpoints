@@ -6,13 +6,13 @@ import akka.http.scaladsl.model.headers.HttpCredentials
 import akka.http.scaladsl.server.directives.SecurityDirectives.AuthenticationResult
 import com.thenewmotion.ocpi.ApiUser
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class TokenAuthenticator(
-  toApiUser: String => Option[ApiUser]
-) extends (Option[HttpCredentials] ⇒ Future[AuthenticationResult[ApiUser]]) {
+class TokenAuthenticator(toApiUser: String => Option[ApiUser])(
+  implicit executionContext: ExecutionContext)
+  extends (Option[HttpCredentials] ⇒ Future[AuthenticationResult[ApiUser]]) {
   override def apply(credentials: Option[HttpCredentials]): Future[AuthenticationResult[ApiUser]] = {
-    import scala.concurrent.ExecutionContext.Implicits.global
     Future(
       credentials
         .flatMap {
