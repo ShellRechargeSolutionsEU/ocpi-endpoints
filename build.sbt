@@ -118,6 +118,14 @@ val `ocpi-endpoints-toplevel` = project
     libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
   )
 
+val `example` = project
+  .enablePlugins(AppPlugin)
+  .dependsOn(`ocpi-endpoints-toplevel`)
+  .settings(
+    commonSettings,
+    description := "OCPI endpoints example app"
+  )
+
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
     `ocpi-prelude`,
@@ -128,17 +136,10 @@ val `ocpi-endpoints-root` = (project in file("."))
     `ocpi-endpoints-msp-locations`,
     `ocpi-endpoints-msp-tokens`,
     `ocpi-endpoints-cpo-locations`,
-    `ocpi-endpoints-cpo-tokens`)
+    `ocpi-endpoints-cpo-tokens`,
+    `example`)
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     publish := {}
-  )
-
-val `example` = project
-  .enablePlugins(AppPlugin)
-  .dependsOn(`ocpi-endpoints-toplevel`)
-  .settings(
-    commonSettings,
-    description := "OCPI endpoints example app"
   )

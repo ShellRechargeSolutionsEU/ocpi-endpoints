@@ -13,6 +13,8 @@ import spray.json._
 import lenses.JsonLenses._
 import spray.json.DefaultJsonProtocol._
 
+import scala.concurrent.Future
+
 class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
   "api" should {
@@ -119,8 +121,13 @@ class TopLevelRouteSpec extends Specification with Specs2RouteTest with Mockito{
             )
           )
         ), mockHandshakeService
-      ) { token => if (token == "12345") Some(ApiUser("beCharged","12345", "BE", "BEC")) else None }
-        { token => if (token == "initiate") Some(ApiUser("admin", "initiate", "BE", "BEC")) else None }
+      ) { token => Future.successful {
+          if (token == "12345") Some(ApiUser("beCharged","12345", "BE", "BEC")) else None }
+        } { token =>
+        Future.successful {
+          if (token == "initiate") Some(ApiUser("admin", "initiate", "BE", "BEC")) else None
+        }
+      }
     }
   }
 }
