@@ -117,7 +117,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     val operatorIdString = "TNM"
     val countryCode = CountryCode(countryCodeString)
     val operatorIdIso = OperatorIdIso(operatorIdString)
-    val apiUser = ApiUser("1", "123", countryCodeString, operatorIdString)
+    val apiUser = ApiUser(countryCodeString, operatorIdString)
     val tokenPath = s"/$countryCodeString/$operatorIdString"
     val cpoTokensService = mock[CpoTokensService]
     val cpoTokensRoute = new CpoTokensRoute(cpoTokensService)

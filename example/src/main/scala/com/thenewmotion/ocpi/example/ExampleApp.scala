@@ -64,7 +64,7 @@ object ExampleApp extends App with TopLevelRoute {
     versions = Map("2.1" -> OcpiVersionConfig(Map(Locations -> Left("http://locations.ocpi-example.com")))),
     handshakeService = service
   ) {
-    apiUser => Future.successful(Some(ApiUser(apiUser, "abc", "nl", "abc")))
+    apiUser => Future.successful(Some(ApiUser("nl", "abc")))
   } {
     internalUser => Future.successful(None)
   }
