@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.example
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi._
@@ -9,8 +9,9 @@ import com.thenewmotion.ocpi.handshake.HandshakeService
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.Endpoint
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.EndpointIdentifier._
+import scala.concurrent.Future
 
-class ExampleHandshakeService(implicit actorSystem: ActorSystem, materializer: ActorMaterializer) extends HandshakeService(
+class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
   ourNamespace = "example",
   ourPartyName = "Example",
   ourLogo = None,
@@ -54,6 +55,7 @@ object ExampleApp extends App with TopLevelRoute {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
   implicit val materializer = ActorMaterializer()
+  implicit val http = Http()
 
   val service = new ExampleHandshakeService
 
@@ -62,9 +64,9 @@ object ExampleApp extends App with TopLevelRoute {
     versions = Map("2.1" -> OcpiVersionConfig(Map(Locations -> Left("http://locations.ocpi-example.com")))),
     handshakeService = service
   ) {
-    apiUser => Some(ApiUser(apiUser, "abc", "nl", "abc"))
+    apiUser => Future.successful(Some(ApiUser("nl", "abc")))
   } {
-    internalUser => None
+    internalUser => Future.successful(None)
   }
 
   Http().bindAndHandle(topLevelRoute, "localhost", 8080)

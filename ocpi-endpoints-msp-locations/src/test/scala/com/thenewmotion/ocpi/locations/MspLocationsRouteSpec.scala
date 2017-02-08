@@ -145,7 +145,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     mspLocService.updateEvse(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(()))
     mspLocService.updateConnector(===(CountryCode("NL")), ===(OperatorIdIso("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"),any) returns Future(\/-(()))
 
-    val apiUser = ApiUser("1", "123", "NL", "TNM")
+    val apiUser = ApiUser("NL", "TNM")
 
     val locationsRoute = new MspLocationsRoute(mspLocService)
 

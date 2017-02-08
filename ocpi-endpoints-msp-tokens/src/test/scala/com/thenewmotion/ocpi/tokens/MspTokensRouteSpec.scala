@@ -77,7 +77,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait TestScope extends Scope with JsonApi {
-    val apiUser = ApiUser("1", "123", "NL", "TNM")
+    val apiUser = ApiUser("NL", "TNM")
 
     val token = Token(
       uid = "23455655A",
