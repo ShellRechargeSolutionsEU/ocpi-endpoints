@@ -41,86 +41,95 @@ val commonSettings = Seq(
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 )
 
-val `ocpi-prelude` = project
+val `prelude` = project
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
+    name := "ocpi-prelude",
     description := "Definitions that are useful across all OCPI modules")
 
-val `ocpi-msgs` = project
+val `msgs` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-prelude`)
+  .dependsOn(`prelude`)
   .settings(
     commonSettings,
+    name := "ocpi-msgs",
     description := "OCPI messages",
     libraryDependencies := misc)
 
-val `ocpi-msgs-spray-json` = project
+val `msgs-spray-json` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-msgs`)
+  .dependsOn(`msgs`)
   .settings(
     commonSettings,
+    name := "ocpi-msgs-spray-json",
     description := "OCPI serialization library Spray Json",
     libraryDependencies := `spray-json` ++ specs2
   )
 
-val `ocpi-endpoints-common` = project
+val `endpoints-common` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-msgs-spray-json`)
+  .dependsOn(`msgs-spray-json`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-common",
     description := "OCPI endpoints common",
     libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKit ++ akkaStreamTestKit
   )
 
-val `ocpi-endpoints-msp-locations` = project
+val `endpoints-msp-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`)
+  .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-msp-locations",
     description := "OCPI endpoints MSP Locations",
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `ocpi-endpoints-msp-tokens` = project
+val `endpoints-msp-tokens` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`)
+  .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-msp-tokens",
     description := "OCPI endpoints MSP Tokens",
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `ocpi-endpoints-cpo-locations` = project
+val `endpoints-cpo-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`)
+  .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-cpo-locations",
     description := "OCPI endpoints CPO Locations",
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `ocpi-endpoints-cpo-tokens` = project
+val `endpoints-cpo-tokens` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`)
+  .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-cpo-tokens",
     description := "OCPI endpoints CPO Tokens",
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `ocpi-endpoints-toplevel` = project
+val `endpoints-toplevel` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`ocpi-endpoints-common`)
+  .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
+    name := "ocpi-endpoints-toplevel",
     description := "OCPI endpoints toplevel",
     libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
   )
 
 val `example` = project
   .enablePlugins(AppPlugin)
-  .dependsOn(`ocpi-endpoints-toplevel`)
+  .dependsOn(`endpoints-toplevel`)
   .settings(
     commonSettings,
     description := "OCPI endpoints example app"
@@ -128,15 +137,15 @@ val `example` = project
 
 val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
-    `ocpi-prelude`,
-    `ocpi-msgs`,
-    `ocpi-msgs-spray-json`,
-    `ocpi-endpoints-common`,
-    `ocpi-endpoints-toplevel`,
-    `ocpi-endpoints-msp-locations`,
-    `ocpi-endpoints-msp-tokens`,
-    `ocpi-endpoints-cpo-locations`,
-    `ocpi-endpoints-cpo-tokens`,
+    `prelude`,
+    `msgs`,
+    `msgs-spray-json`,
+    `endpoints-common`,
+    `endpoints-toplevel`,
+    `endpoints-msp-locations`,
+    `endpoints-msp-tokens`,
+    `endpoints-cpo-locations`,
+    `endpoints-cpo-tokens`,
     `example`)
   .enablePlugins(OssLibPlugin)
   .settings(
