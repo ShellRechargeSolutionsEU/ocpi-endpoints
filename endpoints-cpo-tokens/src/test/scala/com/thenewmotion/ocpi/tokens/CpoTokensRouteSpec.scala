@@ -2,9 +2,11 @@ package com.thenewmotion.ocpi
 package tokens
 
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+
 import scala.concurrent.Future
 import scalaz._
 
@@ -20,7 +22,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
   "tokens endpoint" should {
     "reject unauthorized access" in new TokensTestScope {
-      val unAuthorizedUser = apiUser.copy(partyId = "SBM")
+      val unAuthorizedUser = apiUser.copy(partyId = PartyId("SBM"))
 
       Put(s"$tokenPath/$tokenUid") ~> akka.http.scaladsl.server.Route.seal(
         cpoTokensRoute.route(unAuthorizedUser)) ~> check {
@@ -108,16 +110,12 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait TokensTestScope extends Scope {
-
-    import com.thenewmotion.mobilityid.CountryCode
-    import com.thenewmotion.mobilityid.OperatorIdIso
-
     val tokenUid = "012345678"
     val countryCodeString = "NL"
     val operatorIdString = "TNM"
     val countryCode = CountryCode(countryCodeString)
-    val operatorIdIso = OperatorIdIso(operatorIdString)
-    val apiUser = ApiUser(countryCodeString, operatorIdString)
+    val operatorIdIso = PartyId(operatorIdString)
+    val apiUser = GlobalPartyId(countryCode, operatorIdIso)
     val tokenPath = s"/$countryCodeString/$operatorIdString"
     val cpoTokensService = mock[CpoTokensService]
     val cpoTokensRoute = new CpoTokensRoute(cpoTokensService)

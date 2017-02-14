@@ -4,10 +4,11 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi._
+import com.thenewmotion.ocpi.{OcpiRoutingConfig, OcpiVersionConfig, TopLevelRoute}
 import com.thenewmotion.ocpi.handshake.HandshakeService
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.Endpoint
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
+import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, VersionNumber}
 import com.thenewmotion.ocpi.msgs.v2_1.Versions.EndpointIdentifier._
 import scala.concurrent.Future
 
@@ -17,38 +18,25 @@ class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
   ourLogo = None,
   ourWebsite = None,
   ourBaseUrl = Uri("www.ocpi-example.com"),
-  ourPartyId = "exp",
-  ourCountryCode = "NL"
+  ourPartyId = PartyId("exp"),
+  ourCountryCode = CountryCode("NL")
 ) {
-  override protected def persistHandshakeReactResult(
-    version: Version,
-    existingTokenToConnectToUs: String,
-    newTokenToConnectToUs: String,
-    credsToConnectToThem: Creds,
-    endpoints: Iterable[Endpoint]) = ???
 
-  override protected def persistUpdateCredsResult(
-    version: Version,
-    existingTokenToConnectToUs: String,
-    newTokenToConnectToUs: String,
-    credsToConnectToThem: Creds,
-    endpoints: Iterable[Endpoint]) = ???
+  override protected def persistPartyPendingRegistration(partyName: String, globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken) = ???
 
-  override protected def persistHandshakeInitResult(
-    version: Version,
-    newTokenToConnectToUs: String,
-    newCredToConnectToThem: Creds,
-    endpoints: Iterable[Endpoint]) = ???
+  override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
 
-  override protected def persistPartyPendingRegistration(
-    partyName: String,
-    countryCode: String,
-    partyId: String,
-    newTokenToConnectToUs: String) = ???
+  override def credsToConnectToUs(globalPartyId: GlobalPartyId) = ???
 
-  override protected def removePartyPendingRegistration(tokenToConnectToUs: String) = ???
+  override protected def persistHandshakeReactResult(version: VersionNumber, globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken, credsToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
 
-  override def credsToConnectToUs(tokenToConnectToUs: String) = ???
+  override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken, credsToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
+
+  override protected def persistHandshakeInitResult(version: VersionNumber, newTokenToConnectToUs: TheirToken,
+    newCredToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
 }
 
 object ExampleApp extends App with TopLevelRoute {
@@ -61,10 +49,10 @@ object ExampleApp extends App with TopLevelRoute {
 
   override def routingConfig = OcpiRoutingConfig(
     namespace = "example",
-    versions = Map("2.1" -> OcpiVersionConfig(Map(Locations -> Left("http://locations.ocpi-example.com")))),
+    versions = Map(VersionNumber.`2.1` -> OcpiVersionConfig(Map(Locations -> Left("http://locations.ocpi-example.com")))),
     handshakeService = service
   ) {
-    apiUser => Future.successful(Some(ApiUser("nl", "abc")))
+    apiUser => Future.successful(Some(GlobalPartyId(CountryCode("nl"), PartyId("abc"))))
   } {
     internalUser => Future.successful(None)
   }

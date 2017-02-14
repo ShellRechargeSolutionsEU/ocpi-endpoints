@@ -5,13 +5,9 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
-import com.thenewmotion.mobilityid.CountryCode
-import com.thenewmotion.mobilityid.OperatorIdIso
 import common.{DisjunctionMarshalling, OcpiRejectionHandler}
 import locations.LocationsError._
-import msgs.v2_1.CommonTypes.ErrorResp
-import msgs.v2_1.CommonTypes.SuccessResp
-import msgs.v2_1.CommonTypes.SuccessWithDataResp
+import msgs.v2_1.CommonTypes._
 import msgs.v2_1.Locations._
 import msgs.v2_1.OcpiStatusCode._
 import scala.concurrent.ExecutionContext
@@ -35,15 +31,15 @@ class MspLocationsRoute(
     }
   }
 
-  def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
+  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val CountryCodeSegment: PathMatcher1[CountryCode] = Segment.map(CountryCode(_))
-  private val OperatorIdSegment: PathMatcher1[OperatorIdIso] = Segment.map(OperatorIdIso(_))
-  private def isResourceAccessAuthorized(apiUser: ApiUser, cc: CountryCode, opId: OperatorIdIso) =
-    authorize(CountryCode(apiUser.countryCode) == cc && OperatorIdIso(apiUser.partyId) == opId)
+  private val OperatorIdSegment: PathMatcher1[PartyId] = Segment.map(PartyId(_))
+  private def isResourceAccessAuthorized(apiUser: GlobalPartyId, cc: CountryCode, opId: PartyId) =
+    authorize(apiUser.countryCode == cc && apiUser.partyId == opId)
 
-  private[locations] def routeWithoutRh(apiUser: ApiUser)(implicit executionContext: ExecutionContext) = {
+  private[locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
     pathPrefix(CountryCodeSegment / OperatorIdSegment / Segment) { (cc, opId, locId) =>
       pathEndOrSingleSlash {
         put {

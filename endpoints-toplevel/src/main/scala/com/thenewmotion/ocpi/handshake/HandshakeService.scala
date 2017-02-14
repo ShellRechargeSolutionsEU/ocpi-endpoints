@@ -1,16 +1,15 @@
-package com.thenewmotion.ocpi.handshake
+package com.thenewmotion.ocpi
+package handshake
 
 import java.security.SecureRandom
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi
-import com.thenewmotion.ocpi._
-import com.thenewmotion.ocpi.handshake.HandshakeError._
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.Versions
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetails, VersionNumber}
+import handshake.HandshakeError._
+import msgs.v2_1.CommonTypes._
+import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
+import msgs.v2_1.Versions
+import msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetails, VersionNumber}
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
@@ -21,8 +20,8 @@ abstract class HandshakeService(
   ourLogo: Option[Image],
   ourWebsite: Option[Url],
   ourBaseUrl: Uri,
-  ourPartyId: String,
-  ourCountryCode: String
+  ourPartyId: PartyId,
+  ourCountryCode: CountryCode
 )(implicit http: HttpExt) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
@@ -38,12 +37,11 @@ abstract class HandshakeService(
     */
   def reactToHandshakeRequest(
     version: VersionNumber,
-    existingTokenToConnectToUs: String,
-    credsToConnectToThem: Creds
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
+    globalPartyId: GlobalPartyId,
+    credsToConnectToThem: Creds[OurToken]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
 
-    logger.info(s"Handshake initiated by party: ${credsToConnectToThem.partyId}, " +
-      s"using token: $existingTokenToConnectToUs, " +
+    logger.info(s"Handshake initiated by party: $globalPartyId, " +
       s"chosen version: ${version.name}. " +
       s"Credentials for us: $credsToConnectToThem")
 
@@ -58,7 +56,7 @@ abstract class HandshakeService(
         val newTokenToConnectToUs = ApiTokenGenerator.generateToken
 
         val persistResult = persistHandshakeReactResult(
-          version, existingTokenToConnectToUs, newTokenToConnectToUs,
+          version, globalPartyId, newTokenToConnectToUs,
           credsToConnectToThem, verDetails.endpoints)
 
         persistResult.bimap(
@@ -75,12 +73,12 @@ abstract class HandshakeService(
     */
   def reactToUpdateCredsRequest(
     version: VersionNumber,
-    existingTokenToConnectToUs: String,
-    credsToConnectToThem: Creds
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
+    globalPartyId: GlobalPartyId,
+    credsToConnectToThem: Creds[OurToken]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
-      s"using token: $existingTokenToConnectToUs, for version: ${version.name}. " +
+      s"for version: ${version.name}. " +
       s"New credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(
@@ -94,7 +92,7 @@ abstract class HandshakeService(
         val newTokenToConnectToUs = ApiTokenGenerator.generateToken
 
         val persistResult = persistUpdateCredsResult(
-          version, existingTokenToConnectToUs, newTokenToConnectToUs,
+          version, globalPartyId, newTokenToConnectToUs,
           credsToConnectToThem, verDetails.endpoints)
 
         persistResult.bimap(
@@ -109,31 +107,31 @@ abstract class HandshakeService(
     *
     * @return new credentials to connect to them
     */
-  def initiateHandshakeProcess(partyName: String, countryCode: String, partyId: String,
-    tokenToConnectToThem: String, theirVersionsUrl: Uri)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds] = {
+  def initiateHandshakeProcess(partyName: String, globalPartyId: GlobalPartyId,
+    tokenToConnectToThem: OurToken, theirVersionsUrl: Uri)
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[OurToken]] = {
     logger.info(s"initiate handshake process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
 
     def theirDetails =
-      getTheirDetails(ocpi.ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
+      getTheirDetails(ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
     def theirCredEp(versionDetails: VersionDetails) =
       versionDetails.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
     def theirNewCred(credEp: Url) =
       client.sendCredentials(credEp, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl))
     def withCleanup[A, B](f: => Future[A \/ B]): Future[A \/ B]  = f.map {
-      case disj if disj.isLeft => removePartyPendingRegistration(newTokenToConnectToUs); disj
+      case disj if disj.isLeft => removePartyPendingRegistration(globalPartyId); disj
       case disj  => disj
     }
-    def persist(creds: Creds, endpoints: Iterable[Endpoint]) =
-      persistHandshakeInitResult(ocpi.ourVersion, newTokenToConnectToUs, creds, endpoints)
+    def persist(creds: Creds[OurToken], endpoints: Iterable[Endpoint]) =
+      persistHandshakeInitResult(ourVersion, newTokenToConnectToUs, creds, endpoints)
 
     (for {
       verDet <- result(theirDetails)
       credEndpoint = theirCredEp(verDet)
-      _ <- result(Future.successful(persistPartyPendingRegistration(partyName, countryCode, partyId, newTokenToConnectToUs)))
+      _ <- result(Future.successful(persistPartyPendingRegistration(partyName, globalPartyId: GlobalPartyId, newTokenToConnectToUs)))
       newCredToConnectToThem <- result(withCleanup(theirNewCred(credEndpoint.url)))
       _ <- result(Future.successful(persist(newCredToConnectToThem, verDet.endpoints)))
     } yield newCredToConnectToThem).run
@@ -144,7 +142,7 @@ abstract class HandshakeService(
     * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
     * is not still registered
     */
-  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: String, theirVersionsUrl: Uri, initiatedByUs: Boolean)
+  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: OurToken, theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ VersionDetails] = {
 
     def findCommonVersion(versionResp: List[Versions.Version]): Future[HandshakeError \/ Versions.Version] = {
@@ -165,47 +163,46 @@ abstract class HandshakeService(
   }
 
 
-  private def generateCredsToConnectToUs(tokenToConnectToUs: String, ourVersionsUrl: Uri): Creds = {
+  private def generateCredsToConnectToUs(tokenToConnectToUs: TheirToken, ourVersionsUrl: Uri): Creds[TheirToken] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
-
-    Creds(tokenToConnectToUs, ourVersionsUrl.toString(), BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
+    Creds(tokenToConnectToUs, ourVersionsUrl.toString(),
+      BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
   }
 
   protected def persistHandshakeReactResult(
     version: VersionNumber,
-    existingTokenToConnectToUs: String,
-    newTokenToConnectToUs: String,
-    credsToConnectToThem: Creds,
+    globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken,
+    credsToConnectToThem: Creds[OurToken],
     endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistUpdateCredsResult(
     version: VersionNumber,
-    existingTokenToConnectToUs: String,
-    newTokenToConnectToUs: String,
-    credsToConnectToThem: Creds,
+    globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken,
+    credsToConnectToThem: Creds[OurToken],
     endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistHandshakeInitResult(
     version: VersionNumber,
-    newTokenToConnectToUs: String,
-    newCredToConnectToThem: Creds,
+    newTokenToConnectToUs: TheirToken,
+    newCredToConnectToThem: Creds[OurToken],
     endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistPartyPendingRegistration(
     partyName: String,
-    countryCode: String,
-    partyId: String,
-    newTokenToConnectToUs: String
+    globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirToken
   ): HandshakeError \/ Unit
 
   protected def removePartyPendingRegistration(
-    tokenToConnectToUs: String
+    globalPartyId: GlobalPartyId
   ): HandshakeError \/ Unit
 
-  def credsToConnectToUs(tokenToConnectToUs: String): HandshakeError \/ Creds
+  def credsToConnectToUs(globalPartyId: GlobalPartyId): HandshakeError \/ Creds[TheirToken]
 }
 
 object ApiTokenGenerator {
@@ -215,10 +212,10 @@ object ApiTokenGenerator {
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"
   val secureRandom = new SecureRandom()
 
-  def generateToken: String = generateToken(TOKEN_LENGTH)
+  def generateToken: TheirToken = generateToken(TOKEN_LENGTH)
 
-  def generateToken(length: Int): String =
-    (1 to length).map(_ => TOKEN_CHARS(secureRandom.nextInt(TOKEN_CHARS.length))).mkString
+  def generateToken(length: Int): TheirToken =
+    TheirToken((1 to length).map(_ => TOKEN_CHARS(secureRandom.nextInt(TOKEN_CHARS.length))).mkString)
 }
 
 trait FutureEitherUtils {

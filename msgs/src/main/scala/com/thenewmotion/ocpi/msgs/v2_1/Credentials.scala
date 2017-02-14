@@ -1,18 +1,23 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Url}
+import CommonTypes.{BusinessDetails, CountryCode, PartyId, Url}
 
 object Credentials {
-  case class Creds(
-    token: String,
-    url:  Url,
-    businessDetails: BusinessDetails,
-    partyId: String,
-    countryCode: String
-    ){
-    require(partyId.length == 3)
-    require(countryCode.length == 2)
-    require(token.length <= 64)
+
+  sealed trait Token {
+    def value: String
+    override def toString = value
+    require(value.length <= 64)
   }
+  case class OurToken(value: String) extends Token
+  case class TheirToken(value: String) extends Token
+
+  case class Creds[T <: Token](
+    token: T,
+    url: Url,
+    businessDetails: BusinessDetails,
+    partyId: PartyId,
+    countryCode: CountryCode
+  )
 }
 

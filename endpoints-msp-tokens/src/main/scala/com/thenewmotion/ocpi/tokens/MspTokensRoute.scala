@@ -6,8 +6,8 @@ import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import com.thenewmotion.ocpi.common.{DisjunctionMarshalling, Pager, PaginatedRoute}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
-import com.thenewmotion.ocpi.{ApiUser, JsonApi}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
+import com.thenewmotion.ocpi.JsonApi
 import org.joda.time.DateTime
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.LocationReferences
@@ -41,7 +41,7 @@ class MspTokensRoute(
       }
     }
 
-  def route(apiUser: ApiUser)(implicit ec: ExecutionContext) =
+  def route(apiUser: GlobalPartyId)(implicit ec: ExecutionContext) =
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[DateTime], dateTo: Option[DateTime]) =>

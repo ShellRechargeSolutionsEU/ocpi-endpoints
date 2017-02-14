@@ -39,6 +39,39 @@ object CommonTypes {
     website: Option[Url]
     )
 
+  trait PartyId extends Any {
+    def value: String
+    override def toString = value
+  }
+
+  private case class PartyIdImpl(value: String) extends AnyVal with PartyId
+
+  object PartyId {
+    def apply(value: String): PartyId = {
+      require(value.length == 3, "PartyId must have a length of 3")
+      PartyIdImpl(value)
+    }
+  }
+
+  trait CountryCode extends Any {
+    def value: String
+    override def toString = value
+  }
+
+  private case class CountryCodeImpl(value: String) extends AnyVal with CountryCode
+
+  object CountryCode {
+    def apply(value: String): CountryCode = {
+      require(value.length == 2, "CountryCode must have a length of 2")
+      CountryCodeImpl(value)
+    }
+  }
+
+  case class GlobalPartyId(
+    countryCode: CountryCode,
+    partyId: PartyId
+  )
+
   trait OcpiResponse[Code <: OcpiStatusCode] {
     def statusCode: Code
     def statusMessage: Option[String]

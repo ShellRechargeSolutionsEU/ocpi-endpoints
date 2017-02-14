@@ -6,10 +6,11 @@ import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.TopLevelRouteRejections._
 import com.thenewmotion.ocpi.common.{OcpiExceptionHandler, TokenAuthenticator}
 import com.thenewmotion.ocpi.handshake.InitiateHandshakeRoute
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{GlobalPartyId, SuccessWithDataResp}
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs.v2_1.Versions._
 import org.joda.time.DateTime
+
 import scala.concurrent.ExecutionContext
 
 trait TopLevelRoute extends JsonApi {
@@ -34,12 +35,12 @@ trait TopLevelRoute extends JsonApi {
         GenericSuccess,
         None,
         currentTime,
-        v.keys.flatMap(x => VersionNumber.withName(x).map(Version(_, appendPath(uri, x).toString()))).toList)
+        v.keys.map(x => Version(x, appendPath(uri, x.name).toString())).toList)
       )
     case _ => reject(NoVersionsRejection())
   }
 
-  def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: ApiUser): Route =
+  def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: GlobalPartyId): Route =
     pathEndOrSingleSlash {
       complete(
         SuccessWithDataResp(
@@ -74,12 +75,12 @@ trait TopLevelRoute extends JsonApi {
       (pathPrefix(routingConfig.namespace) & extract(_.request.uri)) { uri =>
         pathPrefix("initiateHandshake") {
           pathEndOrSingleSlash {
-            authenticateOrRejectWithChallenge(internalUseToken) { _: ApiUser =>
+            authenticateOrRejectWithChallenge(internalUseToken) { _: GlobalPartyId =>
               new InitiateHandshakeRoute(routingConfig.handshakeService).route
             }
           }
         } ~
-        authenticateOrRejectWithChallenge(externalUseToken) { apiUser: ApiUser =>
+        authenticateOrRejectWithChallenge(externalUseToken) { apiUser: GlobalPartyId =>
           pathPrefix(EndpointIdentifier.Versions.name) {
             pathEndOrSingleSlash {
               versionsRoute(uri)
@@ -87,7 +88,7 @@ trait TopLevelRoute extends JsonApi {
             pathPrefix(Segment) { version =>
               val route = for {
                 existingVersion <- VersionNumber.withName(version)
-                supportedVersion <- routingConfig.versions.get(existingVersion.name)
+                supportedVersion <- routingConfig.versions.get(existingVersion)
               } yield versionDetailsRoute(existingVersion, supportedVersion, uri, apiUser)
               route getOrElse reject(UnsupportedVersionRejection(version))
             }

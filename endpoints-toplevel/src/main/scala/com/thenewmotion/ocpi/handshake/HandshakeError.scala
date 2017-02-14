@@ -1,6 +1,8 @@
-package com.thenewmotion.ocpi.handshake
+package com.thenewmotion.ocpi
+package handshake
 
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber
+import msgs.v2_1.CommonTypes.{CountryCode, PartyId}
+import msgs.v2_1.Versions.VersionNumber
 
 sealed abstract class HandshakeError(val reason: String)
 
@@ -26,29 +28,10 @@ object HandshakeError{
   case class UnknownEndpointType(endpointType: String) extends HandshakeError(
     s"Unknown endpoint type: $endpointType")
 
-  case object CouldNotPersistCredsForUs extends HandshakeError(
-    "Could not persist credentials sent to us.")
-
-  case object CouldNotPersistNewCredsForUs extends HandshakeError(
-    "Could not persist the new credentials sent to us.")
-
-  case class CouldNotPersistNewToken(newToken: String) extends HandshakeError(
-    s"Could not persist the new token: $newToken.")
-
-  case class CouldNotPersistNewEndpoint(endpoint: String) extends HandshakeError(
-    s"Could not persist new endpoint: $endpoint.")
-
-  case object CouldNotUpdateEndpoints extends HandshakeError(
-    "Could not update registered endpoints.")
-
-  case class CouldNotPersistNewParty(partyId: String) extends HandshakeError(
-    s"Could not persist new party: $partyId.")
-
-  case class AlreadyExistingParty(partyId: String, country: String, version: VersionNumber) extends HandshakeError(
+  case class AlreadyExistingParty(partyId: PartyId, country: CountryCode, version: VersionNumber) extends HandshakeError(
     s"Already existing partyId: '$partyId' for country: '$country' and version: '${version.name}'.")
 
-  case class UnknownPartyToken(token: String) extends HandshakeError(
-    s"Unknown party token: '$token'.")
+  case object UnknownPartyToken extends HandshakeError("Unknown party token")
 
   case object WaitingForRegistrationRequest extends HandshakeError(
     "Still waiting for registration request.")

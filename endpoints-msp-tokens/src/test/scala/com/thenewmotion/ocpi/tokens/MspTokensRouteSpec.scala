@@ -5,17 +5,19 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import common.{Pager, PaginatedResult}
-import msgs.v2_1.CommonTypes.{ErrorResp, SuccessWithDataResp}
+import msgs.v2_1.CommonTypes._
 import msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+
 import scalaz._
 import msgs.v2_1.OcpiStatusCode._
+
 import scala.concurrent.Future
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-import com.thenewmotion.ocpi.tokens.AuthorizeError._
+import msgs.v2_1.OcpiJsonProtocol._
+import tokens.AuthorizeError._
 
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -77,7 +79,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait TestScope extends Scope with JsonApi {
-    val apiUser = ApiUser("NL", "TNM")
+    val apiUser = GlobalPartyId(CountryCode("NL"), PartyId("TNM"))
 
     val token = Token(
       uid = "23455655A",

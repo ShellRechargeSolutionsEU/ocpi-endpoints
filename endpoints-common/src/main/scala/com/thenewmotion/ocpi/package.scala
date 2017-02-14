@@ -1,6 +1,7 @@
 package com.thenewmotion
 
 import akka.http.scaladsl.server.Route
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.GlobalPartyId
 import ocpi.msgs.v2_1.Versions.VersionNumber
 import ocpi.msgs.v2_1.Versions.VersionNumber._
 import org.joda.time.format.ISODateTimeFormat
@@ -21,7 +22,7 @@ package object ocpi {
   type AuthToken = String
   type URI = String
 
-  type GuardedRoute = (Version, ApiUser) => Route
+  type GuardedRoute = (Version, GlobalPartyId) => Route
 
   val ourVersion: Version = `2.1`
 

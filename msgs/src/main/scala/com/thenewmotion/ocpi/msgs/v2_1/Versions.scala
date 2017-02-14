@@ -1,7 +1,8 @@
 package com.thenewmotion.ocpi
 package msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.Url
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.OurToken
+import msgs.v2_1.CommonTypes.{CountryCode, PartyId, Url}
 
 object Versions {
 
@@ -17,9 +18,9 @@ object Versions {
 
   case class VersionsRequest(
     partyName: String,
-    countryCode: String,
-    partyId: String,
-    token: String,
+    countryCode: CountryCode,
+    partyId: PartyId,
+    token: OurToken,
     url: Url
   )
 
