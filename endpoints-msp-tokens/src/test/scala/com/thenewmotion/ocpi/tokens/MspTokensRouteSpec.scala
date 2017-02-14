@@ -11,10 +11,8 @@ import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scalaz._
 import msgs.v2_1.OcpiStatusCode._
-
 import scala.concurrent.Future
 import msgs.v2_1.OcpiJsonProtocol._
 import tokens.AuthorizeError._

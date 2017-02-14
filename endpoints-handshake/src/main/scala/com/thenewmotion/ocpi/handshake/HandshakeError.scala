@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi
 package handshake
 
+import msgs.Versions.VersionNumber
 import msgs.v2_1.CommonTypes.{CountryCode, PartyId}
-import msgs.v2_1.Versions.VersionNumber
 
 sealed abstract class HandshakeError(val reason: String)
 

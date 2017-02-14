@@ -6,7 +6,7 @@ import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
-import com.thenewmotion.ocpi.msgs.v2_1.Versions._
+import com.thenewmotion.ocpi.msgs.Versions._
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import org.joda.time.DateTime
@@ -17,7 +17,7 @@ import org.specs2.specification.Scope
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import org.specs2.concurrent.ExecutionEnv
-import com.thenewmotion.ocpi.msgs.v2_1.Versions.VersionNumber._
+import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
 
 class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
   with DisjunctionMatchers{

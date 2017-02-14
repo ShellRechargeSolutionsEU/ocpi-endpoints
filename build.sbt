@@ -116,19 +116,30 @@ val `endpoints-cpo-tokens` = project
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `endpoints-toplevel` = project
+val `endpoints-versions` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
-    name := "ocpi-endpoints-toplevel",
-    description := "OCPI endpoints toplevel",
+    name := "ocpi-endpoints-versions",
+    description := "OCPI endpoints versions",
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
+  )
+
+val `endpoints-handshake` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`endpoints-common`)
+  .settings(
+    commonSettings,
+    name := "ocpi-endpoints-handshake",
+    description := "OCPI endpoints handshake",
     libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
   )
 
 val `example` = project
   .enablePlugins(AppPlugin)
-  .dependsOn(`endpoints-toplevel`)
+  .dependsOn(`endpoints-handshake`)
+  .dependsOn(`endpoints-versions`)
   .settings(
     commonSettings,
     description := "OCPI endpoints example app"
@@ -140,7 +151,8 @@ val `ocpi-endpoints-root` = (project in file("."))
     `msgs`,
     `msgs-spray-json`,
     `endpoints-common`,
-    `endpoints-toplevel`,
+    `endpoints-versions`,
+    `endpoints-handshake`,
     `endpoints-msp-locations`,
     `endpoints-msp-tokens`,
     `endpoints-cpo-locations`,

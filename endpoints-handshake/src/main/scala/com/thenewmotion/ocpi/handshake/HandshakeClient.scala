@@ -7,7 +7,7 @@ import common.OcpiClient
 import handshake.HandshakeError._
 import msgs.v2_1.CommonTypes.{SuccessWithDataResp, Url}
 import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
-import msgs.v2_1.Versions._
+import msgs.Versions._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.\/
 import akka.http.scaladsl.client.RequestBuilding._

@@ -1,9 +1,9 @@
 package com.thenewmotion
 
 import akka.http.scaladsl.server.Route
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.GlobalPartyId
-import ocpi.msgs.v2_1.Versions.VersionNumber
-import ocpi.msgs.v2_1.Versions.VersionNumber._
+import ocpi.msgs.v2_1.CommonTypes.GlobalPartyId
+import ocpi.msgs.Versions.VersionNumber
+import ocpi.msgs.Versions.VersionNumber._
 import org.joda.time.format.ISODateTimeFormat
 import org.slf4j.LoggerFactory
 import scala.concurrent.ExecutionContext

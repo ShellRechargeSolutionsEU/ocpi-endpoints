@@ -5,16 +5,17 @@ import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import handshake.HandshakeError._
-import handshake.HandshakeError.UnknownPartyToken
+import HandshakeError._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ImageCategory.Operator
 import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, Image, ImageCategory, PartyId, BusinessDetails => OcpiBusinessDetails}
 import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
 import msgs.v2_1.OcpiStatusCode.GenericSuccess
-import msgs.v2_1.Versions.VersionNumber._
+import msgs.Versions.VersionNumber._
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+
 import scala.concurrent.Future
 import scalaz._
 
@@ -137,56 +138,6 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     }
   }
 
-  "initiateHandshake endpoint" should {
-    "send the credentials to them to connect to us" in new CredentialsTestScope {
-      val theirVersData =
-        s"""
-           |{
-           |"party_name": "${credsToConnectToThem.businessDetails.name}",
-           |"country_code": "${credsToConnectToThem.countryCode}",
-           |"party_id": "${credsToConnectToThem.partyId}",
-           |"token": "${credsToConnectToThem.token}",
-           |"url": "${credsToConnectToThem.url}"
-           |}
-          """.stripMargin
-
-      val body = HttpEntity(contentType = `application/json`, string = theirVersData)
-
-      Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
-        status.isSuccess === true
-        responseAs[String] must contain(GenericSuccess.code.toString)
-        responseAs[String] must contain(credsToConnectToThem.token.value)
-      }
-
-    }
-
-    "reject indicating the reason if the initiation of the handshake failed" in new CredentialsTestScope {
-      val error: HandshakeError = VersionDetailsRetrievalFailed
-
-      handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, theirGlobalId,
-        credsToConnectToThem.token, credsToConnectToThem.url) returns
-        Future.successful(-\/(error))
-
-      val theirVersData =
-        s"""
-           |{
-           |"party_name": "${credsToConnectToThem.businessDetails.name}",
-           |"country_code": "${credsToConnectToThem.countryCode}",
-           |"party_id": "${credsToConnectToThem.partyId}",
-           |"token": "${credsToConnectToThem.token}",
-           |"url": "${credsToConnectToThem.url}"
-           |}
-          """.stripMargin
-
-      val body = HttpEntity(contentType = `application/json`, string = theirVersData)
-
-      Post("/initiateHandshake", body) ~> initHandshakeRoute.route ~> check {
-        responseAs[String].contains(GenericSuccess.code.toString) must beFalse
-        responseAs[String] must contain(error.reason)
-      }
-    }
-  }
-
   trait CredentialsTestScope extends Scope {
 
     val theirPartyId = PartyId("EOP")
@@ -199,7 +150,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
       url = "https://them.com/ocpi/cpo/versions",
       businessDetails = OcpiBusinessDetails(
         "Example Operator",
-        Some(Image("http://them.com/images/logo.png", ImageCategory.Operator, "png")),
+        Some(Image("http://them.com/images/logo.png", Operator, "png")),
         Some("http://them.com")),
       partyId = theirPartyId,
       countryCode = theirCountryCode)
@@ -232,6 +183,5 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     handshakeService.credsToConnectToUs(any) returns -\/(UnknownPartyToken)
 
     val credentialsRoute = new HandshakeRoute(handshakeService)
-    val initHandshakeRoute = new InitiateHandshakeRoute(handshakeService)
   }
 }

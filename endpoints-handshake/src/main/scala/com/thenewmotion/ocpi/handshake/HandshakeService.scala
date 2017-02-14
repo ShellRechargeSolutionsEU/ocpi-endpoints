@@ -5,14 +5,14 @@ import java.security.SecureRandom
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
-import handshake.HandshakeError._
+import msgs.Versions.EndpointIdentifier.{Credentials, Versions}
+import msgs.Versions.{Endpoint, Version, VersionDetails, VersionNumber}
 import msgs.v2_1.CommonTypes._
 import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
-import msgs.v2_1.Versions
-import msgs.v2_1.Versions.{Endpoint, EndpointIdentifier, VersionDetails, VersionNumber}
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
+import HandshakeError._
 
 abstract class HandshakeService(
   ourNamespace: String,
@@ -28,7 +28,7 @@ abstract class HandshakeService(
 
   private[handshake] val client: HandshakeClient = new HandshakeClient
 
-  private val ourVersionsUrl = ourBaseUrl + "/" + ourNamespace + "/" + EndpointIdentifier.Versions.name
+  private val ourVersionsUrl = ourBaseUrl + "/" + ourNamespace + "/" + Versions.name
 
   /**
     * React to a handshake request.
@@ -117,7 +117,7 @@ abstract class HandshakeService(
     def theirDetails =
       getTheirDetails(ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
     def theirCredEp(versionDetails: VersionDetails) =
-      versionDetails.endpoints.filter(_.identifier == EndpointIdentifier.Credentials).head
+      versionDetails.endpoints.filter(_.identifier == Credentials).head
     def theirNewCred(credEp: Url) =
       client.sendCredentials(credEp, tokenToConnectToThem,
         generateCredsToConnectToUs(newTokenToConnectToUs, ourVersionsUrl))
@@ -145,7 +145,7 @@ abstract class HandshakeService(
   private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: OurToken, theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ VersionDetails] = {
 
-    def findCommonVersion(versionResp: List[Versions.Version]): Future[HandshakeError \/ Versions.Version] = {
+    def findCommonVersion(versionResp: List[Version]): Future[HandshakeError \/ Version] = {
       versionResp.find(_.version == version) match {
         case Some(ver) => Future.successful(\/-(ver))
         case None =>

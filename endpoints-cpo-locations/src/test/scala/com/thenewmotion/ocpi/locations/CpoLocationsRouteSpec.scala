@@ -12,7 +12,6 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location}
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
-
 import scala.concurrent.Future
 import scalaz._
 import spray.json._
