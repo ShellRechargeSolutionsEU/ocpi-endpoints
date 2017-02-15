@@ -1,15 +1,16 @@
-package com.thenewmotion.ocpi.common
+package com.thenewmotion.ocpi
+package common
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, _}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scalaz.{-\/, \/, \/-}
 import akka.stream.scaladsl.Sink
 import com.github.nscala_time.time.Imports._
+import msgs.{ErrorResp, SuccessResponse}
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
 class ClientObjectUri (val value: Uri) extends AnyVal

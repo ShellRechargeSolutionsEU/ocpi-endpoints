@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.JsonApi
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.{CountryCode, GlobalPartyId, PartyId}
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification

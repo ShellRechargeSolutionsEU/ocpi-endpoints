@@ -5,14 +5,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import common.{Pager, PaginatedResult}
-import msgs.v2_1.CommonTypes._
 import msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import scalaz._
-import msgs.v2_1.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs._
 import scala.concurrent.Future
 import msgs.v2_1.OcpiJsonProtocol._
 import tokens.AuthorizeError._

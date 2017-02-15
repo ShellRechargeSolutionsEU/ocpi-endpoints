@@ -1,17 +1,17 @@
-package com.thenewmotion.ocpi.tokens
+package com.thenewmotion.ocpi
+package tokens
 
 import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import com.thenewmotion.ocpi.common.{DisjunctionMarshalling, Pager, PaginatedRoute}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
-import com.thenewmotion.ocpi.JsonApi
+import common.{DisjunctionMarshalling, Pager, PaginatedRoute}
+import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
 import org.joda.time.DateTime
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode._
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.LocationReferences
-import com.thenewmotion.ocpi.tokens.AuthorizeError._
+import msgs.OcpiStatusCode._
+import msgs.v2_1.Tokens.LocationReferences
+import tokens.AuthorizeError._
 import scala.concurrent.ExecutionContext
 
 class MspTokensRoute(

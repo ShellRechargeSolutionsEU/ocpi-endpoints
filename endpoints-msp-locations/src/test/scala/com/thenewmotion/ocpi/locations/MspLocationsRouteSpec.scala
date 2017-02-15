@@ -4,14 +4,13 @@ import akka.http.scaladsl.model.HttpEntity
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.Future
 import scalaz._
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.{CountryCode, GlobalPartyId, PartyId}
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 

@@ -7,8 +7,8 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import VersionsRoute.OcpiVersionConfig
 import handshake.{HandshakeRoute, HandshakeService}
-import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
-import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
+import msgs.{CountryCode, GlobalPartyId, PartyId, OurAuthToken, TheirAuthToken}
+import msgs.v2_1.Credentials.Creds
 import msgs.Versions.{Endpoint, VersionNumber}
 import msgs.Versions.EndpointIdentifier._
 import akka.http.scaladsl.server.Directives._
@@ -26,20 +26,20 @@ class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
 ) {
 
   override protected def persistPartyPendingRegistration(partyName: String, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken) = ???
+    newTokenToConnectToUs: TheirAuthToken) = ???
 
   override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
 
   override def credsToConnectToUs(globalPartyId: GlobalPartyId) = ???
 
   override protected def persistHandshakeReactResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken, credsToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
+    newTokenToConnectToUs: TheirAuthToken, credsToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
 
   override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken, credsToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
+    newTokenToConnectToUs: TheirAuthToken, credsToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
 
-  override protected def persistHandshakeInitResult(version: VersionNumber, newTokenToConnectToUs: TheirToken,
-    newCredToConnectToThem: Creds[OurToken], endpoints: Iterable[Endpoint]) = ???
+  override protected def persistHandshakeInitResult(version: VersionNumber, newTokenToConnectToUs: TheirAuthToken,
+    newCredToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
 }
 
 object ExampleApp extends App {

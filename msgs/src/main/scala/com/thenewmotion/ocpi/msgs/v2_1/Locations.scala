@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi
-package msgs.v2_1
+package msgs
+package v2_1
 
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import org.joda.time.DateTime

@@ -5,11 +5,12 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
+import msgs.ErrorResp
 import common.{DisjunctionMarshalling, OcpiRejectionHandler}
 import locations.LocationsError._
-import msgs.v2_1.CommonTypes._
 import msgs.v2_1.Locations._
-import msgs.v2_1.OcpiStatusCode._
+import msgs._
+import msgs.OcpiStatusCode._
 import scala.concurrent.ExecutionContext
 
 class MspLocationsRoute(

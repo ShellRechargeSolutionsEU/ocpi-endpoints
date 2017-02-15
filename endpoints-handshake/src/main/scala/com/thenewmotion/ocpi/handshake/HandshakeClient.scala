@@ -5,8 +5,8 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import common.OcpiClient
 import handshake.HandshakeError._
-import msgs.v2_1.CommonTypes.{SuccessWithDataResp, Url}
-import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
+import msgs.{OurAuthToken, SuccessWithDataResp, TheirAuthToken, Url}
+import msgs.v2_1.Credentials.Creds
 import msgs.Versions._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.\/
@@ -17,7 +17,7 @@ class HandshakeClient(implicit http: HttpExt) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-  def getTheirVersions(uri: Uri, token: OurToken)
+  def getTheirVersions(uri: Uri, token: OurAuthToken)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ List[Version]] =
     singleRequest[SuccessWithDataResp[List[Version]]](Get(uri), token.value).map {
       _.bimap(err => {
@@ -26,7 +26,7 @@ class HandshakeClient(implicit http: HttpExt) extends OcpiClient {
       }, _.data)
     }
 
-  def getTheirVersionDetails(uri: Uri, token: OurToken)
+  def getTheirVersionDetails(uri: Uri, token: OurAuthToken)
       (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ VersionDetails] =
     singleRequest[SuccessWithDataResp[VersionDetails]](Get(uri), token.value).map {
       _.bimap(err => {
@@ -35,9 +35,9 @@ class HandshakeClient(implicit http: HttpExt) extends OcpiClient {
       }, _.data)
     }
 
-  def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: OurToken, credToConnectToUs: Creds[TheirToken])
-      (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[OurToken]] = {
-    singleRequest[SuccessWithDataResp[Creds[OurToken]]](Post(theirCredUrl, credToConnectToUs), tokenToConnectToThem.value).map {
+  def sendCredentials(theirCredUrl: Url, tokenToConnectToThem: OurAuthToken, credToConnectToUs: Creds[TheirAuthToken])
+      (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[OurAuthToken]] = {
+    singleRequest[SuccessWithDataResp[Creds[OurAuthToken]]](Post(theirCredUrl, credToConnectToUs), tokenToConnectToThem.value).map {
       _.bimap(err => {
         logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
           s"$tokenToConnectToThem when sending our credentials $credToConnectToUs. Reason: $err")

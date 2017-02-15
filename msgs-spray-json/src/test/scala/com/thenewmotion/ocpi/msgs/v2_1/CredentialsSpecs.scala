@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
 import Credentials._
+import com.thenewmotion.ocpi.msgs.{CountryCode, PartyId, TheirAuthToken}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
@@ -12,7 +13,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
 
   "CredentialsResp" should {
     "deserialize" in new CredentialsTestScope {
-      credentialsJson1.convertTo[Creds[TheirToken]] mustEqual credentials1
+      credentialsJson1.convertTo[Creds[TheirAuthToken]] mustEqual credentials1
     }
     "serialize" in new CredentialsTestScope {
       credentials1.toJson.toString mustEqual credentialsJson1.compactPrint
@@ -27,7 +28,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
       Some("http://example.com")
     )
     val credentials1 = Creds(
-      token = TheirToken("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
+      token = TheirAuthToken("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
       url = "https://example.com/ocpi/cpo/",
       businessDetails = businessDetails1,
       partyId = PartyId("EXA"),

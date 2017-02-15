@@ -2,11 +2,10 @@ package com.thenewmotion.ocpi
 package tokens
 
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.{CountryCode, ErrorResp, GlobalPartyId, PartyId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.Future
 import scalaz._
 
@@ -15,7 +14,6 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   import TokenError.TokenNotFound
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import akka.http.scaladsl.model.StatusCodes
-  import msgs.v2_1.CommonTypes.ErrorResp
   import msgs.v2_1.OcpiJsonProtocol._
   import msgs.v2_1.Tokens._
   import org.joda.time.DateTime

@@ -6,8 +6,8 @@ import akka.stream.ActorMaterializer
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import common.OcpiExceptionHandler
-import msgs.v2_1.CommonTypes.{GlobalPartyId, SuccessWithDataResp}
-import msgs.v2_1.OcpiStatusCode._
+import msgs.{GlobalPartyId, SuccessWithDataResp}
+import msgs.OcpiStatusCode._
 import msgs.Versions._
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext

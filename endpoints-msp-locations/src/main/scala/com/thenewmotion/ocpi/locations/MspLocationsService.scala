@@ -1,7 +1,8 @@
-package com.thenewmotion.ocpi.locations
+package com.thenewmotion.ocpi
+package locations
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, PartyId}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
+import msgs.{CountryCode, PartyId}
+import msgs.v2_1.Locations._
 import scala.concurrent.Future
 import scalaz._
 

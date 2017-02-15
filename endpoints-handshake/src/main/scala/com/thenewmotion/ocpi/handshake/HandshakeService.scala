@@ -8,11 +8,12 @@ import akka.stream.ActorMaterializer
 import msgs.Versions.EndpointIdentifier.{Credentials, Versions}
 import msgs.Versions.{Endpoint, Version, VersionDetails, VersionNumber}
 import msgs.v2_1.CommonTypes._
-import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
+import msgs.v2_1.Credentials.Creds
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
 import HandshakeError._
+import msgs._
 
 abstract class HandshakeService(
   ourNamespace: String,
@@ -38,8 +39,8 @@ abstract class HandshakeService(
   def reactToHandshakeRequest(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[OurToken]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
+    credsToConnectToThem: Creds[OurAuthToken]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirAuthToken]] = {
 
     logger.info(s"Handshake initiated by party: $globalPartyId, " +
       s"chosen version: $version. " +
@@ -74,8 +75,8 @@ abstract class HandshakeService(
   def reactToUpdateCredsRequest(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[OurToken]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
+    credsToConnectToThem: Creds[OurAuthToken]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirAuthToken]] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
       s"for version: $version. " +
@@ -108,8 +109,8 @@ abstract class HandshakeService(
     * @return new credentials to connect to them
     */
   def initiateHandshakeProcess(partyName: String, globalPartyId: GlobalPartyId,
-    tokenToConnectToThem: OurToken, theirVersionsUrl: Uri)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[OurToken]] = {
+                               tokenToConnectToThem: OurAuthToken, theirVersionsUrl: Uri)
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[OurAuthToken]] = {
     logger.info(s"initiate handshake process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = ApiTokenGenerator.generateToken
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
@@ -125,7 +126,7 @@ abstract class HandshakeService(
       case disj if disj.isLeft => removePartyPendingRegistration(globalPartyId); disj
       case disj  => disj
     }
-    def persist(creds: Creds[OurToken], endpoints: Iterable[Endpoint]) =
+    def persist(creds: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) =
       persistHandshakeInitResult(ourVersion, newTokenToConnectToUs, creds, endpoints)
 
     (for {
@@ -142,7 +143,7 @@ abstract class HandshakeService(
     * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
     * is not still registered
     */
-  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: OurToken, theirVersionsUrl: Uri, initiatedByUs: Boolean)
+  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: OurAuthToken, theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ VersionDetails] = {
 
     def findCommonVersion(versionResp: List[Version]): Future[HandshakeError \/ Version] = {
@@ -163,46 +164,46 @@ abstract class HandshakeService(
   }
 
 
-  private def generateCredsToConnectToUs(tokenToConnectToUs: TheirToken, ourVersionsUrl: Uri): Creds[TheirToken] = {
+  private def generateCredsToConnectToUs(tokenToConnectToUs: TheirAuthToken, ourVersionsUrl: Uri): Creds[TheirAuthToken] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
     Creds(tokenToConnectToUs, ourVersionsUrl.toString(),
       BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
   }
 
   protected def persistHandshakeReactResult(
-    version: VersionNumber,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken,
-    credsToConnectToThem: Creds[OurToken],
-    endpoints: Iterable[Endpoint]
+                                             version: VersionNumber,
+                                             globalPartyId: GlobalPartyId,
+                                             newTokenToConnectToUs: TheirAuthToken,
+                                             credsToConnectToThem: Creds[OurAuthToken],
+                                             endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistUpdateCredsResult(
-    version: VersionNumber,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken,
-    credsToConnectToThem: Creds[OurToken],
-    endpoints: Iterable[Endpoint]
+                                          version: VersionNumber,
+                                          globalPartyId: GlobalPartyId,
+                                          newTokenToConnectToUs: TheirAuthToken,
+                                          credsToConnectToThem: Creds[OurAuthToken],
+                                          endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistHandshakeInitResult(
-    version: VersionNumber,
-    newTokenToConnectToUs: TheirToken,
-    newCredToConnectToThem: Creds[OurToken],
-    endpoints: Iterable[Endpoint]
+                                            version: VersionNumber,
+                                            newTokenToConnectToUs: TheirAuthToken,
+                                            newCredToConnectToThem: Creds[OurAuthToken],
+                                            endpoints: Iterable[Endpoint]
   ): HandshakeError \/ Unit
 
   protected def persistPartyPendingRegistration(
     partyName: String,
     globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: TheirToken
+    newTokenToConnectToUs: TheirAuthToken
   ): HandshakeError \/ Unit
 
   protected def removePartyPendingRegistration(
     globalPartyId: GlobalPartyId
   ): HandshakeError \/ Unit
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId): HandshakeError \/ Creds[TheirToken]
+  def credsToConnectToUs(globalPartyId: GlobalPartyId): HandshakeError \/ Creds[TheirAuthToken]
 }
 
 object ApiTokenGenerator {
@@ -212,10 +213,10 @@ object ApiTokenGenerator {
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._"
   val secureRandom = new SecureRandom()
 
-  def generateToken: TheirToken = generateToken(TOKEN_LENGTH)
+  def generateToken: TheirAuthToken = generateToken(TOKEN_LENGTH)
 
-  def generateToken(length: Int): TheirToken =
-    TheirToken((1 to length).map(_ => TOKEN_CHARS(secureRandom.nextInt(TOKEN_CHARS.length))).mkString)
+  def generateToken(length: Int): TheirAuthToken =
+    TheirAuthToken((1 to length).map(_ => TOKEN_CHARS(secureRandom.nextInt(TOKEN_CHARS.length))).mkString)
 }
 
 trait FutureEitherUtils {

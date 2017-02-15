@@ -7,9 +7,10 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ImageCategory.Operator
-import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, Image, PartyId, BusinessDetails => OcpiBusinessDetails}
-import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
-import msgs.v2_1.OcpiStatusCode.GenericSuccess
+import msgs.v2_1.CommonTypes.{Image, BusinessDetails => OcpiBusinessDetails}
+import msgs.v2_1.Credentials.Creds
+import msgs.{OurAuthToken, TheirAuthToken, CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericSuccess
 import msgs.Versions.VersionNumber._
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
@@ -146,7 +147,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
 
     // their details
     val credsToConnectToThem = Creds(
-      token = OurToken("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
+      token = OurAuthToken("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
       url = "https://them.com/ocpi/cpo/versions",
       businessDetails = OcpiBusinessDetails(
         "Example Operator",
@@ -158,7 +159,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     // our details
     val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
     val selectedVersion = `2.0`
-    val tokenToConnectToUs = TheirToken("aaa3b399-779f-4497-9b9d-ac6ad3cc44aa")
+    val tokenToConnectToUs = TheirAuthToken("aaa3b399-779f-4497-9b9d-ac6ad3cc44aa")
 
     val partyId = PartyId("TNM")
     val countryCode = CountryCode("NL")

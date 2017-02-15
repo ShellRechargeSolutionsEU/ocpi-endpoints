@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.ErrorResp
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
 import org.joda.time.DateTimeZone._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}

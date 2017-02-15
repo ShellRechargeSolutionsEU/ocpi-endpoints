@@ -6,10 +6,10 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
-import msgs.v2_1.CommonTypes._
+import msgs._
 import msgs.v2_1.OcpiJsonProtocol._
-import msgs.v2_1.OcpiStatusCode.GenericClientFailure
-import msgs.v2_1.OcpiStatusCode.GenericSuccess
+import msgs.OcpiStatusCode.GenericClientFailure
+import msgs.OcpiStatusCode.GenericSuccess
 import msgs.v2_1.Tokens._
 import tokens.TokenError._
 import scala.concurrent.ExecutionContext

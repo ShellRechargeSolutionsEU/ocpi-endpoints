@@ -1,9 +1,6 @@
 package com.thenewmotion.ocpi
 package msgs
 
-import v2_1.CommonTypes.{CountryCode, PartyId, Url}
-import v2_1.Credentials.OurToken
-
 import scala.util.{Failure, Success, Try}
 
 object Versions {
@@ -22,7 +19,7 @@ object Versions {
     partyName: String,
     countryCode: CountryCode,
     partyId: PartyId,
-    token: OurToken,
+    token: OurAuthToken,
     url: Url
   )
 

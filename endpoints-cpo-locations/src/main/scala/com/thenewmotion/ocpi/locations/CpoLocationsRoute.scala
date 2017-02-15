@@ -4,13 +4,12 @@ package locations
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
 import common._
 import locations.LocationsError._
-import msgs.v2_1.CommonTypes.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
-import msgs.v2_1.OcpiStatusCode.GenericClientFailure
-import msgs.v2_1.OcpiStatusCode.GenericSuccess
+import msgs.OcpiStatusCode.GenericClientFailure
+import msgs.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
-
 import scala.concurrent.ExecutionContext
 
 class CpoLocationsRoute(

@@ -1,6 +1,6 @@
-package com.thenewmotion.ocpi.msgs.v2_1
+package com.thenewmotion.ocpi.msgs
 
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.SuccessCode
+import OcpiStatusCode.SuccessCode
 
 sealed trait OcpiStatusCode {
   def code: Int

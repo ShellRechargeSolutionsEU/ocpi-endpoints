@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{CountryCode, PartyId}
+import msgs.{CountryCode, PartyId}
 import msgs.v2_1.Tokens._
 import scala.concurrent.Future
 import scalaz._

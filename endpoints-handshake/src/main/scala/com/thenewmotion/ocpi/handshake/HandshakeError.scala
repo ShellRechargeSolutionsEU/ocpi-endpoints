@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 package handshake
 
 import msgs.Versions.VersionNumber
-import msgs.v2_1.CommonTypes.{CountryCode, PartyId}
+import msgs.{CountryCode, PartyId}
 
 sealed abstract class HandshakeError(val reason: String)
 

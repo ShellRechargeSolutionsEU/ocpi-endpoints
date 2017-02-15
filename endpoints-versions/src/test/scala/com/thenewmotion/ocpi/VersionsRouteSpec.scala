@@ -5,8 +5,7 @@ import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, 
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
 import com.thenewmotion.ocpi.common.{OcpiRejectionHandler, TokenAuthenticator}
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.TheirToken
-import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, PartyId}
+import msgs.{CountryCode, GlobalPartyId, PartyId, TheirAuthToken}
 import msgs.Versions.{EndpointIdentifier, VersionNumber}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -15,7 +14,6 @@ import org.joda.time.DateTime
 import spray.json._
 import lenses.JsonLenses._
 import spray.json.DefaultJsonProtocol._
-
 import scala.concurrent.Future
 
 class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
@@ -123,7 +121,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
     // TODO Testing of TokenAuthenticator should be somewhere else
     val auth = new TokenAuthenticator(theirToken =>
       Future.successful {
-        if (theirToken == TheirToken("12345")) Some(GlobalPartyId(CountryCode("BE"), PartyId("BEC"))) else None
+        if (theirToken == TheirAuthToken("12345")) Some(GlobalPartyId(CountryCode("BE"), PartyId("BEC"))) else None
       }
     )
 

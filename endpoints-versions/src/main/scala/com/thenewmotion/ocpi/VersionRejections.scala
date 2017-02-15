@@ -4,11 +4,11 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.{Rejection, RejectionHandler}
-import com.thenewmotion.ocpi.common.OcpiRejectionHandler
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.UnsupportedVersion
+import common.OcpiRejectionHandler
+import msgs.OcpiStatusCode.UnsupportedVersion
 import SprayJsonSupport._
-import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
+import msgs.ErrorResp
+import msgs.Versions.VersionNumber
 
 object VersionRejections {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._

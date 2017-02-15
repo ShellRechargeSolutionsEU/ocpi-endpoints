@@ -149,7 +149,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  def tokenFormat[T <: Credentials.Token : ClassTag](c: String => T) = new JsonFormat[T] {
+  def tokenFormat[T <: AuthToken : ClassTag](c: String => T) = new JsonFormat[T] {
     override def read(json: JsValue) = json match {
       case JsString(x) => c(x)
       case x => deserializationError(s"Expected ${classTag[T].runtimeClass.getSimpleName} as JsString, but got $x")
@@ -157,8 +157,8 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     override def write(obj: T) = JsString(obj.value)
   }
 
-  implicit val ourTokenF = tokenFormat(Credentials.OurToken)
-  implicit val theirTokenF = tokenFormat(Credentials.TheirToken)
+  implicit val ourTokenF = tokenFormat(OurAuthToken)
+  implicit val theirTokenF = tokenFormat(TheirAuthToken)
 
   implicit val versionFormat = jsonFormat2(Version)
   implicit val versionsReqFormat = jsonFormat5(VersionsRequest)
@@ -168,7 +168,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val successRespFormat = jsonFormat3(SuccessResp)
   implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
 
-  implicit def credentialsFormat[T <: Credentials.Token : JsonFormat] = jsonFormat5(Creds[T])
+  implicit def credentialsFormat[T <: AuthToken : JsonFormat] = jsonFormat5(Creds[T])
 
   implicit val locationReferencesFormat = jsonFormat3(LocationReferences)
   implicit val allowedFormat =

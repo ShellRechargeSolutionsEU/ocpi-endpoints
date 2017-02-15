@@ -1,7 +1,7 @@
 package com.thenewmotion
 
 import akka.http.scaladsl.server.Route
-import ocpi.msgs.v2_1.CommonTypes.GlobalPartyId
+import ocpi.msgs.GlobalPartyId
 import ocpi.msgs.Versions.VersionNumber
 import ocpi.msgs.Versions.VersionNumber._
 import org.joda.time.format.ISODateTimeFormat
