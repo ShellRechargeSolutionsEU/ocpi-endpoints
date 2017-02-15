@@ -25,6 +25,9 @@ object Versions {
   }
 
   object VersionNumber {
+    def apply(major: Int, minor: Int, patch: Int): VersionNumber =
+      VersionNumber(major, minor, Some(patch))
+
     def apply(value: String): VersionNumber =
       Try {
         value.split('.').map(_.toInt).toList match {

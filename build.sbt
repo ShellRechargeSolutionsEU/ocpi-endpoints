@@ -54,7 +54,7 @@ val `msgs` = project
     commonSettings,
     name := "ocpi-msgs",
     description := "OCPI messages",
-    libraryDependencies := misc)
+    libraryDependencies := misc ++ specs2)
 
 val `msgs-spray-json` = project
   .enablePlugins(OssLibPlugin)
