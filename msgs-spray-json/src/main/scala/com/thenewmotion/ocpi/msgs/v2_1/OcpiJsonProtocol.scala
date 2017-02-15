@@ -139,8 +139,15 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val endpointIdentifierFormat =
     new SimpleStringEnumSerializer[EndpointIdentifier](EndpointIdentifier).enumFormat
-  implicit val versionNumberFormat =
-    new SimpleStringEnumSerializer[VersionNumber](VersionNumber).enumFormat
+
+  implicit val versionNumberFormat = new JsonFormat[VersionNumber] {
+    override def write(obj: VersionNumber) = JsString(obj.toString)
+
+    override def read(json: JsValue) = json match {
+      case JsString(s) => VersionNumber(s)
+      case x => deserializationError(s"Expected VersionNumber as JsString, but got $x")
+    }
+  }
 
   def tokenFormat[T <: Credentials.Token : ClassTag](c: String => T) = new JsonFormat[T] {
     override def read(json: JsValue) = json match {

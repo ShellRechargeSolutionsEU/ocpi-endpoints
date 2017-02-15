@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ImageCategory.Operator
-import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, Image, ImageCategory, PartyId, BusinessDetails => OcpiBusinessDetails}
+import msgs.v2_1.CommonTypes.{CountryCode, GlobalPartyId, Image, PartyId, BusinessDetails => OcpiBusinessDetails}
 import msgs.v2_1.Credentials.{Creds, OurToken, TheirToken}
 import msgs.v2_1.OcpiStatusCode.GenericSuccess
 import msgs.Versions.VersionNumber._

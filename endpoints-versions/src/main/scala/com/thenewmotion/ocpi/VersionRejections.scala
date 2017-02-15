@@ -8,15 +8,16 @@ import com.thenewmotion.ocpi.common.OcpiRejectionHandler
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.UnsupportedVersion
 import SprayJsonSupport._
+import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
 
 object VersionRejections {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  case class UnsupportedVersionRejection(version: String) extends Rejection
+  case class UnsupportedVersionRejection(version: VersionNumber) extends Rejection
   case class NoVersionsRejection() extends Rejection
 
   val Handler = RejectionHandler.newBuilder().handle {
-    case UnsupportedVersionRejection(version: String) => complete {
+    case UnsupportedVersionRejection(version: VersionNumber) => complete {
       ( OK,
         ErrorResp(
           UnsupportedVersion,

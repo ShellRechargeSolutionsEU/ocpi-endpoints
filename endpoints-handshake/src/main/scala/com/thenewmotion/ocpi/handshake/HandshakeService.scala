@@ -42,7 +42,7 @@ abstract class HandshakeService(
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
 
     logger.info(s"Handshake initiated by party: $globalPartyId, " +
-      s"chosen version: ${version.name}. " +
+      s"chosen version: $version. " +
       s"Credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(
@@ -78,7 +78,7 @@ abstract class HandshakeService(
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HandshakeError \/ Creds[TheirToken]] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
-      s"for version: ${version.name}. " +
+      s"for version: $version. " +
       s"New credentials for us: $credsToConnectToThem")
 
     val details = getTheirDetails(

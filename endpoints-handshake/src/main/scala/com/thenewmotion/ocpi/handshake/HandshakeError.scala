@@ -17,19 +17,19 @@ object HandshakeError{
     "Failed sending the credentials to connect to us.")
 
   case class SelectedVersionNotHostedByUs(version: VersionNumber) extends HandshakeError(
-    s"The selected version: ${version.name}, is not supported by our systems.")
+    s"The selected version: $version, is not supported by our systems.")
 
   case object CouldNotFindMutualVersion extends HandshakeError(
     "Could not find mutual version.")
 
   case class SelectedVersionNotHostedByThem(version: VersionNumber) extends HandshakeError(
-    s"Selected version: ${version.name}, not supported by the requester party systems.")
+    s"Selected version: $version, not supported by the requester party systems.")
 
   case class UnknownEndpointType(endpointType: String) extends HandshakeError(
     s"Unknown endpoint type: $endpointType")
 
   case class AlreadyExistingParty(partyId: PartyId, country: CountryCode, version: VersionNumber) extends HandshakeError(
-    s"Already existing partyId: '$partyId' for country: '$country' and version: '${version.name}'.")
+    s"Already existing partyId: '$partyId' for country: '$country' and version: '$version'.")
 
   case object UnknownPartyToken extends HandshakeError("Unknown party token")
 

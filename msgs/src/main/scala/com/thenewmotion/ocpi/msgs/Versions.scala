@@ -4,6 +4,8 @@ package msgs
 import v2_1.CommonTypes.{CountryCode, PartyId, Url}
 import v2_1.Credentials.OurToken
 
+import scala.util.{Failure, Success, Try}
+
 object Versions {
 
   case class Version(
@@ -29,11 +31,27 @@ object Versions {
     endpoints: Iterable[Endpoint]
   )
 
-  sealed trait VersionNumber extends Nameable
-  object VersionNumber extends Enumerable[VersionNumber] {
-    case object `2.0` extends VersionNumber {val name = "2.0"}
-    case object `2.1` extends VersionNumber {val name = "2.1"}
-    val values = Set(`2.0`, `2.1`)
+  case class VersionNumber(major: Int, minor: Int, patch: Option[Int] = None) {
+    override def toString = patch.foldLeft(s"$major.$minor")(_ + "." + _)
+  }
+
+  object VersionNumber {
+    def apply(value: String): VersionNumber =
+      Try {
+        value.split('.').map(_.toInt).toList match {
+          case major :: minor :: Nil => VersionNumber(major, minor)
+          case major :: minor :: patch :: Nil => VersionNumber(major, minor, Some(patch))
+          case _ => throw new IllegalArgumentException(s"$value is not a valid version")
+        }
+      } match {
+        case Success(x) => x
+        case Failure(_) => throw new IllegalArgumentException(s"$value is not a valid version")
+      }
+
+    def opt(value: String): Option[VersionNumber] = Try(apply(value)).toOption
+
+    val `2.0` = VersionNumber(2, 0)
+    val `2.1` = VersionNumber(2, 1)
   }
 
   sealed trait EndpointIdentifier extends Nameable

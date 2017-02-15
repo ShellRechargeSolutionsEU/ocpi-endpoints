@@ -39,7 +39,7 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
         GenericSuccess,
         None,
         currentTime,
-        v.keys.map(x => Version(x, appendPath(uri, x.name).toString())).toList)
+        v.keys.map(x => Version(x, appendPath(uri, x.toString).toString())).toList)
       )
     case _ => reject(NoVersionsRejection())
   }
@@ -68,17 +68,18 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
       }
     }
 
+  val VersionMatcher = Segment.flatMap(s => VersionNumber.opt(s))
+
   def route(apiUser: GlobalPartyId)(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
     (handleRejections(VersionRejections.Handler) & handleExceptions(OcpiExceptionHandler.Default)) {
       extract(_.request.uri) { uri =>
         pathEndOrSingleSlash {
           versionsRoute(uri)
         } ~
-        pathPrefix(Segment) { version =>
+        pathPrefix(VersionMatcher) { version =>
           val route = for {
-            existingVersion <- VersionNumber.withName(version)
-            supportedVersion <- versions.get(existingVersion)
-          } yield versionDetailsRoute(existingVersion, supportedVersion, uri, apiUser)
+            supportedVersion <- versions.get(version)
+          } yield versionDetailsRoute(version, supportedVersion, uri, apiUser)
           route getOrElse reject(UnsupportedVersionRejection(version))
         }
       }
