@@ -30,16 +30,18 @@ class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
 
   override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
 
-  override def credsToConnectToUs(globalPartyId: GlobalPartyId) = ???
-
   override protected def persistHandshakeReactResult(version: VersionNumber, globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: TheirAuthToken, credsToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
 
   override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: TheirAuthToken, credsToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
 
-  override protected def persistHandshakeInitResult(version: VersionNumber, newTokenToConnectToUs: TheirAuthToken,
-    newCredToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
+  override protected def persistHandshakeInitResult(version: VersionNumber, globalPartyId: GlobalPartyId,
+    newTokenToConnectToUs: TheirAuthToken, newCredToConnectToThem: Creds[OurAuthToken], endpoints: Iterable[Endpoint]) = ???
+
+  override def ourVersionsUrl = "http://versions.ocpi-example.com"
+
+  override protected def getTheirAuthToken(globalPartyId: GlobalPartyId) = ???
 }
 
 object ExampleApp extends App {

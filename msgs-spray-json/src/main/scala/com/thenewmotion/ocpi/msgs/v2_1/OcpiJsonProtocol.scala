@@ -161,7 +161,6 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val theirTokenF = tokenFormat(TheirAuthToken)
 
   implicit val versionFormat = jsonFormat2(Version)
-  implicit val versionsReqFormat = jsonFormat5(VersionsRequest)
   implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)

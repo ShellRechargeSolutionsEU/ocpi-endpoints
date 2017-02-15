@@ -24,8 +24,8 @@ object ErrorMarshalling extends DisjunctionMarshalling {
         case CouldNotFindMutualVersion => (BadRequest, UnsupportedVersion)
         case SelectedVersionNotHostedByThem(_) => (BadRequest, UnsupportedVersion)
         case HandshakeError.UnknownEndpointType(_) => (InternalServerError, OcpiStatusCode.UnknownEndpointType)
-        case AlreadyExistingParty(p, c, v) => (Conflict, PartyAlreadyRegistered)
-        case UnknownPartyToken => (BadRequest, AuthenticationFailed)
+        case AlreadyExistingParty(_) => (Conflict, PartyAlreadyRegistered)
+        case UnknownParty(_) => (BadRequest, AuthenticationFailed)
         case WaitingForRegistrationRequest => (BadRequest, RegistrationNotCompletedYetByParty)
       }
 

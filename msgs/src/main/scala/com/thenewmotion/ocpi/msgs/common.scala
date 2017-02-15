@@ -42,7 +42,9 @@ object CountryCode {
 case class GlobalPartyId(
   countryCode: CountryCode,
   partyId: PartyId
-)
+) {
+  override def toString = s"$countryCode-$partyId"
+}
 
 trait OcpiResponse[Code <: OcpiStatusCode] {
   def statusCode: Code

@@ -10,6 +10,7 @@ import com.thenewmotion.ocpi.msgs.{GlobalPartyId, OurAuthToken, TheirAuthToken}
 import com.thenewmotion.ocpi.msgs.Versions._
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
+import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
 import org.joda.time.DateTime
 import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
@@ -232,6 +233,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
 
       protected def persistHandshakeInitResult(
         version: VersionNumber,
+        globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: TheirAuthToken,
         newCredToConnectToThem: Creds[OurAuthToken],
         endpoints: Iterable[Endpoint]
@@ -241,7 +243,9 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         globalPartyId: GlobalPartyId
       ): HandshakeError \/ Unit = \/-(())
 
-      def credsToConnectToUs(globalPartyId: GlobalPartyId) = -\/(UnknownPartyToken)
+      override def ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.name
+
+      override protected def getTheirAuthToken(globalPartyId: GlobalPartyId) = ???
     }
   }
 }

@@ -15,14 +15,6 @@ object Versions {
     url: Url
     )
 
-  case class VersionsRequest(
-    partyName: String,
-    countryCode: CountryCode,
-    partyId: PartyId,
-    token: OurAuthToken,
-    url: Url
-  )
-
   case class VersionDetails(
     version: VersionNumber,
     endpoints: Iterable[Endpoint]

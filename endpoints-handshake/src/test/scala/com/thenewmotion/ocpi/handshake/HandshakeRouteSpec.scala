@@ -181,7 +181,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
       theirGlobalId, credsToConnectToThem.token, credsToConnectToThem.url) returns
       Future.successful(\/-(credsToConnectToThem))
-    handshakeService.credsToConnectToUs(any) returns -\/(UnknownPartyToken)
+    handshakeService.credsToConnectToUs(any) returns -\/(UnknownParty(theirGlobalId))
 
     val credentialsRoute = new HandshakeRoute(handshakeService)
   }

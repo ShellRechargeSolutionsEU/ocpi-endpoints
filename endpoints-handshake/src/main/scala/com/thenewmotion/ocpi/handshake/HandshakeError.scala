@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 package handshake
 
 import msgs.Versions.VersionNumber
-import msgs.{CountryCode, PartyId}
+import msgs.GlobalPartyId
 
 sealed abstract class HandshakeError(val reason: String)
 
@@ -28,10 +28,11 @@ object HandshakeError{
   case class UnknownEndpointType(endpointType: String) extends HandshakeError(
     s"Unknown endpoint type: $endpointType")
 
-  case class AlreadyExistingParty(partyId: PartyId, country: CountryCode, version: VersionNumber) extends HandshakeError(
-    s"Already existing partyId: '$partyId' for country: '$country' and version: '$version'.")
+  case class AlreadyExistingParty(globalPartyId: GlobalPartyId) extends HandshakeError(
+    s"Already existing global partyId: '$globalPartyId'")
 
-  case object UnknownPartyToken extends HandshakeError("Unknown party token")
+  case class UnknownParty(globalPartyId: GlobalPartyId) extends HandshakeError(
+    s"Unknown global partyId: '$globalPartyId")
 
   case object WaitingForRegistrationRequest extends HandshakeError(
     "Still waiting for registration request.")
