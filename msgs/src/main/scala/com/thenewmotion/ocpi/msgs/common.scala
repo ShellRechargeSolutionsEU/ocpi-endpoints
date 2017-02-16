@@ -3,13 +3,17 @@ package com.thenewmotion.ocpi.msgs
 import com.github.nscala_time.time.Imports.DateTime
 import OcpiStatusCode._
 
-sealed trait AuthToken {
-  def value: String
+sealed trait Ownership
+
+object Ownership {
+  trait Theirs extends Ownership
+  trait Ours extends Ownership
+}
+
+case class AuthToken[O <: Ownership](value: String) {
   override def toString = value
   require(value.length <= 64)
 }
-case class OurAuthToken(value: String) extends AuthToken
-case class TheirAuthToken(value: String) extends AuthToken
 
 trait PartyId extends Any {
   def value: String

@@ -6,10 +6,11 @@ import akka.testkit.TestKit
 import com.thenewmotion.ocpi.handshake.HandshakeError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.{GlobalPartyId, OurAuthToken, TheirAuthToken}
+import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
 import com.thenewmotion.ocpi.msgs.Versions._
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
+import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
 import org.joda.time.DateTime
 import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
@@ -31,7 +32,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
       "return credentials with new token if the initiating party's endpoints returned correct data" >> new HandshakeTestScope {
         val result = handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        result must beLike[\/[HandshakeError, Creds[TheirAuthToken]]] {
+        result must beLike[\/[HandshakeError, Creds[Theirs]]] {
           case \/-(Creds(_, v, bd, id, c)) =>
             v mustEqual "http://ocpi.newmotion.com/cpo/versions"
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
@@ -45,7 +46,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
-        result must beLike[\/[HandshakeError, Creds[OurAuthToken]]] {
+        result must beLike[\/[HandshakeError, Creds[Ours]]] {
           case \/-(Creds(_, v, bd, id, c)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
@@ -63,7 +64,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
       }
       "return an error when it fails sending the credentials" >> new HandshakeTestScope{
-        _client.sendCredentials(any[Url], any[OurAuthToken], any[Creds[TheirAuthToken]])(any[ExecutionContext], any[ActorMaterializer]) returns
+        _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
         val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
@@ -144,7 +145,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
 
     val ourVersionsUrlStr = Uri("http://ocpi.newmotion.com/cpo/versions")
     val ourBaseUrlStr = Uri("http://ocpi.newmotion.com")
-    val tokenToConnectToUs = TheirAuthToken("123")
+    val tokenToConnectToUs = AuthToken[Theirs]("123")
     val ourCpoName = "TNM (CPO)"
     val ourPartyId = PartyId("TNM")
     val ourCountryCode = CountryCode("NL")
@@ -153,7 +154,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
     val ourCredsResp = ourCredentials
 
     val selectedVersion = `2.1`
-    val tokenToConnectToThem = OurAuthToken("456")
+    val tokenToConnectToThem = AuthToken[Ours]("456")
     val theirVersionsUrl = "http://the-awesomes/msp/versions"
     val theirVersionDetailsUrl = "http://the-awesomes/msp/2.1"
     val theirCountryCode = CountryCode("DE")
@@ -194,7 +195,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
-    _client.sendCredentials(any[Url], any[OurAuthToken], any[Creds[TheirAuthToken]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
+    _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
       \/-(credsToConnectToThem))
 
     // handshakeServices
@@ -212,30 +213,30 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
       protected def persistPartyPendingRegistration(
         partyName: String,
         globalPartyId: GlobalPartyId,
-        newTokenToConnectToUs: TheirAuthToken
+        newTokenToConnectToUs: AuthToken[Theirs]
       ): HandshakeError \/ Unit = \/-(())
 
       protected def persistHandshakeReactResult(
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
-        newTokenToConnectToUs: TheirAuthToken,
-        credsToConnectToThem: Creds[OurAuthToken],
+        newTokenToConnectToUs: AuthToken[Theirs],
+        credsToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
       ): Disjunction[HandshakeError, Unit] = \/-(())
 
       protected def persistUpdateCredsResult(
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
-        newTokenToConnectToUs: TheirAuthToken,
-        credsToConnectToThem: Creds[OurAuthToken],
+        newTokenToConnectToUs: AuthToken[Theirs],
+        credsToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
       ): HandshakeError \/ Unit = -\/(WaitingForRegistrationRequest)
 
       protected def persistHandshakeInitResult(
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
-        newTokenToConnectToUs: TheirAuthToken,
-        newCredToConnectToThem: Creds[OurAuthToken],
+        newTokenToConnectToUs: AuthToken[Theirs],
+        newCredToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
       ): Disjunction[HandshakeError, Unit] = \/-(())
 

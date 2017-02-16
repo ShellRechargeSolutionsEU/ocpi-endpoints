@@ -19,7 +19,6 @@ package object ocpi {
   }
 
   type Version = VersionNumber
-  type AuthToken = String
   type URI = String
 
   type GuardedRoute = (Version, GlobalPartyId) => Route
