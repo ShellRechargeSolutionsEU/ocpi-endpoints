@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package msgs
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 object Versions {
 
@@ -29,15 +29,10 @@ object Versions {
       VersionNumber(major, minor, Some(patch))
 
     def apply(value: String): VersionNumber =
-      Try {
-        value.split('.').map(_.toInt).toList match {
-          case major :: minor :: Nil => VersionNumber(major, minor)
-          case major :: minor :: patch :: Nil => VersionNumber(major, minor, Some(patch))
-          case _ => throw new IllegalArgumentException(s"$value is not a valid version")
-        }
-      } match {
-        case Success(x) => x
-        case Failure(_) => throw new IllegalArgumentException(s"$value is not a valid version")
+      Try(value.split('.').map(_.toInt).toList) match {
+        case Success(major :: minor :: Nil) => VersionNumber(major, minor)
+        case Success(major :: minor :: patch :: Nil) => VersionNumber(major, minor, patch)
+        case _ => throw new IllegalArgumentException(s"$value is not a valid version")
       }
 
     def opt(value: String): Option[VersionNumber] = Try(apply(value)).toOption

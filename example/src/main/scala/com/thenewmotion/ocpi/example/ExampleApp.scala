@@ -6,7 +6,7 @@ import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import VersionsRoute.OcpiVersionConfig
-import handshake.{HandshakeRoute, HandshakeService}
+import registration.{RegistrationRoute, RegistrationService}
 import msgs._
 import msgs.v2_1.Credentials.Creds
 import msgs.Versions.{Endpoint, VersionNumber}
@@ -16,8 +16,7 @@ import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import common.TokenAuthenticator
 import scala.concurrent.Future
 
-class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
-  ourNamespace = "example",
+class ExampleRegistrationService(implicit http: HttpExt) extends RegistrationService(
   ourPartyName = "Example",
   ourLogo = None,
   ourWebsite = None,
@@ -31,13 +30,13 @@ class ExampleHandshakeService(implicit http: HttpExt) extends HandshakeService(
 
   override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
 
-  override protected def persistHandshakeReactResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
+  override protected def persistPostCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
+                                                newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
 
   override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
 
-  override protected def persistHandshakeInitResult(version: VersionNumber, globalPartyId: GlobalPartyId,
+  override protected def persistRegistrationInitResult(version: VersionNumber, globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
 
   override def ourVersionsUrl = "http://versions.ocpi-example.com"
@@ -51,14 +50,14 @@ object ExampleApp extends App {
   implicit val materializer = ActorMaterializer()
   implicit val http = Http()
 
-  val service = new ExampleHandshakeService
+  val service = new ExampleRegistrationService
 
-  val handshakeRoute = new HandshakeRoute(service)
+  val registrationRoute = new RegistrationRoute(service)
 
   val versionRoute = new VersionsRoute(
     Map(VersionNumber.`2.1` -> OcpiVersionConfig(
       Map(
-        Credentials -> Right(handshakeRoute.route),
+        Credentials -> Right(registrationRoute.route),
         Locations -> Left("http://locations.ocpi-example.com")
       )
     ))

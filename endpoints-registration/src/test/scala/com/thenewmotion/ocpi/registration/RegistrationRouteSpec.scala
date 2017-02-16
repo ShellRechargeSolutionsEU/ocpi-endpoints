@@ -1,11 +1,11 @@
 package com.thenewmotion.ocpi
-package handshake
+package registration
 
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import HandshakeError._
+import RegistrationError._
 import msgs.v2_1.CommonTypes.ImageCategory.Operator
 import msgs.v2_1.CommonTypes.{Image, BusinessDetails => OcpiBusinessDetails}
 import msgs.v2_1.Credentials.Creds
@@ -17,11 +17,10 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.Future
 import scalaz._
 
-class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with Specs2RouteTest with Mockito {
+class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
@@ -55,7 +54,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     }
 
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
-      handshakeService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
+      registrationService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
 
       Get("/credentials") ~> credentialsRoute.route(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
@@ -73,8 +72,8 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     }
 
     "accept the update of the credentials they sent us to connect to them" in new CredentialsTestScope {
-      handshakeService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
-      handshakeService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
+      registrationService.credsToConnectToUs(any) returns \/-(credsToConnectToUs)
+      registrationService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
         Future.successful(\/-(newCredsToConnectToUs))
 
       val theirLog = credsToConnectToThem.businessDetails.logo.get
@@ -106,7 +105,7 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
       }
     }
     "reject indicating the reason if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
-      handshakeService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
+      registrationService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
         Future.successful(-\/(WaitingForRegistrationRequest))
 
 
@@ -174,16 +173,16 @@ class HandshakeRouteSpec(implicit ee: ExecutionEnv) extends Specification with S
     val newCredsToConnectToUs = credsToConnectToUs.copy()
 
     // mock
-    val handshakeService = mock[HandshakeService]
+    val registrationService = mock[RegistrationService]
 
     //default mocks
-    handshakeService.reactToHandshakeRequest(any, any, any)(any, any) returns
+    registrationService.reactToPostCredsRequest(any, any, any)(any, any) returns
       Future.successful(\/-(credsToConnectToUs))
-    handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+    registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
       theirGlobalId, credsToConnectToThem.token, credsToConnectToThem.url) returns
       Future.successful(\/-(credsToConnectToThem))
-    handshakeService.credsToConnectToUs(any) returns -\/(UnknownParty(theirGlobalId))
+    registrationService.credsToConnectToUs(any) returns -\/(UnknownParty(theirGlobalId))
 
-    val credentialsRoute = new HandshakeRoute(handshakeService)
+    val credentialsRoute = new RegistrationRoute(registrationService)
   }
 }

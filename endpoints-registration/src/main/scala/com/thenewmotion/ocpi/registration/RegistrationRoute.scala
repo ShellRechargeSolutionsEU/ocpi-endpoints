@@ -1,5 +1,5 @@
 package com.thenewmotion.ocpi
-package handshake
+package registration
 
 import msgs.OcpiStatusCode.GenericSuccess
 import scala.concurrent.ExecutionContext
@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import msgs.Ownership.Ours
 import msgs.{GlobalPartyId, SuccessWithDataResp}
 
-class HandshakeRoute(service: HandshakeService)(implicit mat: ActorMaterializer) extends JsonApi {
+class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMaterializer) extends JsonApi {
   import msgs.v2_1.OcpiJsonProtocol._
   import msgs.v2_1.Credentials._
 
@@ -17,7 +17,7 @@ class HandshakeRoute(service: HandshakeService)(implicit mat: ActorMaterializer)
       entity(as[Creds[Ours]]) { credsToConnectToThem =>
         complete {
           service
-            .reactToHandshakeRequest(accessedVersion, user, credsToConnectToThem)
+            .reactToPostCredsRequest(accessedVersion, user, credsToConnectToThem)
             .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }

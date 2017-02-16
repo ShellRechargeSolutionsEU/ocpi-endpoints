@@ -1,9 +1,9 @@
-package com.thenewmotion.ocpi.handshake
+package com.thenewmotion.ocpi.registration
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.testkit.TestKit
-import com.thenewmotion.ocpi.handshake.HandshakeError._
+import com.thenewmotion.ocpi.registration.RegistrationError._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
@@ -23,16 +23,16 @@ import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
 import com.thenewmotion.ocpi.msgs._
 
-class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
+class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
   with DisjunctionMatchers{
 
-  "HandshakeService" should {
+  "RegistrationService" should {
 
-    "when requesting react to handshake" >> {
-      "return credentials with new token if the initiating party's endpoints returned correct data" >> new HandshakeTestScope {
-        val result = handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+    "when requesting react to registration" >> {
+      "return credentials with new token if the initiating party's endpoints returned correct data" >> new RegistrationTestScope {
+        val result = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        result must beLike[\/[HandshakeError, Creds[Theirs]]] {
+        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
           case \/-(Creds(_, v, bd, id, c)) =>
             v mustEqual "http://ocpi.newmotion.com/cpo/versions"
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
@@ -41,12 +41,12 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         }.await
       }
     }
-    "when requesting the initiation of the handshake" >> {
-      "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new HandshakeTestScope {
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+    "when requesting the initiation of the registration" >> {
+      "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
+        val result = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
-        result must beLike[\/[HandshakeError, Creds[Ours]]] {
+        result must beLike[\/[RegistrationError, Creds[Ours]]] {
           case \/-(Creds(_, v, bd, id, c)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
@@ -54,86 +54,86 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
             c mustEqual theirCountryCode
         }.await
       }
-      "return error when no mutual version found" >> new HandshakeTestScope {
+      "return error when no mutual version found" >> new RegistrationTestScope {
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns
           Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
 
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+        val result = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
-        result must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
+        result must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
       }
-      "return an error when it fails sending the credentials" >> new HandshakeTestScope{
+      "return an error when it fails sending the credentials" >> new RegistrationTestScope{
         _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
-        val result = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+        val result = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
-        result must be_-\/(SendingCredentialsFailed: HandshakeError).await
+        result must be_-\/(SendingCredentialsFailed: RegistrationError).await
       }
     }
     "when requesting the update of the credentials" >> {
-      "return an error if requested for a party did not registered yet" >> new HandshakeTestScope {
-        handshakeService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem) must
-          be_-\/(WaitingForRegistrationRequest: HandshakeError).await
+      "return an error if requested for a party did not registered yet" >> new RegistrationTestScope {
+        registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem) must
+          be_-\/(WaitingForRegistrationRequest: RegistrationError).await
       }
     }
-    "when requesting react, initiate or update handshake" >> {
-      "return error if there was an error getting versions" >> new HandshakeTestScope {
+    "when requesting react, initiate or update registration" >> {
+      "return error if there was an error getting versions" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
           Future.successful(-\/(VersionsRetrievalFailed))
-        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+        val reactResult = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, credsToConnectToThem.token, credsToConnectToThem.url)
-        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val updateResult = registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        reactResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
-        initResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
-        updateResult must be_-\/(VersionsRetrievalFailed: HandshakeError).await
+        reactResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
+        initResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
+        updateResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
       }
-      "return error if no versions were returned" >> new HandshakeTestScope {
+      "return error if no versions were returned" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
           Future.successful(\/-(Nil))
-        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name, theirGlobalId,
+        val reactResult = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name, theirGlobalId,
           credsToConnectToThem.token, credsToConnectToThem.url)
-        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val updateResult = registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
-        initResult must be_-\/(CouldNotFindMutualVersion: HandshakeError).await
-        updateResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): HandshakeError).await
+        reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
+        initResult must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
+        updateResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
       }
-      "return error if there was an error getting version details" >> new HandshakeTestScope {
+      "return error if there was an error getting version details" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
           -\/(VersionDetailsRetrievalFailed))
 
-        val reactResult = handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
-        val initResult = handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+        val reactResult = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, credsToConnectToThem.token, credsToConnectToThem.url)
-        val updateResult = handshakeService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        val updateResult = registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        reactResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
-        initResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
-        updateResult must be_-\/(VersionDetailsRetrievalFailed: HandshakeError).await
+        reactResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
+        initResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
+        updateResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
       }
-      "return an error if any of the required endpoints is not detailed" >> new HandshakeTestScope {
+      "return an error if any of the required endpoints is not detailed" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
           Future.failed(new IllegalArgumentException)
 
-        handshakeService.reactToHandshakeRequest(selectedVersion, theirGlobalId, credsToConnectToThem) must
+        registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem) must
           throwA[IllegalArgumentException].await
-        handshakeService.initiateHandshakeProcess(credsToConnectToThem.businessDetails.name,
+        registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           GlobalPartyId(credsToConnectToThem.countryCode, credsToConnectToThem.partyId),
           credsToConnectToThem.token, credsToConnectToThem.url)
           throwA[IllegalArgumentException].await
-        handshakeService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
+        registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
           throwA[IllegalArgumentException].await
       }
     }
   }
 
-  class HandshakeTestScope(_system: ActorSystem) extends TestKit(_system) with Scope {
+  class RegistrationTestScope(_system: ActorSystem) extends TestKit(_system) with Scope {
 
     def this() = this(ActorSystem("ocpi-allstarts"))
 
@@ -173,9 +173,9 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
       theirCountryCode
     )
 
-    var _client = mock[HandshakeClient]
+    var _client = mock[RegistrationClient]
 
-    // React to handshake request
+    // React to credentials request
     _client.getTheirVersions(credsToConnectToThem.url, tokenToConnectToThem) returns Future.successful(
       \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
 
@@ -185,7 +185,7 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
-    // Initiate handshake request
+    // Initiate credentials request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns Future.successful(
       \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
 
@@ -198,9 +198,8 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
     _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
       \/-(credsToConnectToThem))
 
-    // handshakeServices
-    val handshakeService = new HandshakeService(
-      ourNamespace = "cpo",
+    // registrationServices
+    val registrationService = new RegistrationService(
       ourPartyName = ourCpoName,
       ourLogo = None,
       ourWebsite = None,
@@ -214,15 +213,15 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         partyName: String,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs]
-      ): HandshakeError \/ Unit = \/-(())
+      ): RegistrationError \/ Unit = \/-(())
 
-      protected def persistHandshakeReactResult(
+      protected def persistPostCredsResult(
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs],
         credsToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
-      ): Disjunction[HandshakeError, Unit] = \/-(())
+      ): Disjunction[RegistrationError, Unit] = \/-(())
 
       protected def persistUpdateCredsResult(
         version: VersionNumber,
@@ -230,19 +229,19 @@ class HandshakeServiceSpec(implicit ee: ExecutionEnv) extends Specification with
         newTokenToConnectToUs: AuthToken[Theirs],
         credsToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
-      ): HandshakeError \/ Unit = -\/(WaitingForRegistrationRequest)
+      ): RegistrationError \/ Unit = -\/(WaitingForRegistrationRequest)
 
-      protected def persistHandshakeInitResult(
+      protected def persistRegistrationInitResult(
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs],
         newCredToConnectToThem: Creds[Ours],
         endpoints: Iterable[Endpoint]
-      ): Disjunction[HandshakeError, Unit] = \/-(())
+      ): Disjunction[RegistrationError, Unit] = \/-(())
 
       protected def removePartyPendingRegistration(
         globalPartyId: GlobalPartyId
-      ): HandshakeError \/ Unit = \/-(())
+      ): RegistrationError \/ Unit = \/-(())
 
       override def ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.name
 
