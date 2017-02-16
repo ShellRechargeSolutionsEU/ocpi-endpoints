@@ -142,6 +142,7 @@ val `example` = project
   .dependsOn(`endpoints-versions`)
   .settings(
     commonSettings,
+    publish := { },
     description := "OCPI endpoints example app"
   )
 
