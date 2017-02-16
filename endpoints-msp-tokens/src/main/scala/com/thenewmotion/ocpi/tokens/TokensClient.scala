@@ -1,12 +1,13 @@
-package com.thenewmotion.ocpi.tokens
+package com.thenewmotion.ocpi
+package tokens
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.common.{ClientObjectUri, OcpiClient}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessResp, SuccessWithDataResp}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Token, TokenPatch}
+import common.{ClientObjectUri, OcpiClient}
+import msgs.{ErrorResp, SuccessWithDataResp, SuccessResp}
+import msgs.v2_1.Tokens.{Token, TokenPatch}
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 

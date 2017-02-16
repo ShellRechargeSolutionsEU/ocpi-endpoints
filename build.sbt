@@ -21,8 +21,7 @@ val akka =
 val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.8")
 
 val misc = Seq(
-  "com.github.nscala-time" %% "nscala-time"              %   "2.16.0",
-  "com.thenewmotion"       %% "mobilityid"               %   "0.16")
+  "com.github.nscala-time" %% "nscala-time" % "2.16.0")
 
 val specs2 = {
   def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.8.7" % "test"
@@ -55,7 +54,7 @@ val `msgs` = project
     commonSettings,
     name := "ocpi-msgs",
     description := "OCPI messages",
-    libraryDependencies := misc)
+    libraryDependencies := misc ++ specs2)
 
 val `msgs-spray-json` = project
   .enablePlugins(OssLibPlugin)
@@ -117,19 +116,30 @@ val `endpoints-cpo-tokens` = project
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
-val `endpoints-toplevel` = project
+val `endpoints-versions` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`endpoints-common`)
   .settings(
     commonSettings,
-    name := "ocpi-endpoints-toplevel",
-    description := "OCPI endpoints toplevel",
+    name := "ocpi-endpoints-versions",
+    description := "OCPI endpoints versions",
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
+  )
+
+val `endpoints-registration` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`endpoints-common`)
+  .settings(
+    commonSettings,
+    name := "ocpi-endpoints-registration",
+    description := "OCPI endpoints registration",
     libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
   )
 
 val `example` = project
   .enablePlugins(AppPlugin)
-  .dependsOn(`endpoints-toplevel`)
+  .dependsOn(`endpoints-registration`)
+  .dependsOn(`endpoints-versions`)
   .settings(
     commonSettings,
     description := "OCPI endpoints example app"
@@ -141,7 +151,8 @@ val `ocpi-endpoints-root` = (project in file("."))
     `msgs`,
     `msgs-spray-json`,
     `endpoints-common`,
-    `endpoints-toplevel`,
+    `endpoints-versions`,
+    `endpoints-registration`,
     `endpoints-msp-locations`,
     `endpoints-msp-tokens`,
     `endpoints-cpo-locations`,

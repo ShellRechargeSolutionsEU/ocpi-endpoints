@@ -1,8 +1,6 @@
 package com.thenewmotion.ocpi
-package msgs.v2_1
-
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode.{ErrorCode, SuccessCode}
-import com.github.nscala_time.time.Imports._
+package msgs
+package v2_1
 
 object CommonTypes {
 
@@ -32,37 +30,9 @@ object CommonTypes {
     thumbnail: Option[Url] = None
   )
 
-  type Url = String
   case class BusinessDetails(
     name: String,
     logo: Option[Image],
     website: Option[Url]
     )
-
-  trait OcpiResponse[Code <: OcpiStatusCode] {
-    def statusCode: Code
-    def statusMessage: Option[String]
-    def timestamp: DateTime
-  }
-
-  case class ErrorResp(
-    statusCode: ErrorCode,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now
-  ) extends OcpiResponse[ErrorCode]
-
-  trait SuccessResponse extends OcpiResponse[SuccessCode]
-
-  case class SuccessResp(
-    statusCode: SuccessCode,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now
-  ) extends SuccessResponse
-
-  case class SuccessWithDataResp[D](
-    statusCode: SuccessCode,
-    statusMessage: Option[String] = None,
-    timestamp: DateTime = DateTime.now,
-    data: D
-  ) extends SuccessResponse
 }

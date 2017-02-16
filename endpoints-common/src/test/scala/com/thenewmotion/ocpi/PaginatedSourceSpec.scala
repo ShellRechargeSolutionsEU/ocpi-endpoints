@@ -16,8 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.Uri.Query
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, OcpiResponse, SuccessWithDataResp}
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiStatusCode
+import com.thenewmotion.ocpi.msgs.{ErrorResp, OcpiResponse, SuccessWithDataResp, OcpiStatusCode}
 import org.mockito.Matchers
 import spray.json._
 import scala.concurrent.Future

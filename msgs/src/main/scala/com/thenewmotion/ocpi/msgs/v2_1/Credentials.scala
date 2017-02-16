@@ -1,18 +1,16 @@
-package com.thenewmotion.ocpi.msgs.v2_1
+package com.thenewmotion.ocpi.msgs
+package v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, Url}
+import CommonTypes.BusinessDetails
 
 object Credentials {
-  case class Creds(
-    token: String,
-    url:  Url,
+
+  case class Creds[O <: Ownership](
+    token: AuthToken[O],
+    url: Url,
     businessDetails: BusinessDetails,
-    partyId: String,
-    countryCode: String
-    ){
-    require(partyId.length == 3)
-    require(countryCode.length == 2)
-    require(token.length <= 64)
-  }
+    partyId: PartyId,
+    countryCode: CountryCode
+  )
 }
 

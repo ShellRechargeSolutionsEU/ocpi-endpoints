@@ -4,12 +4,11 @@ package locations
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
 import common._
 import locations.LocationsError._
-import msgs.v2_1.CommonTypes.ErrorResp
-import msgs.v2_1.CommonTypes.SuccessWithDataResp
-import msgs.v2_1.OcpiStatusCode.GenericClientFailure
-import msgs.v2_1.OcpiStatusCode.GenericSuccess
+import msgs.OcpiStatusCode.GenericClientFailure
+import msgs.OcpiStatusCode.GenericSuccess
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext
 
@@ -36,10 +35,10 @@ class CpoLocationsRoute(
     }
   }
 
-  def route(apiUser: ApiUser)(implicit executionContext: ExecutionContext) =
+  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
 
-  private [locations] def routeWithoutRh(apiUser: ApiUser)(implicit executionContext: ExecutionContext) = {
+  private [locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[DateTime], dateTo: Option[DateTime]) =>

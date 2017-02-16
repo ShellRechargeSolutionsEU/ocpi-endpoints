@@ -15,7 +15,7 @@ import scalaz.{\/, \/-}
 import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import com.thenewmotion.ocpi.msgs.ErrorResp
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv

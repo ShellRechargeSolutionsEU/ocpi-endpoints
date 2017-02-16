@@ -1,11 +1,11 @@
-package com.thenewmotion.ocpi.msgs.v2_1
+package com.thenewmotion.ocpi.msgs
+package v2_1
 
-import com.thenewmotion.ocpi.msgs.{OcpiDatetimeParser, SimpleStringEnumSerializer}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, _}
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
-import com.thenewmotion.ocpi.msgs.v2_1.Versions._
+import CommonTypes.{BusinessDetails, _}
+import Credentials.Creds
+import Locations._
+import Tokens._
+import Versions._
 import com.github.nscala_time.time.Imports._
 import org.joda.time.format.ISODateTimeFormat
 import spray.json._
@@ -37,6 +37,22 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
           "specified in OCPI 2.1 section 14.2, but got " + x)
       }
       case x => deserializationError ("Expected DateTime as JsString, but got " + x)
+    }
+  }
+
+  implicit val partyIdFmt = new JsonFormat[PartyId] {
+    override def write(obj: PartyId) = JsString(obj.value)
+    override def read(json: JsValue) = json match {
+      case JsString(s) => PartyId(s)
+      case x => deserializationError("Expected PartyId as JsString, but got " + x)
+    }
+  }
+
+  implicit val countryCodeFmt = new JsonFormat[CountryCode] {
+    override def write(obj: CountryCode) = JsString(obj.value)
+    override def read(json: JsValue) = json match {
+      case JsString(s) => CountryCode(s)
+      case x => deserializationError("Expected CountryCode as JsString, but got " + x)
     }
   }
 
@@ -123,17 +139,33 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val endpointIdentifierFormat =
     new SimpleStringEnumSerializer[EndpointIdentifier](EndpointIdentifier).enumFormat
-  implicit val versionNumberFormat =
-    new SimpleStringEnumSerializer[VersionNumber](VersionNumber).enumFormat
+
+  implicit val versionNumberFormat = new JsonFormat[VersionNumber] {
+    override def write(obj: VersionNumber) = JsString(obj.toString)
+
+    override def read(json: JsValue) = json match {
+      case JsString(s) => VersionNumber(s)
+      case x => deserializationError(s"Expected VersionNumber as JsString, but got $x")
+    }
+  }
+
+  implicit def tokenFormat[O <: Ownership] = new JsonFormat[AuthToken[O]] {
+    override def read(json: JsValue) = json match {
+      case JsString(x) => AuthToken[O](x)
+      case x => deserializationError(s"Expected AuthToken as JsString, but got $x")
+    }
+    override def write(obj: AuthToken[O]) = JsString(obj.value)
+  }
 
   implicit val versionFormat = jsonFormat2(Version)
-  implicit val versionsReqFormat = jsonFormat5(VersionsRequest)
   implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)
   implicit val successRespFormat = jsonFormat3(SuccessResp)
   implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
-  implicit val credentialsFormat = jsonFormat5(Creds)
+
+  implicit def credentialsFormat[O <: Ownership] = jsonFormat5(Creds[O])
+
   implicit val locationReferencesFormat = jsonFormat3(LocationReferences)
   implicit val allowedFormat =
     new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat

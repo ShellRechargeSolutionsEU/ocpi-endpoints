@@ -4,14 +4,14 @@ package locations
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
-import com.thenewmotion.ocpi.common.{OcpiClient, PaginatedSource}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
+import common.{OcpiClient, PaginatedSource}
+import msgs.v2_1.Locations.Location
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import com.github.nscala_time.time.Imports._
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import msgs.ErrorResp
 
 class LocationsClient(implicit http: HttpExt) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._

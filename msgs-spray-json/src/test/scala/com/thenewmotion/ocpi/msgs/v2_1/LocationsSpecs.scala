@@ -3,6 +3,7 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
+import com.thenewmotion.ocpi.msgs.{OcpiStatusCode, SuccessWithDataResp}
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope

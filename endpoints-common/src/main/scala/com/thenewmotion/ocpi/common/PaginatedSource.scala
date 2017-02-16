@@ -1,4 +1,5 @@
-package com.thenewmotion.ocpi.common
+package com.thenewmotion.ocpi
+package common
 
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
@@ -9,10 +10,10 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.github.nscala_time.time.Imports.DateTime
-import com.thenewmotion.ocpi.formatterNoMillis
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import msgs.ErrorResp
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz._, Scalaz._
+import scalaz._
+import Scalaz._
 
 object PaginatedSource extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
   private def singleRequestWithNextLink[T](http: HttpExt, req: HttpRequest, auth: String)

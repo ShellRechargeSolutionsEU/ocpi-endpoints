@@ -4,7 +4,7 @@ package common
 import akka.http.scaladsl.model.headers.{Link, LinkParams}
 import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromResponseUnmarshaller, Unmarshaller}
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{ErrorResp, SuccessResponse, SuccessWithDataResp}
+import msgs.{ErrorResp, SuccessResponse, SuccessWithDataResp}
 import scala.reflect.ClassTag
 import scalaz.\/
 

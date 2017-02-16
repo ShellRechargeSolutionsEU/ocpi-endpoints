@@ -1,13 +1,12 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.SuccessWithDataResp
-import com.thenewmotion.ocpi.msgs.v2_1.Versions._
+import com.thenewmotion.ocpi.msgs.Versions._
 import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
 import VersionNumber._
-
+import com.thenewmotion.ocpi.msgs.SuccessWithDataResp
 class VersionsSpecs extends SpecificationWithJUnit {
 
   import OcpiJsonProtocol._
@@ -33,7 +32,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
   private trait VersionsTestScope extends Scope {
 
-    import OcpiStatusCode._
+    import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 
     val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
     val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")

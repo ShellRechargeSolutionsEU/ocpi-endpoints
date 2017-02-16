@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi
 
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import com.thenewmotion.ocpi.common.PaginatedSource.PagedResp
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.ErrorResp
+import common.PaginatedSource.PagedResp
+import msgs.ErrorResp
 import scala.concurrent.Future
 import scalaz.{EitherT, \/}
 
