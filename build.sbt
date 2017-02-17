@@ -21,7 +21,6 @@ val akka =
 val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.8")
 
 val misc = Seq(
-  "com.thenewmotion" %% "mobilityid" % "0.17",
   "com.github.nscala-time" %% "nscala-time" % "2.16.0")
 
 val specs2 = {

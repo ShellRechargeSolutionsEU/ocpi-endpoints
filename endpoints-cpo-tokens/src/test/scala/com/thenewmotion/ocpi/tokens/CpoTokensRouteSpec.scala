@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 package tokens
 
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.msgs.{CountryCode, ErrorResp, GlobalPartyId, PartyId}
+import msgs.{ErrorResp, GlobalPartyId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -20,7 +20,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
   "tokens endpoint" should {
     "reject unauthorized access" in new TokensTestScope {
-      val unAuthorizedUser = apiUser.copy(partyId = PartyId("SBM"))
+      val unAuthorizedUser = GlobalPartyId("NL", "SBM")
 
       Put(s"$tokenPath/$tokenUid") ~> akka.http.scaladsl.server.Route.seal(
         cpoTokensRoute.route(unAuthorizedUser)) ~> check {
@@ -43,8 +43,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       )
 
       cpoTokensService.createOrUpdateToken(
-        ===(countryCode),
-        ===(operatorIdIso),
+        ===(apiUser),
         ===(tokenUid),
         any[Token]
       ) returns Future(\/-(true))
@@ -54,8 +53,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       Put(s"$tokenPath/$tokenUid", token) ~>
         cpoTokensRoute.route(apiUser) ~> check {
         there was one(cpoTokensService).createOrUpdateToken(
-          ===(countryCode),
-          ===(operatorIdIso),
+          ===(apiUser),
           ===(tokenUid),
           beMostlyEqualTo(token)
         )
@@ -70,8 +68,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       )
 
       cpoTokensService.updateToken(
-        countryCode,
-        operatorIdIso,
+        apiUser,
         tokenUid,
         tokenPatch
       ) returns Future(\/-(()))
@@ -79,8 +76,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       Patch(s"$tokenPath/$tokenUid", tokenPatch) ~>
         cpoTokensRoute.route(apiUser) ~> check {
         there was one(cpoTokensService).updateToken(
-          countryCode,
-          operatorIdIso,
+          apiUser,
           tokenUid,
           tokenPatch
         )
@@ -90,16 +86,14 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     "retrieve a token object" in new TokensTestScope {
       cpoTokensService.token(
-        countryCode,
-        operatorIdIso,
+        apiUser,
         tokenUid
       ) returns Future(-\/(TokenNotFound()))
 
       Get(s"$tokenPath/$tokenUid") ~>
         cpoTokensRoute.route(apiUser) ~> check {
         there was one(cpoTokensService).token(
-          countryCode,
-          operatorIdIso,
+          apiUser,
           tokenUid
         )
         there were noCallsTo(cpoTokensService)
@@ -111,9 +105,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     val tokenUid = "012345678"
     val countryCodeString = "NL"
     val operatorIdString = "TNM"
-    val countryCode = CountryCode(countryCodeString)
-    val operatorIdIso = PartyId(operatorIdString)
-    val apiUser = GlobalPartyId(countryCode, operatorIdIso)
+    val apiUser = GlobalPartyId(countryCodeString, operatorIdString)
     val tokenPath = s"/$countryCodeString/$operatorIdString"
     val cpoTokensService = mock[CpoTokensService]
     val cpoTokensRoute = new CpoTokensRoute(cpoTokensService)
