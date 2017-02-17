@@ -1,8 +1,7 @@
 package com.thenewmotion.ocpi.msgs
 
 import java.security.SecureRandom
-import com.github.nscala_time.time.Imports.DateTime
-import OcpiStatusCode._
+import java.util.Locale
 import Ownership.Theirs
 
 sealed trait Ownership
@@ -37,10 +36,19 @@ trait PartyId extends Any {
 private case class PartyIdImpl(value: String) extends AnyVal with PartyId
 
 object PartyId {
-  def apply(value: String): PartyId = {
-    require(value.length == 3, "PartyId must have a length of 3")
-    PartyIdImpl(value)
+  val Regex = """([A-Za-z0-9]{3})""".r
+
+  def isValid(id: String): Boolean = id match {
+    case Regex(_) => true
+    case _ => false
   }
+
+  def apply(id: String): PartyId =
+    if (isValid(id)) {
+      PartyIdImpl(id.toUpperCase)
+    } else throw new IllegalArgumentException(
+      "PartyId must have a length of 3 and be ASCII letters or digits")
+
 }
 
 trait CountryCode extends Any {
@@ -51,10 +59,20 @@ trait CountryCode extends Any {
 private case class CountryCodeImpl(value: String) extends AnyVal with CountryCode
 
 object CountryCode {
-  def apply(value: String): CountryCode = {
-    require(value.length == 2, "CountryCode must have a length of 2")
-    CountryCodeImpl(value)
+  val Regex = """([A-Za-z]{2})""".r
+
+  lazy val isoCountries = Locale.getISOCountries
+
+  def isValid(countryCode: String): Boolean = countryCode match {
+    case Regex(_) if isoCountries.contains(countryCode.toUpperCase) => true
+    case _ => false
   }
+
+  def apply(countryCode: String): CountryCode =
+    if (isValid(countryCode)) {
+      CountryCodeImpl(countryCode.toUpperCase)
+    } else throw new IllegalArgumentException(
+      "Country Code must be valid according to ISO 3166-1 alpha-2")
 }
 
 case class GlobalPartyId(
@@ -63,30 +81,3 @@ case class GlobalPartyId(
 ) {
   override def toString = s"$countryCode-$partyId"
 }
-
-trait OcpiResponse[Code <: OcpiStatusCode] {
-  def statusCode: Code
-  def statusMessage: Option[String]
-  def timestamp: DateTime
-}
-
-case class ErrorResp(
-  statusCode: ErrorCode,
-  statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now
-) extends OcpiResponse[ErrorCode]
-
-trait SuccessResponse extends OcpiResponse[SuccessCode]
-
-case class SuccessResp(
-  statusCode: SuccessCode,
-  statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now
-) extends SuccessResponse
-
-case class SuccessWithDataResp[D](
-  statusCode: SuccessCode,
-  statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now,
-  data: D
-) extends SuccessResponse
