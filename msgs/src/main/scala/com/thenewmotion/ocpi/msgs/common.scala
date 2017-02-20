@@ -18,6 +18,7 @@ object Ownership {
 
 case class AuthToken[O <: Ownership](value: String) {
   override def toString = value
+  def toStringSafe = toString.substring(0, 3) + "..."
   require(value.length <= 64)
 }
 
