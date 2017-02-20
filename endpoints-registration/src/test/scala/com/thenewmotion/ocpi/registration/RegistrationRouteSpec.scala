@@ -144,7 +144,7 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
     val theirGlobalId = GlobalPartyId("NL", "EOP")
 
     // their details
-    val credsToConnectToThem = Creds(
+    val credsToConnectToThem = Creds[Theirs](
       token = AuthToken[Ours]("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
       url = "https://them.com/ocpi/cpo/versions",
       businessDetails = OcpiBusinessDetails(
@@ -160,7 +160,7 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
 
     val outGlobalPartyId = GlobalPartyId("NL", "TNM")
 
-    val credsToConnectToUs = Creds(
+    val credsToConnectToUs = Creds[Ours](
       token = tokenToConnectToUs,
       url = ourVersionsUrl,
       businessDetails = OcpiBusinessDetails("Us", None, Some("http://us.com")),

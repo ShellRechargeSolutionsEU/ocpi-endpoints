@@ -173,7 +173,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
       )
 
     override def read(json: JsValue) = {
-      val token = fromField[AuthToken[O]](json, Fields.token)
+      val token = fromField[AuthToken[O#Opposite]](json, Fields.token)
       val url = fromField[Url](json, Fields.url)
       val businessDetails = fromField[BusinessDetails](json, Fields.businessDetails)
       val partyId = fromField[String](json, Fields.partyId)

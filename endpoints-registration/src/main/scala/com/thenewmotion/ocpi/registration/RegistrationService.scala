@@ -37,8 +37,8 @@ abstract class RegistrationService(
   def reactToPostCredsRequest(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+    credsToConnectToThem: Creds[Theirs]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
 
     logger.info(s"Registration initiated by party: $globalPartyId, " +
       s"chosen version: $version. " +
@@ -72,8 +72,8 @@ abstract class RegistrationService(
   def reactToUpdateCredsRequest(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+    credsToConnectToThem: Creds[Theirs]
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
 
     logger.info(s"Update credentials request sent by ${credsToConnectToThem.globalPartyId} " +
       s"for version: $version. " +
@@ -102,7 +102,7 @@ abstract class RegistrationService(
 
   def initiateRegistrationProcess(partyName: String, globalPartyId: GlobalPartyId,
      tokenToConnectToThem: AuthToken[Ours], theirVersionsUrl: Uri)
-     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
+     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
     logger.info(s"initiate registration process with: $theirVersionsUrl, $tokenToConnectToThem")
     val newTokenToConnectToUs = AuthToken.generateTheirs
     logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
@@ -118,7 +118,7 @@ abstract class RegistrationService(
       case disj if disj.isLeft => removePartyPendingRegistration(globalPartyId); disj
       case disj  => disj
     }
-    def persist(creds: Creds[Ours], endpoints: Iterable[Endpoint]) =
+    def persist(creds: Creds[Theirs], endpoints: Iterable[Endpoint]) =
       persistRegistrationInitResult(ourVersion, globalPartyId, newTokenToConnectToUs, creds, endpoints)
 
     (for {
@@ -156,15 +156,15 @@ abstract class RegistrationService(
     } yield theirVerDetails).run
   }
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId): RegistrationError \/ Creds[Theirs] = {
+  def credsToConnectToUs(globalPartyId: GlobalPartyId): RegistrationError \/ Creds[Ours] = {
     for {
       authToken <- getTheirAuthToken(globalPartyId)
     } yield generateCredsToConnectToUs(authToken)
   }
 
-  private def generateCredsToConnectToUs(tokenToConnectToUs: AuthToken[Theirs]): Creds[Theirs] = {
+  private def generateCredsToConnectToUs(tokenToConnectToUs: AuthToken[Theirs]): Creds[Ours] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
-    Creds(tokenToConnectToUs, ourVersionsUrl,
+    Creds[Ours](tokenToConnectToUs, ourVersionsUrl,
       BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourGlobalPartyId)
   }
 
@@ -174,7 +174,7 @@ abstract class RegistrationService(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: AuthToken[Theirs],
-    credsToConnectToThem: Creds[Ours],
+    credsToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
   ): RegistrationError \/ Unit
 
@@ -182,7 +182,7 @@ abstract class RegistrationService(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: AuthToken[Theirs],
-    credsToConnectToThem: Creds[Ours],
+    credsToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
   ): RegistrationError \/ Unit
 
@@ -190,7 +190,7 @@ abstract class RegistrationService(
     version: VersionNumber,
     globalPartyId: GlobalPartyId,
     newTokenToConnectToUs: AuthToken[Theirs],
-    newCredToConnectToThem: Creds[Ours],
+    newCredToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
   ): RegistrationError \/ Unit
 

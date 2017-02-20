@@ -6,7 +6,7 @@ import CommonTypes.BusinessDetails
 object Credentials {
 
   case class Creds[O <: Ownership](
-    token: AuthToken[O],
+    token: AuthToken[O#Opposite],
     url: Url,
     businessDetails: BusinessDetails,
     globalPartyId: GlobalPartyId

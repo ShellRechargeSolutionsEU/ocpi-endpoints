@@ -5,7 +5,7 @@ import msgs.OcpiStatusCode.GenericSuccess
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
 import akka.stream.ActorMaterializer
-import msgs.Ownership.Ours
+import msgs.Ownership.Theirs
 import msgs.{GlobalPartyId, SuccessWithDataResp}
 
 class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMaterializer) extends JsonApi {
@@ -14,7 +14,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
 
   def route(accessedVersion: Version, user: GlobalPartyId)(implicit ec: ExecutionContext) = {
     post {
-      entity(as[Creds[Ours]]) { credsToConnectToThem =>
+      entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {
           service
             .reactToPostCredsRequest(accessedVersion, user, credsToConnectToThem)
@@ -30,7 +30,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
       }
     } ~
     put {
-      entity(as[Creds[Ours]]) { credsToConnectToThem =>
+      entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {
           service
             .reactToUpdateCredsRequest(accessedVersion, user, credsToConnectToThem)

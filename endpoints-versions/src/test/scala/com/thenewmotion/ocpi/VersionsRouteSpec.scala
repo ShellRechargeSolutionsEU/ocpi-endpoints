@@ -3,9 +3,9 @@ package com.thenewmotion.ocpi
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
-import com.thenewmotion.ocpi.common.{OcpiRejectionHandler, TokenAuthenticator}
-import com.thenewmotion.ocpi.msgs.Ownership.Theirs
+import VersionsRoute.OcpiVersionConfig
+import common.{OcpiRejectionHandler, TokenAuthenticator}
+import msgs.Ownership.Theirs
 import msgs.{AuthToken, GlobalPartyId}
 import msgs.Versions.{EndpointIdentifier, VersionNumber}
 import org.specs2.mock.Mockito

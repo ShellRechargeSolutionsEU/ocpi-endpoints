@@ -3,11 +3,17 @@ package com.thenewmotion.ocpi.msgs
 import java.security.SecureRandom
 import Ownership.Theirs
 
-sealed trait Ownership
+sealed trait Ownership {
+  type Opposite <: Ownership
+}
 
 object Ownership {
-  trait Theirs extends Ownership
-  trait Ours extends Ownership
+  trait Theirs extends Ownership {
+    type Opposite = Ours
+  }
+  trait Ours extends Ownership {
+    type Opposite = Theirs
+  }
 }
 
 case class AuthToken[O <: Ownership](value: String) {

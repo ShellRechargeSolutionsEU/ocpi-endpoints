@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi.msgs
 package v2_1
 
 import Credentials._
-import Ownership.Theirs
+import Ownership.{Ours, Theirs}
 import CommonTypes._
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
@@ -14,7 +14,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
 
   "CredentialsResp" should {
     "deserialize" in new CredentialsTestScope {
-      credentialsJson1.convertTo[Creds[Theirs]] mustEqual credentials1
+      credentialsJson1.convertTo[Creds[Ours]] mustEqual credentials1
     }
     "serialize" in new CredentialsTestScope {
       credentials1.toJson.toString mustEqual credentialsJson1.compactPrint
@@ -28,7 +28,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
       Some(Image("http://example.com/images/logo.png", ImageCategory.Operator, "png")),
       Some("http://example.com")
     )
-    val credentials1 = Creds(
+    val credentials1 = Creds[Ours](
       token = AuthToken[Theirs]("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
       url = "https://example.com/ocpi/cpo/",
       businessDetails = businessDetails1,

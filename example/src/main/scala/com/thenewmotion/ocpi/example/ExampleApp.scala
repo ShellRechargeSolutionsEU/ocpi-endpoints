@@ -12,7 +12,7 @@ import msgs.v2_1.Credentials.Creds
 import msgs.Versions.{Endpoint, VersionNumber}
 import msgs.Versions.EndpointIdentifier._
 import akka.http.scaladsl.server.Directives._
-import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
+import com.thenewmotion.ocpi.msgs.Ownership.Theirs
 import common.TokenAuthenticator
 import scala.concurrent.Future
 
@@ -30,13 +30,13 @@ class ExampleRegistrationService(implicit http: HttpExt) extends RegistrationSer
   override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
 
   override protected def persistPostCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-                                                newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
+    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
 
   override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
+    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
 
   override protected def persistRegistrationInitResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Ours], endpoints: Iterable[Endpoint]) = ???
+    newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
 
   override def ourVersionsUrl = "http://versions.ocpi-example.com"
 

@@ -32,7 +32,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
       "return credentials with new token if the initiating party's endpoints returned correct data" >> new RegistrationTestScope {
         val result = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
-        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
+        result must beLike[\/[RegistrationError, Creds[Ours]]] {
           case \/-(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://ocpi.newmotion.com/cpo/versions"
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
@@ -45,7 +45,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         val result = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
-        result must beLike[\/[RegistrationError, Creds[Ours]]] {
+        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
           case \/-(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
@@ -62,7 +62,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         result must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
       }
       "return an error when it fails sending the credentials" >> new RegistrationTestScope{
-        _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns
+        _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
         val result = registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
@@ -145,7 +145,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     val tokenToConnectToUs = AuthToken[Theirs]("123")
     val ourCpoName = "TNM (CPO)"
     val ourGlobalPartyId = GlobalPartyId("NL","TNM")
-    val ourCredentials = Creds(tokenToConnectToUs, ourVersionsUrlStr.toString(),
+    val ourCredentials = Creds[Ours](tokenToConnectToUs, ourVersionsUrlStr.toString(),
       BusinessDetails(ourCpoName, None, None), ourGlobalPartyId)
     val ourCredsResp = ourCredentials
 
@@ -155,7 +155,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     val theirVersionDetailsUrl = "http://the-awesomes/msp/2.1"
     val theirGlobalId = GlobalPartyId("DE", "TAW")
 
-    val credsToConnectToThem = Creds(
+    val credsToConnectToThem = Creds[Theirs](
       tokenToConnectToThem,
       theirVersionsUrl,
       BusinessDetails(
@@ -188,7 +188,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
-    _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Theirs]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
+    _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
       \/-(credsToConnectToThem))
 
     // registrationServices
@@ -211,7 +211,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs],
-        credsToConnectToThem: Creds[Ours],
+        credsToConnectToThem: Creds[Theirs],
         endpoints: Iterable[Endpoint]
       ): Disjunction[RegistrationError, Unit] = \/-(())
 
@@ -219,7 +219,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs],
-        credsToConnectToThem: Creds[Ours],
+        credsToConnectToThem: Creds[Theirs],
         endpoints: Iterable[Endpoint]
       ): RegistrationError \/ Unit = -\/(WaitingForRegistrationRequest)
 
@@ -227,7 +227,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         version: VersionNumber,
         globalPartyId: GlobalPartyId,
         newTokenToConnectToUs: AuthToken[Theirs],
-        newCredToConnectToThem: Creds[Ours],
+        newCredToConnectToThem: Creds[Theirs],
         endpoints: Iterable[Endpoint]
       ): Disjunction[RegistrationError, Unit] = \/-(())
 
