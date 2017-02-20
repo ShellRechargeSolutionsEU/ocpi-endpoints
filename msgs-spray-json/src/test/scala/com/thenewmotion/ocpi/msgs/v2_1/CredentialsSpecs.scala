@@ -32,8 +32,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
       token = AuthToken[Theirs]("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
       url = "https://example.com/ocpi/cpo/",
       businessDetails = businessDetails1,
-      partyId = PartyId("EXA"),
-      countryCode = CountryCode("NL")
+      globalPartyId = GlobalPartyId("NL", "EXA")
     )
 
     val logo1 = businessDetails1.logo.get
@@ -51,8 +50,8 @@ class CredentialsSpecs extends SpecificationWithJUnit {
          |        },
          |        "website": "${credentials1.businessDetails.website.get}"
          |    },
-         |    "party_id": "${credentials1.partyId}",
-         |    "country_code": "${credentials1.countryCode}"
+         |    "party_id": "${credentials1.globalPartyId.partyId}",
+         |    "country_code": "${credentials1.globalPartyId.countryCode}"
          |}
      """.stripMargin.parseJson
 

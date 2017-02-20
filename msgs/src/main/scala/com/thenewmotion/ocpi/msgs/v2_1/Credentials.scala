@@ -9,8 +9,7 @@ object Credentials {
     token: AuthToken[O],
     url: Url,
     businessDetails: BusinessDetails,
-    partyId: PartyId,
-    countryCode: CountryCode
+    globalPartyId: GlobalPartyId
   )
 }
 

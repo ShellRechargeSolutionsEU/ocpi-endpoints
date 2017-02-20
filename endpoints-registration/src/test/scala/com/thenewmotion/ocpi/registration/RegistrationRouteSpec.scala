@@ -9,7 +9,7 @@ import RegistrationError._
 import msgs.v2_1.CommonTypes.ImageCategory.Operator
 import msgs.v2_1.CommonTypes.{Image, BusinessDetails => OcpiBusinessDetails}
 import msgs.v2_1.Credentials.Creds
-import msgs.{AuthToken, CountryCode, GlobalPartyId, PartyId}
+import msgs.{AuthToken, GlobalPartyId}
 import msgs.OcpiStatusCode.GenericSuccess
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions.VersionNumber._
@@ -39,8 +39,8 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
            |        },
            |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.partyId}",
-           |    "country_code": "${credsToConnectToThem.countryCode}"
+           |    "party_id": "${credsToConnectToThem.globalPartyId.partyId}",
+           |    "country_code": "${credsToConnectToThem.globalPartyId.countryCode}"
            |}
            |""".stripMargin
 
@@ -91,8 +91,8 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
            |        },
            |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.partyId}",
-           |    "country_code": "${credsToConnectToThem.countryCode}"
+           |    "party_id": "${credsToConnectToThem.globalPartyId.partyId}",
+           |    "country_code": "${credsToConnectToThem.globalPartyId.countryCode}"
            |}
            |""".stripMargin
 
@@ -124,8 +124,8 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
            |        },
            |        "website": "${credsToConnectToThem.businessDetails.website.get}"
            |    },
-           |    "party_id": "${credsToConnectToThem.partyId}",
-           |    "country_code": "${credsToConnectToThem.countryCode}"
+           |    "party_id": "${credsToConnectToThem.globalPartyId.partyId}",
+           |    "country_code": "${credsToConnectToThem.globalPartyId.countryCode}"
            |}
            |""".stripMargin
 
@@ -141,9 +141,7 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
 
   trait CredentialsTestScope extends Scope {
 
-    val theirPartyId = PartyId("EOP")
-    val theirCountryCode = CountryCode("NL")
-    val theirGlobalId = GlobalPartyId(theirCountryCode, theirPartyId)
+    val theirGlobalId = GlobalPartyId("NL", "EOP")
 
     // their details
     val credsToConnectToThem = Creds(
@@ -153,23 +151,20 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
         "Example Operator",
         Some(Image("http://them.com/images/logo.png", Operator, "png")),
         Some("http://them.com")),
-      partyId = theirPartyId,
-      countryCode = theirCountryCode)
+      globalPartyId = theirGlobalId)
 
     // our details
     val ourVersionsUrl = "https://us.com/ocpi/msp/versions"
     val selectedVersion = `2.0`
     val tokenToConnectToUs = AuthToken[Theirs]("aaa3b399-779f-4497-9b9d-ac6ad3cc44aa")
 
-    val partyId = PartyId("TNM")
-    val countryCode = CountryCode("NL")
+    val outGlobalPartyId = GlobalPartyId("NL", "TNM")
 
     val credsToConnectToUs = Creds(
       token = tokenToConnectToUs,
       url = ourVersionsUrl,
       businessDetails = OcpiBusinessDetails("Us", None, Some("http://us.com")),
-      partyId = partyId,
-      countryCode = countryCode)
+      globalPartyId = outGlobalPartyId)
     val newCredsToConnectToUs = credsToConnectToUs.copy()
 
     // mock

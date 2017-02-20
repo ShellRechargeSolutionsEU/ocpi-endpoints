@@ -33,11 +33,10 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         val result = registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
 
         result must beLike[\/[RegistrationError, Creds[Theirs]]] {
-          case \/-(Creds(_, v, bd, id, c)) =>
+          case \/-(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://ocpi.newmotion.com/cpo/versions"
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
-            id mustEqual ourPartyId
-            c mustEqual ourCountryCode
+            gpi mustEqual ourGlobalPartyId
         }.await
       }
     }
@@ -47,11 +46,10 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
           theirGlobalId, tokenToConnectToThem, theirVersionsUrl)
 
         result must beLike[\/[RegistrationError, Creds[Ours]]] {
-          case \/-(Creds(_, v, bd, id, c)) =>
+          case \/-(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
-            id mustEqual theirPartyId
-            c mustEqual theirCountryCode
+            gpi mustEqual theirGlobalId
         }.await
       }
       "return error when no mutual version found" >> new RegistrationTestScope {
@@ -124,8 +122,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         registrationService.reactToPostCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem) must
           throwA[IllegalArgumentException].await
         registrationService.initiateRegistrationProcess(credsToConnectToThem.businessDetails.name,
-          GlobalPartyId(credsToConnectToThem.countryCode, credsToConnectToThem.partyId),
-          credsToConnectToThem.token, credsToConnectToThem.url)
+          credsToConnectToThem.globalPartyId, credsToConnectToThem.token, credsToConnectToThem.url)
           throwA[IllegalArgumentException].await
         registrationService.reactToUpdateCredsRequest(selectedVersion, theirGlobalId, credsToConnectToThem)
           throwA[IllegalArgumentException].await
@@ -147,19 +144,16 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     val ourBaseUrlStr = Uri("http://ocpi.newmotion.com")
     val tokenToConnectToUs = AuthToken[Theirs]("123")
     val ourCpoName = "TNM (CPO)"
-    val ourPartyId = PartyId("TNM")
-    val ourCountryCode = CountryCode("NL")
+    val ourGlobalPartyId = GlobalPartyId("NL","TNM")
     val ourCredentials = Creds(tokenToConnectToUs, ourVersionsUrlStr.toString(),
-      BusinessDetails(ourCpoName, None, None), ourPartyId, ourCountryCode)
+      BusinessDetails(ourCpoName, None, None), ourGlobalPartyId)
     val ourCredsResp = ourCredentials
 
     val selectedVersion = `2.1`
     val tokenToConnectToThem = AuthToken[Ours]("456")
     val theirVersionsUrl = "http://the-awesomes/msp/versions"
     val theirVersionDetailsUrl = "http://the-awesomes/msp/2.1"
-    val theirCountryCode = CountryCode("DE")
-    val theirPartyId = PartyId("TAW")
-    val theirGlobalId = GlobalPartyId(theirCountryCode, theirPartyId)
+    val theirGlobalId = GlobalPartyId("DE", "TAW")
 
     val credsToConnectToThem = Creds(
       tokenToConnectToThem,
@@ -169,8 +163,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         None,
         None
       ),
-      theirPartyId,
-      theirCountryCode
+      theirGlobalId
     )
 
     var _client = mock[RegistrationClient]
@@ -204,8 +197,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
       ourLogo = None,
       ourWebsite = None,
       ourBaseUrl = ourBaseUrlStr,
-      ourPartyId = ourPartyId,
-      ourCountryCode = ourCountryCode
+      ourGlobalPartyId = ourGlobalPartyId
     ) {
       override val client = _client
 

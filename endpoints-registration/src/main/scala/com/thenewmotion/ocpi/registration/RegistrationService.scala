@@ -20,8 +20,7 @@ abstract class RegistrationService(
   ourLogo: Option[Image],
   ourWebsite: Option[Url],
   ourBaseUrl: Uri,
-  ourPartyId: PartyId,
-  ourCountryCode: CountryCode
+  ourGlobalPartyId: GlobalPartyId
 )(implicit http: HttpExt) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
@@ -52,7 +51,7 @@ abstract class RegistrationService(
       case e @ -\/(error) =>
         logger.error(s"error getting versions information: $error"); e
       case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.partyId}'")
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.globalPartyId}'")
         val newTokenToConnectToUs = AuthToken.generateTheirs
 
         persistPostCredsResult(
@@ -76,7 +75,7 @@ abstract class RegistrationService(
     credsToConnectToThem: Creds[Ours]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
 
-    logger.info(s"Update credentials request sent by ${credsToConnectToThem.partyId} " +
+    logger.info(s"Update credentials request sent by ${credsToConnectToThem.globalPartyId} " +
       s"for version: $version. " +
       s"New credentials for us: $credsToConnectToThem")
 
@@ -87,7 +86,7 @@ abstract class RegistrationService(
       case e @ -\/(error) =>
         logger.error(s"error getting versions information: $error"); e
       case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.partyId}'")
+        logger.debug(s"issuing new token for party id '${credsToConnectToThem.globalPartyId}'")
         val newTokenToConnectToUs = AuthToken.generateTheirs
 
         val persistResult = persistUpdateCredsResult(
@@ -165,8 +164,8 @@ abstract class RegistrationService(
 
   private def generateCredsToConnectToUs(tokenToConnectToUs: AuthToken[Theirs]): Creds[Theirs] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
-    Creds(tokenToConnectToUs, ourVersionsUrl.toString(),
-      BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourPartyId, ourCountryCode)
+    Creds(tokenToConnectToUs, ourVersionsUrl,
+      BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourGlobalPartyId)
   }
 
   protected def getTheirAuthToken(globalPartyId: GlobalPartyId): RegistrationError \/ AuthToken[Theirs]

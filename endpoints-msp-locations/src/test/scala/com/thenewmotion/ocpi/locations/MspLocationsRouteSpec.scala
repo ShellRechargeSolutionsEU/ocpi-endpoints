@@ -10,7 +10,7 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
-import com.thenewmotion.ocpi.msgs.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.GlobalPartyId
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -26,7 +26,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string = loc2String)
 
       Put("/NL/TNM/LOC2", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).createOrUpdateLocation(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC2"), any)
+        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any)
       }
     }
 
@@ -41,7 +41,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateLocation(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), any)
+        there was one(mspLocService).updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any)
       }
     }
 
@@ -78,7 +78,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateEvse(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any)
+        there was one(mspLocService).updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any)
       }
     }
 
@@ -93,25 +93,25 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000/1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateConnector(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any)
+        there was one(mspLocService).updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any)
       }
     }
 
     "retrieve a location object" in new LocationsTestScope {
       Get("/NL/TNM/LOC1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).location(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"))
+        there was one(mspLocService).location(===(GlobalPartyId("NL", "TNM")), ===("LOC1"))
       }
     }
 
     "retrieve a EVSE object" in new LocationsTestScope {
       Get("/NL/TNM/LOC1/NL-TNM-02000000") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).evse(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"))
+        there was one(mspLocService).evse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"))
       }
     }
 
     "retrieve a connector object" in new LocationsTestScope {
       Get("/NL/TNM/LOC1/NL-TNM-02000000/1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).connector(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"))
+        there was one(mspLocService).connector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"))
       }
     }
 
@@ -136,15 +136,15 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   trait LocationsTestScope extends Scope {
     val mspLocService = mock[MspLocationsService]
 
-    mspLocService.createOrUpdateLocation(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC2"), any) returns Future(\/-(true))
-    mspLocService.updateLocation(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), any) returns Future(\/-(()))
-    mspLocService.location(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1")) returns Future(-\/(LocationNotFound()))
-    mspLocService.evse(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(-\/(LocationNotFound()))
-    mspLocService.connector(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(-\/(LocationNotFound()))
-    mspLocService.updateEvse(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(()))
-    mspLocService.updateConnector(===(CountryCode("NL")), ===(PartyId("TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"),any) returns Future(\/-(()))
+    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any) returns Future(\/-(true))
+    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any) returns Future(\/-(()))
+    mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===("LOC1")) returns Future(-\/(LocationNotFound()))
+    mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(-\/(LocationNotFound()))
+    mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(-\/(LocationNotFound()))
+    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(()))
+    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any) returns Future(\/-(()))
 
-    val apiUser = GlobalPartyId(CountryCode("NL"), PartyId("TNM"))
+    val apiUser = GlobalPartyId("NL", "TNM")
 
     val locationsRoute = new MspLocationsRoute(mspLocService)
 

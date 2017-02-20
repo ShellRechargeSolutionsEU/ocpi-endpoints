@@ -21,8 +21,7 @@ class ExampleRegistrationService(implicit http: HttpExt) extends RegistrationSer
   ourLogo = None,
   ourWebsite = None,
   ourBaseUrl = Uri("www.ocpi-example.com"),
-  ourPartyId = PartyId("exp"),
-  ourCountryCode = CountryCode("NL")
+  ourGlobalPartyId = GlobalPartyId("nl", "exp")
 ) {
 
   override protected def persistPartyPendingRegistration(partyName: String, globalPartyId: GlobalPartyId,
@@ -63,7 +62,7 @@ object ExampleApp extends App {
     ))
   )
 
-  val auth = new TokenAuthenticator(_ => Future.successful(Some(GlobalPartyId(CountryCode("NL"), PartyId("TNM")))))
+  val auth = new TokenAuthenticator(_ => Future.successful(Some(GlobalPartyId("NL", "TNM"))))
 
   val topLevelRoute = {
     path("example") {

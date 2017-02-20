@@ -1,30 +1,30 @@
-package com.thenewmotion.ocpi
+package com.thenewmotion.ocpi.common
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
+import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.ContentTypes.`application/json`
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.Uri.Query
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Link, LinkParams, RawHeader}
 import akka.stream.ActorMaterializer
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestProbe
-import com.thenewmotion.ocpi.common.PaginatedSource
+import com.thenewmotion.ocpi.msgs.{ErrorResp, OcpiResponse, OcpiStatusCode, SuccessWithDataResp}
+import org.mockito.Matchers
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.model.Uri.Query
-import com.thenewmotion.ocpi.msgs.{ErrorResp, OcpiResponse, SuccessWithDataResp, OcpiStatusCode}
-import org.mockito.Matchers
 import spray.json._
+
 import scala.concurrent.Future
 
 class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   case class TestData(id: String)
   implicit val testDataFormat = jsonFormat1(TestData)

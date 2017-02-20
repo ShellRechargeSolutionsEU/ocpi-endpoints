@@ -40,22 +40,6 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val partyIdFmt = new JsonFormat[PartyId] {
-    override def write(obj: PartyId) = JsString(obj.value)
-    override def read(json: JsValue) = json match {
-      case JsString(s) => PartyId(s)
-      case x => deserializationError("Expected PartyId as JsString, but got " + x)
-    }
-  }
-
-  implicit val countryCodeFmt = new JsonFormat[CountryCode] {
-    override def write(obj: CountryCode) = JsString(obj.value)
-    override def read(json: JsValue) = json match {
-      case JsString(s) => CountryCode(s)
-      case x => deserializationError("Expected CountryCode as JsString, but got " + x)
-    }
-  }
-
   implicit val capabilityFormat =
     new SimpleStringEnumSerializer[Capability](Capability).enumFormat
 
@@ -164,7 +148,34 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val successRespFormat = jsonFormat3(SuccessResp)
   implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
 
-  implicit def credentialsFormat[O <: Ownership] = jsonFormat5(Creds[O])
+  implicit def credentialsFormat[O <: Ownership] = new RootJsonFormat[Creds[O]] {
+    private object Fields {
+      val token = "token"
+      val url = "url"
+      val businessDetails = "business_details"
+      val partyId = "party_id"
+      val countryCode = "country_code"
+    }
+
+    override def write(obj: Creds[O]) =
+      JsObject(
+        Fields.token -> tokenFormat.write(obj.token),
+        Fields.url -> JsString(obj.url),
+        Fields.businessDetails -> businessDetailsFormat.write(obj.businessDetails),
+        Fields.partyId -> JsString(obj.globalPartyId.partyId),
+        Fields.countryCode -> JsString(obj.globalPartyId.countryCode)
+      )
+
+    override def read(json: JsValue) = {
+      val token = fromField[AuthToken[O]](json, Fields.token)
+      val url = fromField[Url](json, Fields.url)
+      val businessDetails = fromField[BusinessDetails](json, Fields.businessDetails)
+      val partyId = fromField[String](json, Fields.partyId)
+      val countryCode = fromField[String](json, Fields.countryCode)
+
+      Creds[O](token, url, businessDetails, GlobalPartyId(countryCode, partyId))
+    }
+  }
 
   implicit val locationReferencesFormat = jsonFormat3(LocationReferences)
   implicit val allowedFormat =

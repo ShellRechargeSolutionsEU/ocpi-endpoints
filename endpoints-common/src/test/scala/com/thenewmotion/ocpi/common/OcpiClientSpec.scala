@@ -1,29 +1,30 @@
-package com.thenewmotion.ocpi
+package com.thenewmotion.ocpi.common
 
 import java.net.UnknownHostException
+
 import akka.actor.ActorSystem
+import akka.http.scaladsl.client.RequestBuilding._
+import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.http.scaladsl.{Http, HttpExt}
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import scala.concurrent.duration.FiniteDuration
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.{ErrorResp, SuccessWithDataResp}
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import akka.http.scaladsl.model.ContentTypes._
+
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{-\/, \/, \/-}
-import com.thenewmotion.ocpi.common.OcpiClient
-import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.{ErrorResp, SuccessWithDataResp}
-import org.specs2.concurrent.ExecutionEnv
-import akka.http.scaladsl.model.StatusCodes._
-import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
-import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
   case class TestData(id: String)
   implicit val testDataFormat = jsonFormat1(TestData)

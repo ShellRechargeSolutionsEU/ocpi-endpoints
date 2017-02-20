@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.JsonApi
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.{CountryCode, GlobalPartyId, PartyId}
+import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -96,7 +96,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val cpoLocService = mock[CpoLocationsService]
 
-    val apiUser = GlobalPartyId(CountryCode("NL"), PartyId("TNM"))
+    val apiUser = GlobalPartyId("NL", "TNM")
 
     val ServerPageLimit = 50
     val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, ServerPageLimit, currentTime = dateTime1)
