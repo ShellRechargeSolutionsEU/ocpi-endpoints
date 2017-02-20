@@ -41,18 +41,20 @@ object Versions {
     val `2.1` = VersionNumber(2, 1)
   }
 
-  sealed trait EndpointIdentifier extends Nameable
-  object EndpointIdentifier extends Enumerable[EndpointIdentifier] {
-    case object Locations extends EndpointIdentifier {val name = "locations"}
-    case object Credentials extends EndpointIdentifier {val name = "credentials"}
-    case object Versions extends EndpointIdentifier {val name = "versions"}
-    case object Tariffs extends EndpointIdentifier {val name = "tariffs"}
-    case object Tokens extends EndpointIdentifier {val name = "tokens"}
-    case object Cdrs extends EndpointIdentifier {val name = "cdrs"}
-    case object Sessions extends EndpointIdentifier {val name = "sessions"}
-    case object Commands extends EndpointIdentifier {val name = "commands"}
+  case class EndpointIdentifier(value: String) {
+    override def toString = value
+  }
 
-    val values = Set(Locations, Credentials, Versions, Tariffs, Tokens, Cdrs, Sessions, Commands)
+  object EndpointIdentifier {
+    val Locations = EndpointIdentifier("locations")
+    val Credentials = EndpointIdentifier("credentials")
+    val Versions = EndpointIdentifier("versions")
+    val VersionDetails = EndpointIdentifier("version-details")
+    val Tariffs = EndpointIdentifier("tariffs")
+    val Tokens = EndpointIdentifier("tokens")
+    val Cdrs = EndpointIdentifier("cdrs")
+    val Sessions = EndpointIdentifier("sessions")
+    val Commands = EndpointIdentifier("commands")
   }
 }
 

@@ -24,7 +24,7 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
 
   def currentTime = DateTime.now
 
-  val EndPointPathMatcher = Segment.flatMap(s => EndpointIdentifier.withName(s))
+  val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 
   def appendPath(uri: Uri, segments: String*) = {
     uri.withPath(segments.foldLeft(uri.path) {
@@ -53,7 +53,7 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
           currentTime,
           VersionDetails(
             version, versionInfo.endPoints.map {
-              case (k, Right(v)) => Endpoint(k, appendPath(uri, k.name).toString() )
+              case (k, Right(v)) => Endpoint(k, appendPath(uri, k.value).toString() )
               case (k, Left(extUri)) => Endpoint(k, extUri)
             }
           )

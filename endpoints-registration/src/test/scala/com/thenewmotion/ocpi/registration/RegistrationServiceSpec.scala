@@ -235,7 +235,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         globalPartyId: GlobalPartyId
       ): RegistrationError \/ Unit = \/-(())
 
-      override def ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.name
+      override def ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.value
 
       override protected def getTheirAuthToken(globalPartyId: GlobalPartyId) = ???
     }
