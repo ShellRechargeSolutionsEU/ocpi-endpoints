@@ -134,7 +134,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
       (pathPrefix("cpo") & pathPrefix("versions")) {
         handleRejections(OcpiRejectionHandler.Default) {
           authenticateOrRejectWithChallenge(auth) { apiUser =>
-            versionsRoute.route(apiUser)
+            versionsRoute.route(apiUser, securedConnection = false)
           }
         }
       }

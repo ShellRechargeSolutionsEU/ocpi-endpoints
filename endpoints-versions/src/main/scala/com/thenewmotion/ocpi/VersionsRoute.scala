@@ -70,9 +70,11 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
 
   val VersionMatcher = Segment.flatMap(s => VersionNumber.opt(s))
 
-  def route(apiUser: GlobalPartyId)(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
+
+  def route(apiUser: GlobalPartyId, securedConnection: Boolean = true)(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
     (handleRejections(VersionRejections.Handler) & handleExceptions(OcpiExceptionHandler.Default)) {
-      extract(_.request.uri) { uri =>
+      extractUri { reqUri =>
+        val uri = reqUri.withScheme(Uri.httpScheme(securedConnection))
         pathEndOrSingleSlash {
           versionsRoute(uri)
         } ~
