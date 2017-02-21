@@ -34,7 +34,7 @@ object RegistrationError{
   case class UnknownParty(globalPartyId: GlobalPartyId) extends RegistrationError(
     s"Unknown global partyId: '$globalPartyId")
 
-  case object WaitingForRegistrationRequest extends RegistrationError(
+  case class WaitingForRegistrationRequest(globalPartyId: GlobalPartyId) extends RegistrationError(
     "Still waiting for registration request.")
 
 }

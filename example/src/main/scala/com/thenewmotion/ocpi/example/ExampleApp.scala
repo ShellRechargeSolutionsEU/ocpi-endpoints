@@ -2,11 +2,11 @@ package com.thenewmotion.ocpi
 package example
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{Http, HttpExt}
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import VersionsRoute.OcpiVersionConfig
-import registration.{RegistrationRoute, RegistrationService}
+import registration.{RegistrationRepo, RegistrationRoute, RegistrationService}
 import msgs._
 import msgs.v2_1.Credentials.Creds
 import msgs.Versions.{Endpoint, VersionNumber}
@@ -14,34 +14,26 @@ import msgs.Versions.EndpointIdentifier._
 import akka.http.scaladsl.server.Directives._
 import com.thenewmotion.ocpi.msgs.Ownership.Theirs
 import common.TokenAuthenticator
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class ExampleRegistrationService(implicit http: HttpExt) extends RegistrationService(
-  ourPartyName = "Example",
-  ourLogo = None,
-  ourWebsite = None,
-  ourBaseUrl = Uri("www.ocpi-example.com"),
-  ourGlobalPartyId = GlobalPartyId("nl", "exp")
-) {
+class ExampleRegistrationRepo extends RegistrationRepo {
+  override def isPartyRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
 
-  override protected def persistPartyPendingRegistration(partyName: String, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs]) = ???
+  override def findTheirAuthToken(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
 
-  override protected def removePartyPendingRegistration(globalPartyId: GlobalPartyId) = ???
+  override def persistNewCredsResult(globalPartyId: GlobalPartyId, version: VersionNumber,
+                                     newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
+                                    (implicit ec: ExecutionContext) = ???
 
-  override protected def persistPostCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
+  override def persistUpdateCredsResult(globalPartyId: GlobalPartyId, version: VersionNumber,
+    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
+    (implicit ec: ExecutionContext) = ???
 
-  override protected def persistUpdateCredsResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
-
-  override protected def persistRegistrationInitResult(version: VersionNumber, globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint]) = ???
-
-  override def ourVersionsUrl = "http://versions.ocpi-example.com"
-
-  override protected def getTheirAuthToken(globalPartyId: GlobalPartyId) = ???
+  override def persistRegistrationInitResult(version: VersionNumber,
+    newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
+    (implicit ec: ExecutionContext) = ???
 }
+
 
 object ExampleApp extends App {
   implicit val system = ActorSystem()
@@ -49,7 +41,12 @@ object ExampleApp extends App {
   implicit val materializer = ActorMaterializer()
   implicit val http = Http()
 
-  val service = new ExampleRegistrationService
+  val repo = new ExampleRegistrationRepo()
+
+  val service = new RegistrationService(repo,
+    ourGlobalPartyId = GlobalPartyId("nl", "exp"),
+    ourPartyName = "Example",
+    ourVersionsUrl = Uri("www.ocpi-example.com/ocpi/versions"))
 
   val registrationRoute = new RegistrationRoute(service)
 

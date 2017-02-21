@@ -26,7 +26,7 @@ object ErrorMarshalling extends DisjunctionMarshalling {
         case RegistrationError.UnknownEndpointType(_) => (InternalServerError, OcpiStatusCode.UnknownEndpointType)
         case AlreadyExistingParty(_) => (Conflict, PartyAlreadyRegistered)
         case UnknownParty(_) => (BadRequest, AuthenticationFailed)
-        case WaitingForRegistrationRequest => (BadRequest, RegistrationNotCompletedYetByParty)
+        case WaitingForRegistrationRequest(_) => (BadRequest, RegistrationNotCompletedYetByParty)
       }
 
       (status, ErrorResp(cec, Some(e.reason)))
