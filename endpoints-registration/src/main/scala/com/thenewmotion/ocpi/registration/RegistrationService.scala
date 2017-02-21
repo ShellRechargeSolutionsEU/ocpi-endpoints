@@ -4,63 +4,70 @@ package registration
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
-import msgs.Versions.EndpointIdentifier.Credentials
-import msgs.Versions.{Endpoint, Version, VersionDetails, VersionNumber}
-import msgs.v2_1.CommonTypes._
-import msgs.v2_1.Credentials.Creds
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.Scalaz._
 import scalaz._
-import RegistrationError._
+import msgs.Versions.EndpointIdentifier.Credentials
+import msgs.Versions.{Version, VersionDetails, VersionNumber}
+import msgs.v2_1.CommonTypes._
+import msgs.v2_1.Credentials.Creds
 import msgs.Ownership.{Ours, Theirs}
 import msgs._
+import RegistrationError._
 
-abstract class RegistrationService(
+class RegistrationService(
+  repo: RegistrationRepo,
+  ourGlobalPartyId: GlobalPartyId,
   ourPartyName: String,
-  ourLogo: Option[Image],
-  ourWebsite: Option[Url],
-  ourBaseUrl: Uri,
-  ourGlobalPartyId: GlobalPartyId
-)(implicit http: HttpExt) extends FutureEitherUtils {
+  ourVersionsUrl: Uri,
+  ourWebsite: Option[Uri] = None,
+  ourLogo: Option[Image] = None)(implicit http: HttpExt) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
 
   private[registration] val client: RegistrationClient = new RegistrationClient
 
-  def ourVersionsUrl: Url
+  def errIfRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
+    repo.isPartyRegistered(globalPartyId).map {
+      case true =>
+        logger.debug("{} is already registered", globalPartyId)
+        -\/(AlreadyExistingParty(globalPartyId))
+      case false => \/-(())
+    }
+
+  def errIfNotRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
+    repo.isPartyRegistered(globalPartyId).map {
+      case true => \/-(())
+      case false =>
+        logger.debug("{} is not registered yet", globalPartyId)
+        -\/(WaitingForRegistrationRequest(globalPartyId))
+    }
 
   /**
     * React to a post credentials request.
     *
     * @return new credentials to connect to us
     */
-  def reactToPostCredsRequest(
-    version: VersionNumber,
+  def reactToNewCredsRequest(
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[Theirs]
+    version: VersionNumber,
+    creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
 
-    logger.info(s"Registration initiated by party: $globalPartyId, " +
-      s"chosen version: $version. " +
-      s"Credentials for us: $credsToConnectToThem")
+    logger.info("Registration initiated by {}, for {} creds: {}", globalPartyId, version, creds)
 
-    val details = getTheirDetails(
-      version, credsToConnectToThem.token, Uri(credsToConnectToThem.url), initiatedByUs = false)
-
-    details map {
-      case e @ -\/(error) =>
-        logger.error(s"error getting versions information: $error"); e
-      case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.globalPartyId}'")
-        val newTokenToConnectToUs = AuthToken.generateTheirs
-
-        persistPostCredsResult(
-          version, globalPartyId, newTokenToConnectToUs,
-          credsToConnectToThem, verDetails.endpoints
-        ).bimap(
-          e => { logger.error(s"error persisting registration data: $e"); e },
-          _ => generateCredsToConnectToUs(newTokenToConnectToUs)
-        )
+    (for {
+      _ <- result(errIfRegistered(globalPartyId))
+      verDetails <- result(getTheirDetails(
+        version, creds.token, Uri(creds.url), initiatedByUs = false))
+      newTokenToConnectToUs = AuthToken.generateTheirs
+      _ <- result(repo.persistNewCredsResult(
+        globalPartyId, version, newTokenToConnectToUs, creds, verDetails.endpoints
+      ).map(_.right))
+    } yield generateCreds(newTokenToConnectToUs)).run.map {
+      _.leftMap {
+        e => logger.error(s"error during reactToPostCredsRequest: $e"); e
+      }
     }
   }
 
@@ -70,72 +77,64 @@ abstract class RegistrationService(
     * @return new credentials to connect to us
     */
   def reactToUpdateCredsRequest(
-    version: VersionNumber,
     globalPartyId: GlobalPartyId,
-    credsToConnectToThem: Creds[Theirs]
+    version: VersionNumber,
+    creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
 
-    logger.info(s"Update credentials request sent by ${credsToConnectToThem.globalPartyId} " +
-      s"for version: $version. " +
-      s"New credentials for us: $credsToConnectToThem")
+    logger.info("Update credentials request sent by {}, for {}, creds {}", creds.globalPartyId, version, creds)
 
-    val details = getTheirDetails(
-      version, credsToConnectToThem.token, Uri(credsToConnectToThem.url), initiatedByUs = false)
-
-    details map {
-      case e @ -\/(error) =>
-        logger.error(s"error getting versions information: $error"); e
-      case \/-(verDetails) =>
-        logger.debug(s"issuing new token for party id '${credsToConnectToThem.globalPartyId}'")
-        val newTokenToConnectToUs = AuthToken.generateTheirs
-
-        val persistResult = persistUpdateCredsResult(
-          version, globalPartyId, newTokenToConnectToUs,
-          credsToConnectToThem, verDetails.endpoints)
-
-        persistResult.bimap(
-          e => { logger.error(s"error persisting the update of the credentials: $e"); e },
-          _ => generateCredsToConnectToUs(newTokenToConnectToUs)
-        )
-    }
-  }
-
-  def initiateRegistrationProcess(partyName: String, globalPartyId: GlobalPartyId,
-     tokenToConnectToThem: AuthToken[Ours], theirVersionsUrl: Uri)
-     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
-    logger.info(s"initiate registration process with: $theirVersionsUrl, $tokenToConnectToThem")
-    val newTokenToConnectToUs = AuthToken.generateTheirs
-    logger.debug(s"issuing new token for party with initial authorization token: '$tokenToConnectToThem'")
-
-    def theirDetails =
-      getTheirDetails(ourVersion, tokenToConnectToThem, theirVersionsUrl, initiatedByUs = true)
-    def theirCredEp(versionDetails: VersionDetails) =
-      versionDetails.endpoints.filter(_.identifier == Credentials).head
-    def theirNewCred(credEp: Url) =
-      client.sendCredentials(credEp, tokenToConnectToThem,
-        generateCredsToConnectToUs(newTokenToConnectToUs))
-    def withCleanup[A, B](f: => Future[A \/ B]): Future[A \/ B]  = f.map {
-      case disj if disj.isLeft => removePartyPendingRegistration(globalPartyId); disj
-      case disj  => disj
-    }
-    def persist(creds: Creds[Theirs], endpoints: Iterable[Endpoint]) =
-      persistRegistrationInitResult(ourVersion, globalPartyId, newTokenToConnectToUs, creds, endpoints)
+    def errIfGlobalPartyIdChangedAndTaken =
+      // If they try and change the global party id, make sure it's not already taken
+      if (creds.globalPartyId != globalPartyId) {
+        errIfRegistered(creds.globalPartyId)
+      } else Future.successful(\/-(()))
 
     (for {
-      verDet <- result(theirDetails)
-      credEndpoint = theirCredEp(verDet)
-      _ <- result(Future.successful(persistPartyPendingRegistration(partyName, globalPartyId, newTokenToConnectToUs)))
-      newCredToConnectToThem <- result(withCleanup(theirNewCred(credEndpoint.url)))
-      _ <- result(Future.successful(persist(newCredToConnectToThem, verDet.endpoints)))
-    } yield newCredToConnectToThem).run
+      _ <- result(errIfNotRegistered(globalPartyId))
+      _ <- result(errIfGlobalPartyIdChangedAndTaken)
+      verDetails <- result(getTheirDetails(version, creds.token, Uri(creds.url), initiatedByUs = false))
+      theirNewToken = AuthToken.generateTheirs
+      _ <- result(
+        repo.persistUpdateCredsResult(globalPartyId, version, theirNewToken, creds, verDetails.endpoints
+      ).map(_.right))
+    } yield generateCreds(theirNewToken)).run.map {
+      _.leftMap {
+        e => logger.error(s"error during reactToUpdateCredsRequest: $e"); e
+      }
+    }
   }
 
-  /**
-    * Get versions, choose the one that match with the 'version' parameter, request the details of this version,
-    * and return them if no error happened, otherwise return the error. It doesn't store them cause could be the party
-    * is not still registered
-    */
-  private def getTheirDetails(version: VersionNumber, tokenToConnectToThem: AuthToken[Ours], theirVersionsUrl: Uri, initiatedByUs: Boolean)
+  def initiateRegistrationProcess(token: AuthToken[Ours], theirVersionsUrl: Uri)
+     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+
+    // see https://github.com/typesafehub/scalalogging/issues/16
+    logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, token: Any)
+
+    def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
+      verDet.endpoints.find(_.identifier == Credentials) \/> {
+        logger.debug("Credentials endpoint not found in retrieved endpoints for version {}", verDet.version)
+        SendingCredentialsFailed: RegistrationError
+      }
+    )
+
+    (for {
+      verDet <- result(getTheirDetails(ourVersion, token, theirVersionsUrl, initiatedByUs = true))
+      credEp <- result(getCredsEndpoint(verDet))
+      theirNewToken = AuthToken.generateTheirs
+      theirCreds <- result {
+        logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
+        client.sendCredentials(credEp.url, token, generateCreds(theirNewToken))
+      }
+      _ <- result(errIfRegistered(theirCreds.globalPartyId))
+      _ <- result(
+        repo.persistRegistrationInitResult(ourVersion, theirNewToken,
+          theirCreds, verDet.endpoints).map(_.right)
+      )
+    } yield theirCreds).run
+  }
+
+  private def getTheirDetails(version: VersionNumber, token: AuthToken[Ours], theirVersionsUrl: Uri, initiatedByUs: Boolean)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ VersionDetails] = {
 
     def findCommonVersion(versionResp: List[Version]): Future[RegistrationError \/ Version] = {
@@ -150,59 +149,22 @@ abstract class RegistrationService(
     }
 
     (for {
-      theirVers <- result(client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem))
-      ver <- result(findCommonVersion(theirVers))
-      theirVerDetails <- result(client.getTheirVersionDetails(ver.url, tokenToConnectToThem))
+      theirVers <- result(client.getTheirVersions(theirVersionsUrl, token))
+      commonVer <- result(findCommonVersion(theirVers))
+      theirVerDetails <- result(client.getTheirVersionDetails(commonVer.url, token))
     } yield theirVerDetails).run
   }
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId): RegistrationError \/ Creds[Ours] = {
-    for {
-      authToken <- getTheirAuthToken(globalPartyId)
-    } yield generateCredsToConnectToUs(authToken)
-  }
+  def credsToConnectToUs(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Creds[Ours]] =
+    (for {
+      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ \/> UnknownParty(globalPartyId)))
+    } yield generateCreds(theirToken)).run
 
-  private def generateCredsToConnectToUs(tokenToConnectToUs: AuthToken[Theirs]): Creds[Ours] = {
+  private def generateCreds(token: AuthToken[Theirs]): Creds[Ours] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
-    Creds[Ours](tokenToConnectToUs, ourVersionsUrl,
-      BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourGlobalPartyId)
+    Creds[Ours](token, ourVersionsUrl.toString,
+      BusinessDetails(ourPartyName, ourLogo, ourWebsite.map(_.toString)), ourGlobalPartyId)
   }
-
-  protected def getTheirAuthToken(globalPartyId: GlobalPartyId): RegistrationError \/ AuthToken[Theirs]
-
-  protected def persistPostCredsResult(
-    version: VersionNumber,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs],
-    credsToConnectToThem: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  ): RegistrationError \/ Unit
-
-  protected def persistUpdateCredsResult(
-    version: VersionNumber,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs],
-    credsToConnectToThem: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  ): RegistrationError \/ Unit
-
-  protected def persistRegistrationInitResult(
-    version: VersionNumber,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs],
-    newCredToConnectToThem: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  ): RegistrationError \/ Unit
-
-  protected def persistPartyPendingRegistration(
-    partyName: String,
-    globalPartyId: GlobalPartyId,
-    newTokenToConnectToUs: AuthToken[Theirs]
-  ): RegistrationError \/ Unit
-
-  protected def removePartyPendingRegistration(
-    globalPartyId: GlobalPartyId
-  ): RegistrationError \/ Unit
 }
 
 trait FutureEitherUtils {

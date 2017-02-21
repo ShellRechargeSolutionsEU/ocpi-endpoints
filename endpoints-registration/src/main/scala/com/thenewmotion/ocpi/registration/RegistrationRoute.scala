@@ -17,7 +17,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
       entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {
           service
-            .reactToPostCredsRequest(accessedVersion, user, credsToConnectToThem)
+            .reactToNewCredsRequest(user, accessedVersion, credsToConnectToThem)
             .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
@@ -26,14 +26,14 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
       complete {
         service
           .credsToConnectToUs(user)
-          .map(x => SuccessWithDataResp(GenericSuccess, data = x))
+          .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
       }
     } ~
     put {
       entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {
           service
-            .reactToUpdateCredsRequest(accessedVersion, user, credsToConnectToThem)
+            .reactToUpdateCredsRequest(user, accessedVersion, credsToConnectToThem)
             .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
