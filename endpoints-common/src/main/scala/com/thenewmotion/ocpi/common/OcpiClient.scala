@@ -11,6 +11,7 @@ import scalaz.{-\/, \/, \/-}
 import akka.stream.scaladsl.Sink
 import com.github.nscala_time.time.Imports._
 import msgs.{ErrorResp, SuccessResponse}
+import scala.util.control.NonFatal
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
 class ClientObjectUri (val value: Uri) extends AnyVal
@@ -23,6 +24,7 @@ object ClientObjectUri {
 }
 
 case class OcpiClientException(errorResp: ErrorResp) extends Throwable
+case class FailedRequestException(request: HttpRequest, response: HttpResponse) extends Exception
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
   extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
@@ -32,9 +34,11 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
 
   def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](req: HttpRequest, auth: String)
     (implicit ec: ExecutionContext, mat: ActorMaterializer, errorU: ErrUnMar): Future[ErrorResp \/ T] =
-    requestWithAuth(http, req, auth).flatMap { response =>
-      Unmarshal(response).to[ErrorResp \/ T]
-    }
+      requestWithAuth(http, req, auth).flatMap { response =>
+        Unmarshal(response).to[ErrorResp \/ T].recover{
+          case NonFatal(_) => throw FailedRequestException(req, response)
+        }
+      }
 
   def traversePaginatedResource[T]
     (uri: Uri, auth: String, dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None, limit: Int = MaxNumItems)
