@@ -86,7 +86,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
         repo.persistRegistrationInitResult(any, any, any, any)(any) returns Future.successful(())
 
-        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, theirVersionsUrl)
+        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
         result must beLike[\/[RegistrationError, Creds[Theirs]]] {
           case \/-(Creds(_, v, bd, gpi)) =>
@@ -102,7 +102,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns
           Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
 
-        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, theirVersionsUrl)
+        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
+          theirVersionsUrl)
 
         result must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
       }
@@ -112,7 +113,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns
           Future.successful(-\/(SendingCredentialsFailed))
 
-        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, theirVersionsUrl)
+        val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
+          theirVersionsUrl)
 
         result must be_-\/(SendingCredentialsFailed: RegistrationError).await
       }
@@ -121,14 +123,16 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
           Future.successful(-\/(VersionsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
-        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
+          tokenToConnectToUs, credsToConnectToThem.url)
         initResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
       }
       "return error if no versions were returned" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
           Future.successful(\/-(Nil))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
-        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
+          tokenToConnectToUs, credsToConnectToThem.url)
 
         initResult must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
       }
@@ -137,7 +141,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
           -\/(VersionDetailsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
-        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token, credsToConnectToThem.url)
+        val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
+          tokenToConnectToUs, credsToConnectToThem.url)
 
         initResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
       }
@@ -146,7 +151,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
           Future.failed(new IllegalArgumentException)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
-        registrationService.initiateRegistrationProcess(credsToConnectToThem.token, credsToConnectToThem.url) must
+        registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
+          credsToConnectToThem.url) must
           throwA[IllegalArgumentException].await
       }
     }

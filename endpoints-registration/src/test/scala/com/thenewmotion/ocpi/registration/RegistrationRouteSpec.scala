@@ -173,8 +173,8 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
     //default mocks
     registrationService.reactToNewCredsRequest(any, any, any)(any, any) returns
       Future.successful(\/-(credsToConnectToUs))
-    registrationService.initiateRegistrationProcess(credsToConnectToThem.token, credsToConnectToThem.url) returns
-      Future.successful(\/-(credsToConnectToThem))
+    registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
+      credsToConnectToThem.url) returns Future.successful(\/-(credsToConnectToThem))
     registrationService.credsToConnectToUs(any)(any) returns Future.successful(-\/(UnknownParty(theirGlobalId)))
 
     val credentialsRoute = new RegistrationRoute(registrationService)
