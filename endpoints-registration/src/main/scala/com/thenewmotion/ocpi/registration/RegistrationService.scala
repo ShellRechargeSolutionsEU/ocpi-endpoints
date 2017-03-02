@@ -105,11 +105,11 @@ class RegistrationService(
     }
   }
 
-  def initiateRegistrationProcess(token: AuthToken[Ours], theirVersionsUrl: Uri)
+  def initiateRegistrationProcess(ourToken: AuthToken[Ours], theirNewToken: AuthToken[Theirs], theirVersionsUrl: Uri)
      (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
 
     // see https://github.com/typesafehub/scalalogging/issues/16
-    logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, token: Any)
+    logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
 
     def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
       verDet.endpoints.find(_.identifier == Credentials) \/> {
@@ -119,12 +119,11 @@ class RegistrationService(
     )
 
     (for {
-      verDet <- result(getTheirDetails(ourVersion, token, theirVersionsUrl, initiatedByUs = true))
+      verDet <- result(getTheirDetails(ourVersion, ourToken, theirVersionsUrl, initiatedByUs = true))
       credEp <- result(getCredsEndpoint(verDet))
-      theirNewToken = AuthToken.generateTheirs
       theirCreds <- result {
         logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
-        client.sendCredentials(credEp.url, token, generateCreds(theirNewToken))
+        client.sendCredentials(credEp.url, ourToken, generateCreds(theirNewToken))
       }
       _ <- result(errIfRegistered(theirCreds.globalPartyId))
       _ <- result(
