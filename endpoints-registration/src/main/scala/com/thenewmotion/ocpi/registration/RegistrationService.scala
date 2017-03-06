@@ -70,7 +70,7 @@ class RegistrationService(
       ).map(_.right))
     } yield generateCreds(newTokenToConnectToUs)).run.map {
       _.leftMap {
-        e => logger.error("error during reactToPostCredsRequest", e); e
+        e => logger.error("error during reactToPostCredsRequest: {}", e); e
       }
     }
   }
@@ -103,7 +103,7 @@ class RegistrationService(
       ).map(_.right))
     } yield generateCreds(theirNewToken)).run.map {
       _.leftMap {
-        e => logger.error("error during reactToUpdateCredsRequest", e); e
+        e => logger.error("error during reactToUpdateCredsRequest: {}", e); e
       }
     }
   }
@@ -118,7 +118,7 @@ class RegistrationService(
       _ <- result(repo.deletePartyInformation(globalPartyId).map(_.right))
     } yield ()).run.map {
       _.leftMap {
-        e => logger.error("error during reactToDeleteCredsRequest", e); e
+        e => logger.error("error during reactToDeleteCredsRequest: {}", e); e
       }
     }
   }
