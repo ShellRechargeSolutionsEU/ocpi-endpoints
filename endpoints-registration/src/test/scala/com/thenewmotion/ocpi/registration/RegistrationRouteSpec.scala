@@ -134,7 +134,7 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
       Put("/credentials", body) ~>
       credentialsRoute.route(selectedVersion, theirGlobalId) ~>
       check {
-        status === BadRequest
+        status === MethodNotAllowed
       }
     }
   }

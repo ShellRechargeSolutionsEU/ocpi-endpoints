@@ -41,6 +41,7 @@ object OcpiStatusCode {
   val PartyAlreadyRegistered = ClientErrorCode(2012) // When POSTing
   val RegistrationNotCompletedYetByParty = ClientErrorCode(2013) // When PUTing or GETing even
   val AuthorizationFailed = ClientErrorCode(2014)
+  val ClientWasNotRegistered = ClientErrorCode(2015)
 
   val GenericServerFailure = ServerErrorCode(3000)
   val UnableToUseApi = ServerErrorCode(3001)

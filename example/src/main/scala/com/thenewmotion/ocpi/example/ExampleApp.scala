@@ -4,34 +4,45 @@ package example
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri
-import akka.stream.ActorMaterializer
-import VersionsRoute.OcpiVersionConfig
-import registration.{RegistrationRepo, RegistrationRoute, RegistrationService}
-import msgs._
-import msgs.v2_1.Credentials.Creds
-import msgs.Versions.{Endpoint, VersionNumber}
-import msgs.Versions.EndpointIdentifier._
 import akka.http.scaladsl.server.Directives._
+import akka.stream.ActorMaterializer
+import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
+import com.thenewmotion.ocpi.common.TokenAuthenticator
 import com.thenewmotion.ocpi.msgs.Ownership.Theirs
-import common.TokenAuthenticator
+import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier._
+import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
+import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import com.thenewmotion.ocpi.registration.{RegistrationRepo, RegistrationRoute, RegistrationService}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class ExampleRegistrationRepo extends RegistrationRepo {
-  override def isPartyRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
-
-  override def findTheirAuthToken(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
-
-  override def persistNewCredsResult(globalPartyId: GlobalPartyId, version: VersionNumber,
-                                     newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
-                                    (implicit ec: ExecutionContext) = ???
-
-  override def persistUpdateCredsResult(globalPartyId: GlobalPartyId, version: VersionNumber,
-    newTokenToConnectToUs: AuthToken[Theirs], credsToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
-    (implicit ec: ExecutionContext) = ???
-
-  override def persistRegistrationInitResult(version: VersionNumber,
-    newTokenToConnectToUs: AuthToken[Theirs], newCredToConnectToThem: Creds[Theirs], endpoints: Iterable[Endpoint])
-    (implicit ec: ExecutionContext) = ???
+  def isPartyRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
+  def findTheirAuthToken(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
+  def persistNewCredsResult(
+    globalPartyId: GlobalPartyId,
+    version: VersionNumber,
+    newTokenToConnectToUs: AuthToken[Theirs],
+    credsToConnectToThem: Creds[Theirs],
+    endpoints: Iterable[Endpoint]
+  )(implicit ec: ExecutionContext) = ???
+  def persistUpdateCredsResult(
+    globalPartyId: GlobalPartyId,
+    version: VersionNumber,
+    newTokenToConnectToUs: AuthToken[Theirs],
+    credsToConnectToThem: Creds[Theirs],
+    endpoints: Iterable[Endpoint]
+  )(implicit ec: ExecutionContext) = ???
+  def persistRegistrationInitResult(
+    version: VersionNumber,
+    newTokenToConnectToUs: AuthToken[Theirs],
+    newCredToConnectToThem: Creds[Theirs],
+    endpoints: Iterable[Endpoint]
+  )(implicit ec: ExecutionContext) = ???
+  def deletePartyInformation(
+    globalPartyId: GlobalPartyId
+  )(implicit ec: ExecutionContext): Future[Unit] = ???
 }
 
 

@@ -20,13 +20,14 @@ object ErrorMarshalling extends DisjunctionMarshalling {
         case VersionsRetrievalFailed => (FailedDependency, UnableToUseApi)
         case VersionDetailsRetrievalFailed => (FailedDependency, UnableToUseApi)
         case SendingCredentialsFailed => (BadRequest, UnableToUseApi)
-        case SelectedVersionNotHostedByUs(v) => (BadRequest, UnsupportedVersion)
+        case SelectedVersionNotHostedByUs(_) => (BadRequest, UnsupportedVersion)
         case CouldNotFindMutualVersion => (BadRequest, UnsupportedVersion)
         case SelectedVersionNotHostedByThem(_) => (BadRequest, UnsupportedVersion)
         case RegistrationError.UnknownEndpointType(_) => (InternalServerError, OcpiStatusCode.UnknownEndpointType)
-        case AlreadyExistingParty(_) => (Conflict, PartyAlreadyRegistered)
+        case AlreadyExistingParty(_) => (MethodNotAllowed, PartyAlreadyRegistered)
         case UnknownParty(_) => (BadRequest, AuthenticationFailed)
-        case WaitingForRegistrationRequest(_) => (BadRequest, RegistrationNotCompletedYetByParty)
+        case WaitingForRegistrationRequest(_) => (MethodNotAllowed, RegistrationNotCompletedYetByParty)
+        case CouldNotUnregisterParty(_) => (MethodNotAllowed, ClientWasNotRegistered)
       }
 
       (status, ErrorResp(cec, Some(e.reason)))

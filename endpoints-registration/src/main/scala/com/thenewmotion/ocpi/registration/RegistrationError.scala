@@ -37,4 +37,6 @@ object RegistrationError{
   case class WaitingForRegistrationRequest(globalPartyId: GlobalPartyId) extends RegistrationError(
     "Still waiting for registration request.")
 
+  case class CouldNotUnregisterParty(globalPartyId: GlobalPartyId) extends RegistrationError(
+    s"Client is not registered for partyId: $globalPartyId")
 }

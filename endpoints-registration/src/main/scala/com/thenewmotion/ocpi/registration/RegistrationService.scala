@@ -27,7 +27,9 @@ class RegistrationService(
 
   private[registration] val client: RegistrationClient = new RegistrationClient
 
-  def errIfRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
+  private def errIfRegistered(
+    globalPartyId: GlobalPartyId
+  )(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
     repo.isPartyRegistered(globalPartyId).map {
       case true =>
         logger.debug("{} is already registered", globalPartyId)
@@ -35,12 +37,15 @@ class RegistrationService(
       case false => \/-(())
     }
 
-  def errIfNotRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
+  private def errIfNotRegistered(
+    globalPartyId: GlobalPartyId,
+    error: GlobalPartyId => RegistrationError = WaitingForRegistrationRequest
+  )(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] =
     repo.isPartyRegistered(globalPartyId).map {
       case true => \/-(())
       case false =>
         logger.debug("{} is not registered yet", globalPartyId)
-        -\/(WaitingForRegistrationRequest(globalPartyId))
+        -\/(error(globalPartyId))
     }
 
   /**
@@ -53,7 +58,6 @@ class RegistrationService(
     version: VersionNumber,
     creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
-
     logger.info("Registration initiated by {}, for {} creds: {}", globalPartyId, version, creds)
 
     (for {
@@ -66,7 +70,7 @@ class RegistrationService(
       ).map(_.right))
     } yield generateCreds(newTokenToConnectToUs)).run.map {
       _.leftMap {
-        e => logger.error(s"error during reactToPostCredsRequest: $e"); e
+        e => logger.error("error during reactToPostCredsRequest: {}", e); e
       }
     }
   }
@@ -81,7 +85,6 @@ class RegistrationService(
     version: VersionNumber,
     creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
-
     logger.info("Update credentials request sent by {}, for {}, creds {}", creds.globalPartyId, version, creds)
 
     def errIfGlobalPartyIdChangedAndTaken =
@@ -100,7 +103,22 @@ class RegistrationService(
       ).map(_.right))
     } yield generateCreds(theirNewToken)).run.map {
       _.leftMap {
-        e => logger.error(s"error during reactToUpdateCredsRequest: $e"); e
+        e => logger.error("error during reactToUpdateCredsRequest: {}", e); e
+      }
+    }
+  }
+
+  def reactToDeleteCredsRequest(
+    globalPartyId: GlobalPartyId
+  )(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] = {
+    logger.info("delete credentials request sent by {}", globalPartyId)
+
+    (for {
+      _ <- result(errIfNotRegistered(globalPartyId, CouldNotUnregisterParty))
+      _ <- result(repo.deletePartyInformation(globalPartyId).map(_.right))
+    } yield ()).run.map {
+      _.leftMap {
+        e => logger.error("error during reactToDeleteCredsRequest: {}", e); e
       }
     }
   }

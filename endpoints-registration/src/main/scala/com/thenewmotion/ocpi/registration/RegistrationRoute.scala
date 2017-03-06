@@ -37,6 +37,13 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
             .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
         }
       }
+    } ~
+    delete {
+      complete {
+        service
+          .reactToDeleteCredsRequest(user)
+          .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
+      }
     }
   }
 }
