@@ -17,7 +17,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
       credentialsJson1.convertTo[Creds[Ours]] mustEqual credentials1
     }
     "serialize" in new CredentialsTestScope {
-      credentials1.toJson.toString mustEqual credentialsJson1.compactPrint
+      credentials1.toJson mustEqual credentialsJson1
     }
   }
 
@@ -39,7 +39,7 @@ class CredentialsSpecs extends SpecificationWithJUnit {
     val credentialsJson1 =
       s"""
          |{
-         |    "token": "${credentials1.token}",
+         |    "token": "${credentials1.token.value}",
          |    "url": "${credentials1.url}",
          |    "business_details": {
          |        "name": "${credentials1.businessDetails.name}",
