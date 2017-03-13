@@ -87,24 +87,37 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
 
   implicit val energySourceFormat = jsonFormat2(EnergySource)
   implicit val environmentalImpactFormat = jsonFormat2(EnvironmentalImpact)
-  implicit val energyMixFormat = jsonFormat5(EnergyMix)
+
+  implicit val energyMixFormat = new JsonFormat[EnergyMix] {
+    override def read(json: JsValue) = jsonFormat5(EnergyMix.deserialize).read(json)
+    override def write(obj: EnergyMix): JsValue = jsonFormat5(EnergyMix.apply).write(obj)
+  }
   implicit val powerFormat = jsonFormat3(Power)
   implicit val displayTestFormat = jsonFormat2(DisplayText)
   implicit val geoLocationFormat = jsonFormat2(GeoLocation)
   implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
   implicit val regularHoursFormat = jsonFormat3(RegularHours)
   implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
-  implicit val hoursFormat = jsonFormat4(Hours)
+  implicit val hoursFormat = new JsonFormat[Hours] {
+    override def read(json: JsValue) = jsonFormat4(Hours.deserialize).read(json)
+    override def write(obj: Hours): JsValue = jsonFormat4(Hours.apply).write(obj)
+  }
   implicit val imageFormat = jsonFormat6(Image)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
 
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
-  implicit val evseFormat = jsonFormat13(Evse)
+  implicit val evseFormat = new RootJsonFormat[Evse] {
+    override def read(json: JsValue) = jsonFormat13(Evse.deserialize).read(json)
+    override def write(obj: Evse): JsValue = jsonFormat13(Evse.apply).write(obj)
+  }
   implicit val evsePatchFormat = jsonFormat12(EvsePatch)
   implicit val operatorFormat = jsonFormat3(Operator)
-  implicit val locationFormat = jsonFormat21(Location)
+  implicit val locationFormat = new RootJsonFormat[Location] {
+    override def read(json: JsValue) = jsonFormat21(Location.deserialize).read(json)
+    override def write(obj: Location): JsValue = jsonFormat21(Location.apply).write(obj)
+  }
   implicit val tokensFormat = jsonFormat9(Token)
 
   implicit val locationPatchFormat = jsonFormat21(LocationPatch)
@@ -183,7 +196,10 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit val locationReferencesFormat = jsonFormat3(LocationReferences)
+  implicit val locationReferencesFormat = new RootJsonFormat[LocationReferences] {
+    override def read(json: JsValue) = jsonFormat3(LocationReferences.deserialize).read(json)
+    override def write(obj: LocationReferences): JsValue = jsonFormat3(LocationReferences.apply).write(obj)
+  }
   implicit val allowedFormat =
     new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat
 
