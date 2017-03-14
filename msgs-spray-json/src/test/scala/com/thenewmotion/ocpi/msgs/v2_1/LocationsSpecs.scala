@@ -15,37 +15,94 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
   "Evses" should {
     "deserialize" in new LocationsTestScope {
-      evseJson1.convertTo[Evse] mustEqual evse1
+      evseJson1.parseJson.convertTo[Evse] mustEqual evse1
     }
     "serialize" in new LocationsTestScope {
-      evse1.toJson.toString mustEqual evseJson1.compactPrint
+      evse1.toJson mustEqual evseJson1.parseJson
+    }
+    "deserialize missing fields of cardinality '*' to empty lists" in new LocationsTestScope {
+      val evse = evseJson1
+        .replaceAll(""""status_schedule": \[\],""", "")
+        .replaceAll(""""capabilities": \[[| \nA-Z"]+\],""", "")
+        .replaceAll(""""directions": \[\],""", "")
+        .replaceAll(""""parking_restrictions": \[\],""", "")
+        .replaceAll(""""images": \[\],""", "")
+        .parseJson.convertTo[Evse]
+
+      evse.statusSchedule mustEqual Nil
+      evse.capabilities mustEqual Nil
+      evse.directions mustEqual Nil
+      evse.parkingRestrictions mustEqual Nil
+      evse.images mustEqual Nil
     }
   }
 
    "LocationResp" should {
       "deserialize" in new LocationsTestScope {
-         locationRespJson1.convertTo[SuccessWithDataResp[List[Location]]] mustEqual locationResp1
+         locationRespJson1.parseJson.convertTo[SuccessWithDataResp[List[Location]]] mustEqual locationResp1
       }
       "serialize" in new LocationsTestScope {
-         locationResp1.toJson.toString mustEqual locationRespJson1.compactPrint
+         locationResp1.toJson mustEqual locationRespJson1.parseJson
       }
    }
 
+  "Location" should {
+    "deserialize missing fields of cardinality '*' to empty lists" in new LocationsTestScope {
+      val loc = locationJson1
+        .replaceAll(""""related_locations": \[\],""", "")
+        .replaceAll(""""directions": \[[| \na-z:{},"]+\],""", "")
+        .replaceAll(""""facilities": \[\],""", "")
+        .replaceAll(""""images": \[\],""", "")
+        .parseJson.convertTo[Location]
+
+      loc.relatedLocations mustEqual Nil
+      loc.directions mustEqual Nil
+      loc.facilities mustEqual Nil
+      loc.images mustEqual Nil
+    }
+  }
+
+  "EnergyMix" should {
+    "serialize/deserialize" in new Scope {
+      val emJson = """
+                 |{
+                 |      "is_green_energy": true,
+                 |      "energy_sources": [],
+                 |      "environ_impact": [],
+                 |      "supplier_name": "Greenpeace Energy eG",
+                 |      "energy_product_name": "eco-power"
+                 |}
+               """.stripMargin
+      emJson.parseJson mustEqual EnergyMix(true, Nil, Nil, Some("Greenpeace Energy eG"), Some("eco-power")).toJson
+    }
+    "deserialize missing fields of cardinality '*' to empty lists" in new LocationsTestScope {
+      val em = """
+        |{
+        |      "is_green_energy": true,
+        |      "supplier_name": "Greenpeace Energy eG",
+        |      "energy_product_name": "eco-power"
+        |}
+      """.stripMargin.parseJson.convertTo[EnergyMix]
+      em.energySources mustEqual Nil
+      em.environImpact mustEqual Nil
+    }
+  }
+
   "Operator" should {
     "deserialize" in new LocationsTestScope {
-      operatorJsonWithNulls1.convertTo[Operator] mustEqual operator1
+      operatorJsonWithNulls1.parseJson.convertTo[Operator] mustEqual operator1
     }
     "serialize" in new LocationsTestScope {
-      operator1.toJson.toString mustEqual operatorJsonNoNulls1.compactPrint
+      operator1.toJson mustEqual operatorJsonNoNulls1.parseJson
     }
   }
 
   "Power" should {
     "deserialize" in new LocationsTestScope {
-      powerJson1.convertTo[Power] mustEqual power1
+      powerJson1.parseJson.convertTo[Power] mustEqual power1
     }
     "serialize" in new LocationsTestScope {
-      power1.toJson.toString mustEqual powerJson1.compactPrint
+      power1.toJson mustEqual powerJson1.parseJson
     }
   }
 
@@ -57,6 +114,32 @@ class LocationsSpecs extends SpecificationWithJUnit {
     }
     "extract" in {
       JsonParser("\"" + str + "\"").convertTo[PeriodType] mustEqual periodType
+    }
+  }
+
+  "Hours" should {
+    "serialize/deserialize" in new Scope {
+      val hoursJson =
+        """
+          |{
+          | "regular_hours": [],
+          | "twentyfourseven": true,
+          | "exceptional_openings": [],
+          | "exceptional_closings": []
+          |}
+        """.stripMargin.parseJson mustEqual Hours(true, Nil, Nil, Nil).toJson
+    }
+
+    "deserialize missing fields of cardinality '*' to empty lists" in new Scope {
+      val hours =
+        """
+          | {
+          |   "twentyfourseven": true
+          | }
+        """.stripMargin.parseJson.convertTo[Hours]
+
+      hours.exceptionalOpenings mustEqual Nil
+      hours.exceptionalClosings mustEqual Nil
     }
   }
 
@@ -166,7 +249,14 @@ class LocationsSpecs extends SpecificationWithJUnit {
       openingTimes = Some(hours1),
       relatedLocations = List.empty,
       chargingWhenClosed = Some(true),
-      images = List.empty
+      images = List.empty,
+      energyMix = Some(EnergyMix(
+        isGreenEnergy = true,
+        energySources = Nil,
+        environImpact = Nil,
+        Some("Greenpeace Energy eG"),
+        Some("eco-power")
+      ))
     )
 
     val location2 = Location(
@@ -204,7 +294,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |  "latitude": "3.729945",
          |  "longitude": "51.047594"
          |}
-     """.stripMargin.parseJson
+     """.stripMargin
 
     val geoLocationJson2 =
       s"""
@@ -212,7 +302,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |  "latitude": "3.729955",
          |  "longitude": "51.047604"
          |}
-     """.stripMargin.parseJson
+     """.stripMargin
 
 
 
@@ -255,7 +345,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "physical_reference": "1",
          |      "floor_level": "-1"
          |    }
-   """.stripMargin.parseJson
+   """.stripMargin
 
 
 
@@ -289,7 +379,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "physical_reference": "1",
          |      "floor_level": "-1"
          |    }
-   """.stripMargin.parseJson
+   """.stripMargin
 
     val evseJson3 =
       s"""
@@ -320,7 +410,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "physical_reference": "2",
          |      "floor_level": "-1"
          |    }
-   """.stripMargin.parseJson
+   """.stripMargin
 
 
 
@@ -384,9 +474,16 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |		  },
          |      "facilities": [],
          |      "images":[],
-         |      "charging_when_closed": true
+         |      "charging_when_closed": true,
+         |      "energy_mix": {
+         |        "is_green_energy": true,
+         |        "energy_sources": [],
+         |        "environ_impact": [],
+         |        "supplier_name": "Greenpeace Energy eG",
+         |        "energy_product_name": "eco-power"
+         |      }
          |    }
-   """.stripMargin.parseJson
+   """.stripMargin
 
     val locationJson2 =
       s"""
@@ -407,7 +504,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |      "images":[],
          |      "charging_when_closed": true
          |    }
-   """.stripMargin.parseJson
+   """.stripMargin
 
     val locationRespJson1 =
       s"""
@@ -417,7 +514,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |  "timestamp": "${date1.toString(formatter)}",
          |  "data": [$locationJson1,$locationJson2]
          |}
-       """.stripMargin.parseJson
+       """.stripMargin
 
   }
 
@@ -428,14 +525,14 @@ class LocationsSpecs extends SpecificationWithJUnit {
        |  "phone": "+31253621489",
        |  "url": null
        |}
-    """.stripMargin.parseJson
+    """.stripMargin
 
   val operatorJsonNoNulls1 =
     s"""
        |{
        |  "phone": "+31253621489"
        |}
-    """.stripMargin.parseJson
+    """.stripMargin
 
   val operator1 = Operator(None, Some("+31253621489"), None)
 
@@ -446,7 +543,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
        |  "amperage": 16,
        |  "voltage": 230
        |}
-     """.stripMargin.parseJson
+     """.stripMargin
 
   val power1 = Power(Some(AC3Phase), 16, 230)
 

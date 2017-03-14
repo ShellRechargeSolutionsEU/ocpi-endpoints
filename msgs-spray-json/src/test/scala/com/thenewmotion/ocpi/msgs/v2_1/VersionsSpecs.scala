@@ -16,7 +16,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
       versionRespJson1.convertTo[SuccessWithDataResp[List[Version]]] mustEqual versionResp
     }
     "serialize" in new VersionsTestScope {
-      versionResp.toJson.toString mustEqual versionRespJson1.compactPrint
+      versionResp.toJson mustEqual versionRespJson1
     }
   }
 
@@ -26,7 +26,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
       version21DetailsRespJson.convertTo[SuccessWithDataResp[VersionDetails]] mustEqual version21DetailsResp
     }
     "serialize" in new VersionsTestScope {
-      version21DetailsResp.toJson.toString mustEqual version21DetailsRespJson.compactPrint
+      version21DetailsResp.toJson mustEqual version21DetailsRespJson
     }
   }
 

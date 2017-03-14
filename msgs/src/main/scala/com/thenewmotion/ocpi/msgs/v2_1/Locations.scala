@@ -32,6 +32,53 @@ object Locations {
     require(country.length == 3, "Location needs 3-letter, ISO 3166-1 country code!")
   }
 
+  object Location {
+    private[v2_1] def deserialize(
+      id: String,
+      lastUpdated: DateTime,
+      `type`:	LocationType,
+      name:	Option[String],
+      address: String,
+      city:	String,
+      postalCode: String,
+      country:	String,
+      coordinates:	GeoLocation,
+      relatedLocations: Option[Iterable[AdditionalGeoLocation]],
+      evses: Option[Iterable[Evse]],
+      directions:	Option[Iterable[DisplayText]],
+      operator: Option[BusinessDetails],
+      suboperator: Option[BusinessDetails],
+      owner: Option[BusinessDetails],
+      facilities: Option[Iterable[Facility]],
+      timeZone: Option[String],
+      openingTimes: Option[Hours],
+      chargingWhenClosed: Option[Boolean],
+      images: Option[Iterable[Image]],
+      energyMix: Option[EnergyMix]
+    ) = new Location(id,
+      lastUpdated,
+      `type`,
+      name,
+      address,
+      city,
+      postalCode,
+      country,
+      coordinates,
+      relatedLocations getOrElse Nil,
+      evses getOrElse Nil,
+      directions getOrElse Nil,
+      operator,
+      suboperator,
+      owner,
+      facilities getOrElse Nil,
+      timeZone,
+      openingTimes,
+      chargingWhenClosed,
+      images getOrElse Nil,
+      energyMix)
+  }
+
+
   case class LocationPatch(
     id: Option[String] = None,
     lastUpdated: Option[DateTime] = None,
@@ -129,6 +176,22 @@ object Locations {
     energyProductName: Option[String] = None
   )
 
+  object EnergyMix {
+    private[v2_1] def deserialize(
+      isGreenEnergy: Boolean,
+      energySources: Option[Iterable[EnergySource]],
+      environImpact: Option[Iterable[EnvironmentalImpact]],
+      supplierName: Option[String] = None,
+      energyProductName: Option[String] = None) =
+      new EnergyMix(
+        isGreenEnergy,
+        energySources getOrElse Nil,
+        environImpact getOrElse Nil,
+        supplierName,
+        energyProductName
+      )
+  }
+
   case class RegularHours(
     weekday: Int,
     periodBegin: String,
@@ -151,6 +214,19 @@ object Locations {
       "Opening hours need to be either 24/7 or have non-empty regular_hours")
   }
 
+  object Hours {
+    private[v2_1] def deserialize(
+      twentyfourseven: Boolean,
+      regularHours: Option[Iterable[RegularHours]],
+      exceptionalOpenings: Option[Iterable[ExceptionalPeriod]],
+      exceptionalClosings: Option[Iterable[ExceptionalPeriod]]
+    ) = new Hours(
+      twentyfourseven,
+      regularHours getOrElse Nil,
+      exceptionalOpenings getOrElse Nil,
+      exceptionalClosings getOrElse Nil
+    )
+  }
 
   case class Operator(
     identifier: Option[String], // unique identifier of the operator
@@ -233,6 +309,38 @@ object Locations {
     images: Iterable[Image] = Nil
     ){
     require(connectors.nonEmpty, "Iterable of connector can't be empty!")
+  }
+
+  object Evse {
+    private[v2_1] def deserialize(
+      uid: String,
+      lastUpdated: DateTime,
+      status: ConnectorStatus,
+      connectors: Option[Iterable[Connector]],
+      statusSchedule: Option[Iterable[StatusSchedule]],
+      capabilities: Option[Iterable[Capability]],
+      evseId: Option[String],
+      floorLevel:	Option[String],
+      coordinates:	Option[GeoLocation],
+      physicalReference:	Option[String],
+      directions: Option[Iterable[DisplayText]],
+      parkingRestrictions:	Option[Iterable[ParkingRestriction]],
+      images: Option[Iterable[Image]]
+    ) = new Evse(
+      uid,
+      lastUpdated,
+      status,
+      connectors getOrElse Nil,
+      statusSchedule getOrElse Nil,
+      capabilities getOrElse Nil,
+      evseId,
+      floorLevel,
+      coordinates,
+      physicalReference,
+      directions getOrElse Nil,
+      parkingRestrictions getOrElse Nil,
+      images getOrElse Nil
+    )
   }
 
   case class EvsePatch(

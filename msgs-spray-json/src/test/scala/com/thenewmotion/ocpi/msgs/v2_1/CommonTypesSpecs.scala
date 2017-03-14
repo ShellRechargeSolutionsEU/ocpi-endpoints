@@ -29,10 +29,9 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
       genericErrorRespJson1.convertTo[ErrorResp] mustEqual genericErrorResp1
     }
     "serialize" in new TestScope {
-      genericErrorResp1.toJson.toString mustEqual genericErrorRespJson1.compactPrint
+      genericErrorResp1.toJson mustEqual genericErrorRespJson1
     }
   }
-
 
   private trait TestScope extends Scope {
 

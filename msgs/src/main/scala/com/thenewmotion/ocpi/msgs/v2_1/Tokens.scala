@@ -55,6 +55,18 @@ object Tokens {
     connectorIds: Iterable[String] = Nil
   )
 
+  object LocationReferences {
+    private[v2_1] def deserialize(
+      locationId: String,
+      evseUids: Option[Iterable[String]],
+      connectorIds: Option[Iterable[String]]
+    ) = new LocationReferences(
+      locationId,
+      evseUids getOrElse Nil,
+      connectorIds getOrElse Nil
+    )
+  }
+
   sealed abstract class Allowed(val name: String) extends Nameable
   object Allowed extends Enumerable[Allowed] {
     case object Allowed extends Allowed("ALLOWED")
