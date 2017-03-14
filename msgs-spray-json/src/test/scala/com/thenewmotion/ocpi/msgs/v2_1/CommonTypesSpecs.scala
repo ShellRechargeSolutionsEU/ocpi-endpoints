@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi.msgs.v2_1
 
 import com.thenewmotion.ocpi.msgs.ErrorResp
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.Hours
 import org.joda.time.DateTimeZone._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone}
@@ -31,20 +30,6 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
     }
     "serialize" in new TestScope {
       genericErrorResp1.toJson mustEqual genericErrorRespJson1
-    }
-  }
-
-  "Hours" should {
-    "deserialize missing fields of cardinality '*' to empty lists" in new TestScope {
-      val hours =
-        """
-          | {
-          |   "twentyfourseven": true
-          | }
-        """.stripMargin.parseJson.convertTo[Hours]
-
-      hours.exceptionalOpenings mustEqual Nil
-      hours.exceptionalClosings mustEqual Nil
     }
   }
 

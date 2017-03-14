@@ -63,6 +63,18 @@ class LocationsSpecs extends SpecificationWithJUnit {
   }
 
   "EnergyMix" should {
+    "serialize/deserialize" in new Scope {
+      val emJson = """
+                 |{
+                 |      "is_green_energy": true,
+                 |      "energy_sources": [],
+                 |      "environ_impact": [],
+                 |      "supplier_name": "Greenpeace Energy eG",
+                 |      "energy_product_name": "eco-power"
+                 |}
+               """.stripMargin
+      emJson.parseJson mustEqual EnergyMix(true, Nil, Nil, Some("Greenpeace Energy eG"), Some("eco-power")).toJson
+    }
     "deserialize missing fields of cardinality '*' to empty lists" in new LocationsTestScope {
       val em = """
         |{
@@ -102,6 +114,32 @@ class LocationsSpecs extends SpecificationWithJUnit {
     }
     "extract" in {
       JsonParser("\"" + str + "\"").convertTo[PeriodType] mustEqual periodType
+    }
+  }
+
+  "Hours" should {
+    "serialize/deserialize" in new Scope {
+      val hoursJson =
+        """
+          |{
+          | "regular_hours": [],
+          | "twentyfourseven": true,
+          | "exceptional_openings": [],
+          | "exceptional_closings": []
+          |}
+        """.stripMargin.parseJson mustEqual Hours(true, Nil, Nil, Nil).toJson
+    }
+
+    "deserialize missing fields of cardinality '*' to empty lists" in new Scope {
+      val hours =
+        """
+          | {
+          |   "twentyfourseven": true
+          | }
+        """.stripMargin.parseJson.convertTo[Hours]
+
+      hours.exceptionalOpenings mustEqual Nil
+      hours.exceptionalClosings mustEqual Nil
     }
   }
 
