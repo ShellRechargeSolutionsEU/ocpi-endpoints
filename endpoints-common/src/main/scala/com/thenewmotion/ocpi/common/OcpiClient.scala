@@ -20,7 +20,10 @@ object ClientObjectUri {
   def apply(endpointUri: Uri,
     ourCountryCode: String,
     ourPartyId: String,
-    uid: String) = new ClientObjectUri(endpointUri.withPath(endpointUri.path / ourCountryCode / ourPartyId / uid))
+    uid: String) = {
+    val epUriNormalised = if (endpointUri.path.endsWithSlash) endpointUri.path else endpointUri.path ++ Uri.Path./
+    new ClientObjectUri(endpointUri.withPath(epUriNormalised ++ Uri.Path(ourCountryCode) / ourPartyId / uid))
+  }
 }
 
 case class OcpiClientException(errorResp: ErrorResp) extends Throwable
