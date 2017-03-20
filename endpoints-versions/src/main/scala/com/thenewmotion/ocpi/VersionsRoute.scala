@@ -10,7 +10,7 @@ import msgs.{GlobalPartyId, SuccessWithDataResp}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
 import org.joda.time.DateTime
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 object VersionsRoute {
   case class OcpiVersionConfig(
@@ -18,7 +18,7 @@ object VersionsRoute {
   )
 }
 
-class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends JsonApi {
+class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]])(implicit ec: ExecutionContext) extends JsonApi {
   import VersionsRoute._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
@@ -33,7 +33,7 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
     })
   }
 
-  def versionsRoute(uri: Uri): Route = versions match {
+  def versionsRoute(uri: Uri): Route = onSuccess(versions) {
     case v if v.nonEmpty =>
       complete(SuccessWithDataResp(
         GenericSuccess,
@@ -79,10 +79,12 @@ class VersionsRoute(versions: => Map[VersionNumber, OcpiVersionConfig]) extends 
           versionsRoute(uri)
         } ~
         pathPrefix(VersionMatcher) { version =>
-          val route = for {
-            supportedVersion <- versions.get(version)
-          } yield versionDetailsRoute(version, supportedVersion, uri, apiUser)
-          route getOrElse reject(UnsupportedVersionRejection(version))
+          onSuccess(versions){ vers =>
+            val route = for {
+              supportedVersion <- vers.get(version)
+            } yield versionDetailsRoute(version, supportedVersion, uri, apiUser)
+            route getOrElse reject(UnsupportedVersionRejection(version))
+          }
         }
       }
     }
