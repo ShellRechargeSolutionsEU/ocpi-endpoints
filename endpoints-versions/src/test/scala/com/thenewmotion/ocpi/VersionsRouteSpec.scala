@@ -17,7 +17,7 @@ import lenses.JsonLenses._
 import spray.json.DefaultJsonProtocol._
 import scala.concurrent.Future
 
-class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
+class eVersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
   "Versions Route" should {
     "authenticate api calls with valid token info" in new VersionsScope {
@@ -126,7 +126,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
     )
 
-    val versionsRoute = new VersionsRoute(versions) {
+    val versionsRoute = new VersionsRoute(Future.successful(versions)) {
       override val currentTime = DateTime.parse("2010-01-01T00:00:00Z")
     }
 
