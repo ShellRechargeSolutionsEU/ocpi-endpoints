@@ -62,12 +62,12 @@ object ExampleApp extends App {
   val registrationRoute = new RegistrationRoute(service)
 
   val versionRoute = new VersionsRoute(
-    Map(VersionNumber.`2.1` -> OcpiVersionConfig(
+    Future(Map(VersionNumber.`2.1` -> OcpiVersionConfig(
       Map(
         Credentials -> Right(registrationRoute.route),
         Locations -> Left("http://locations.ocpi-example.com")
       )
-    ))
+    )))
   )
 
   val auth = new TokenAuthenticator(_ => Future.successful(Some(GlobalPartyId("NL", "TNM"))))
