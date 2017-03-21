@@ -11,7 +11,7 @@ import msgs.v2_1.Tokens.{Token, TokenPatch}
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 
-class TokensClient(implicit http: HttpExt) extends OcpiClient {
+class CpoTokensClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 

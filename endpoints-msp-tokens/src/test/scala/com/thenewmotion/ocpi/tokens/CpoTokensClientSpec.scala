@@ -20,9 +20,9 @@ import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
 
-class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
+class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
-  "Tokens client" should {
+  "CPO Tokens client" should {
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
@@ -112,7 +112,7 @@ class TokensClientSpec(implicit ee: ExecutionEnv) extends Specification with Fut
       case x =>         Future.failed(new UnknownHostException(x.toString))
     }
 
-    lazy val client = new TestTokensClient(requestWithAuth)
+    lazy val client = new TestCpoTokensClient(requestWithAuth)
   }
 }
 
@@ -124,8 +124,8 @@ object GenericRespTypes {
 }
 
 
-class TestTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit httpExt: HttpExt, materializer: ActorMaterializer) extends TokensClient {
+class TestCpoTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
+  (implicit httpExt: HttpExt, materializer: ActorMaterializer) extends CpoTokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
