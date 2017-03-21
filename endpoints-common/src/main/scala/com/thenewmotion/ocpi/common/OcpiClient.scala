@@ -26,8 +26,16 @@ object ClientObjectUri {
   }
 }
 
-case class OcpiClientException(errorResp: ErrorResp) extends Throwable
-case class FailedRequestException(request: HttpRequest, response: HttpResponse, cause: Throwable) extends Exception
+/**
+ * Internally used to carry failure information through Akka Streams
+ */
+private[common] case class OcpiClientException(errorResp: ErrorResp) extends Exception
+
+/**
+ * Thrown to signal an error where no valid OCPI response was produced by the server
+ */
+case class FailedRequestException(request: HttpRequest, response: HttpResponse, cause: Throwable)
+  extends Exception("Failed to get response to OCPI request", cause)
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
   extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
