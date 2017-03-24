@@ -24,7 +24,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
     case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, _) =>
       complete {
-        ( BadRequest,
+        ( Unauthorized,
           ErrorResp(
             MissingHeader,
             Some("Authorization Token not supplied")))
@@ -32,7 +32,7 @@ object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
     case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, _) =>
       complete {
-        ( BadRequest,
+        ( Unauthorized,
           ErrorResp(
             AuthenticationFailed,
             Some("Invalid Authorization Token")))
