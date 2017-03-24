@@ -8,7 +8,8 @@ import msgs.{ErrorResp, SuccessResponse, SuccessWithDataResp}
 import scala.reflect.ClassTag
 import scalaz.\/
 
-case class UnexpectedResponseException(response: HttpResponse) extends Exception
+case class UnexpectedResponseException(response: HttpResponse)
+  extends Exception(s"Unexpected HTTP status code ${response.status}")
 
 trait OcpiResponseUnmarshalling {
   protected implicit def fromOcpiResponseUnmarshaller[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](
