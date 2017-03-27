@@ -16,6 +16,9 @@ object RegistrationError{
   case object SendingCredentialsFailed extends RegistrationError(
     "Failed sending the credentials to connect to us.")
 
+  case object UpdatingCredentialsFailed extends RegistrationError(
+    "Failed updating the credentials to connect to us.")
+
   case class SelectedVersionNotHostedByUs(version: VersionNumber) extends RegistrationError(
     s"The selected version: $version, is not supported by our systems.")
 

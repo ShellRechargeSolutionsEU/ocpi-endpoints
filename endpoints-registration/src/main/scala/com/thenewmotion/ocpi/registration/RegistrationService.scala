@@ -124,10 +124,22 @@ class RegistrationService(
   }
 
   def initiateRegistrationProcess(ourToken: AuthToken[Ours], theirNewToken: AuthToken[Theirs], theirVersionsUrl: Uri)
-     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
-
+    (implicit ec: ExecutionContext, mat: ActorMaterializer) = {
     // see https://github.com/typesafehub/scalalogging/issues/16
     logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
+    handshake(ourToken, theirNewToken, theirVersionsUrl, client.sendCredentials, errIfRegistered)
+  }
+
+  def updateRegistrationInfo(ourToken: AuthToken[Ours], theirNewToken: AuthToken[Theirs], theirVersionsUrl: Uri)
+    (implicit ec: ExecutionContext, mat: ActorMaterializer)= {
+    logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
+    handshake(ourToken, theirNewToken, theirVersionsUrl, client.updateCredentials, errIfNotRegistered(_, WaitingForRegistrationRequest))
+  }
+
+  private def handshake(ourToken: AuthToken[Ours], theirNewToken: AuthToken[Theirs], theirVersionsUrl: Uri,
+    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => Future[RegistrationError \/ Creds[Theirs]],
+    registrationCheck: GlobalPartyId => Future[RegistrationError \/ Unit] )
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]]= {
 
     def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
       verDet.endpoints.find(_.identifier == Credentials) \/> {
@@ -141,9 +153,9 @@ class RegistrationService(
       credEp <- result(getCredsEndpoint(verDet))
       theirCreds <- result {
         logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
-        client.sendCredentials(credEp.url, ourToken, generateCreds(theirNewToken))
+        credentialExchange(credEp.url, ourToken, generateCreds(theirNewToken))
       }
-      _ <- result(errIfRegistered(theirCreds.globalPartyId))
+      _ <- result(registrationCheck(theirCreds.globalPartyId))
       _ <- result(
         repo.persistRegistrationInitResult(ourVersion, theirNewToken,
           theirCreds, verDet.endpoints).map(_.right)
