@@ -157,7 +157,7 @@ class RegistrationService(
       }
       _ <- result(registrationCheck(theirCreds.globalPartyId))
       _ <- result(
-        repo.persistRegistrationInitResult(ourVersion, theirNewToken,
+        repo.persistRegistrationResult(ourVersion, theirNewToken,
           theirCreds, verDet.endpoints).map(_.right)
       )
     } yield theirCreds).run

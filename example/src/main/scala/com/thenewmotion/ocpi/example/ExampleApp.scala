@@ -27,14 +27,8 @@ class ExampleRegistrationRepo extends RegistrationRepo {
     credsToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
   )(implicit ec: ExecutionContext) = ???
-  def persistUpdateCredsResult(
-    globalPartyId: GlobalPartyId,
-    version: VersionNumber,
-    newTokenToConnectToUs: AuthToken[Theirs],
-    credsToConnectToThem: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext) = ???
-  def persistRegistrationInitResult(
+
+  def persistRegistrationResult(
     version: VersionNumber,
     newTokenToConnectToUs: AuthToken[Theirs],
     newCredToConnectToThem: Creds[Theirs],
@@ -42,6 +36,14 @@ class ExampleRegistrationRepo extends RegistrationRepo {
   )(implicit ec: ExecutionContext) = ???
   def deletePartyInformation(
     globalPartyId: GlobalPartyId
+  )(implicit ec: ExecutionContext): Future[Unit] = ???
+
+  def persistUpdateCredsResult(
+    globalPartyId: GlobalPartyId,
+    version: VersionNumber,
+    token: AuthToken[Theirs],
+    creds: Creds[Theirs],
+    endpoints: Iterable[Endpoint]
   )(implicit ec: ExecutionContext): Future[Unit] = ???
 }
 

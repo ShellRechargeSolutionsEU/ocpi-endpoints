@@ -4,9 +4,9 @@ package registration
 import com.thenewmotion.ocpi.msgs.Ownership.Theirs
 import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
+import com.thenewmotion.ocpi.msgs.{GlobalPartyId, AuthToken}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 trait RegistrationRepo {
 
@@ -37,7 +37,8 @@ trait RegistrationRepo {
   )(implicit ec: ExecutionContext): Future[Unit]
 
   // Called after _we_ start the registration by calling _their_ credentials endpoint with a POST
-  def persistRegistrationInitResult(
+  // Called after _we_ update the registration by calling _their_ credentials endpoint with a PUT
+  def persistRegistrationResult(
     version: VersionNumber,
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
