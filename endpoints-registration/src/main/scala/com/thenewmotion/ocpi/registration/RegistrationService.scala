@@ -65,7 +65,7 @@ class RegistrationService(
       verDetails <- result(getTheirDetails(
         version, creds.token, Uri(creds.url), initiatedByUs = false))
       newTokenToConnectToUs = AuthToken.generateTheirs
-      _ <- result(repo.persistNewCredsResult(
+      _ <- result(repo.persistInfoAfterConnectToUs(
         globalPartyId, version, newTokenToConnectToUs, creds, verDetails.endpoints
       ).map(_.right))
     } yield generateCreds(newTokenToConnectToUs)).run.map {
@@ -99,7 +99,7 @@ class RegistrationService(
       verDetails <- result(getTheirDetails(version, creds.token, Uri(creds.url), initiatedByUs = false))
       theirNewToken = AuthToken.generateTheirs
       _ <- result(
-        repo.persistUpdateCredsResult(globalPartyId, version, theirNewToken, creds, verDetails.endpoints
+        repo.persistInfoAfterConnectToUs(globalPartyId, version, theirNewToken, creds, verDetails.endpoints
       ).map(_.right))
     } yield generateCreds(theirNewToken)).run.map {
       _.leftMap {
@@ -157,7 +157,7 @@ class RegistrationService(
       }
       _ <- result(registrationCheck(theirCreds.globalPartyId))
       _ <- result(
-        repo.persistRegistrationResult(ourVersion, theirNewToken,
+        repo.persistInfoAfterConnectToThem(ourVersion, theirNewToken,
           theirCreds, verDet.endpoints).map(_.right)
       )
     } yield theirCreds).run

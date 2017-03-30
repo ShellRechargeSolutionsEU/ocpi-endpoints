@@ -20,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ExampleRegistrationRepo extends RegistrationRepo {
   def isPartyRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
   def findTheirAuthToken(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
-  def persistNewCredsResult(
+  def persistInfoAfterConnectToUs(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     newTokenToConnectToUs: AuthToken[Theirs],
@@ -28,7 +28,7 @@ class ExampleRegistrationRepo extends RegistrationRepo {
     endpoints: Iterable[Endpoint]
   )(implicit ec: ExecutionContext) = ???
 
-  def persistRegistrationResult(
+  def persistInfoAfterConnectToThem(
     version: VersionNumber,
     newTokenToConnectToUs: AuthToken[Theirs],
     newCredToConnectToThem: Creds[Theirs],

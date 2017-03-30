@@ -32,7 +32,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     "when requesting react to registration" >> {
       "return credentials with new token if the initiating party's endpoints returned correct data" >> new RegistrationTestScope {
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistNewCredsResult(any, any, any, any, any)(any) returns Future.successful(())
+        repo.persistInfoAfterConnectToUs(any, any, any, any, any)(any) returns Future.successful(())
 
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
@@ -83,7 +83,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     "when requesting the initiation of the registration" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistRegistrationResult(any, any, any, any)(any) returns Future.successful(())
+        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
@@ -158,7 +158,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     "when requesting the update of the registration Information" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(true)
-        repo.persistRegistrationResult(any, any, any, any)(any) returns Future.successful(())
+        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
 
         val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
