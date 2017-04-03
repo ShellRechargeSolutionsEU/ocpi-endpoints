@@ -46,4 +46,15 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       }, _.data)
     }
   }
+
+  def updateCredentials(theirCredUrl: Url, tokenToConnectToThem: AuthToken[Ours], credToConnectToUs: Creds[Ours])
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+    singleRequest[SuccessWithDataResp[Creds[Theirs]]](Put(theirCredUrl, credToConnectToUs), tokenToConnectToThem.value).map {
+      _.bimap(err => {
+        logger.error( s"Could not retrieve their credentials from $theirCredUrl with token" +
+          s"$tokenToConnectToThem when sending our credentials $credToConnectToUs. Reason: $err")
+        UpdatingCredentialsFailed
+      }, _.data)
+    }
+  }
 }

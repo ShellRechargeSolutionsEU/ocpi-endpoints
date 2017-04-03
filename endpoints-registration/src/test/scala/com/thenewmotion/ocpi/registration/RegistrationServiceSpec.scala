@@ -32,7 +32,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     "when requesting react to registration" >> {
       "return credentials with new token if the initiating party's endpoints returned correct data" >> new RegistrationTestScope {
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistNewCredsResult(any, any, any, any, any)(any) returns Future.successful(())
+        repo.persistInfoAfterConnectToUs(any, any, any, any, any)(any) returns Future.successful(())
 
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
@@ -83,7 +83,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     "when requesting the initiation of the registration" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
         repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistRegistrationInitResult(any, any, any, any)(any) returns Future.successful(())
+        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
@@ -154,6 +154,30 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
           credsToConnectToThem.url) must
           throwA[IllegalArgumentException].await
       }
+    }
+    "when requesting the update of the registration Information" >> {
+      "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
+        repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(true)
+        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
+
+        val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
+
+        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
+          case \/-(Creds(_, v, bd, gpi)) =>
+            v mustEqual "http://the-awesomes/msp/versions"
+            bd mustEqual BusinessDetails("The Awesomes", None, None)
+            gpi mustEqual theirGlobalId
+        }.await
+      }
+      "return error when party is not registered" >> new RegistrationTestScope {
+
+        repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
+
+        val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs,
+          theirVersionsUrl)
+        result must be_-\/(WaitingForRegistrationRequest(theirGlobalId): RegistrationError).await
+      }
+
     }
     "when requesting the update of the credentials" >> {
       "return an error if requested for a party did not registered yet" >> new RegistrationTestScope {
@@ -274,6 +298,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
     _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
+      \/-(credsToConnectToThem))
+    _client.updateCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
       \/-(credsToConnectToThem))
 
     val repo = mock[RegistrationRepo]

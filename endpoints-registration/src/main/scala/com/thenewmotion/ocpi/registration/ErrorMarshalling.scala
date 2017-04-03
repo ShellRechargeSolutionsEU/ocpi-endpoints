@@ -20,6 +20,7 @@ object ErrorMarshalling extends DisjunctionMarshalling {
         case VersionsRetrievalFailed => (FailedDependency, UnableToUseApi)
         case VersionDetailsRetrievalFailed => (FailedDependency, UnableToUseApi)
         case SendingCredentialsFailed => (BadRequest, UnableToUseApi)
+        case UpdatingCredentialsFailed => (BadRequest, UnableToUseApi)
         case SelectedVersionNotHostedByUs(_) => (BadRequest, UnsupportedVersion)
         case CouldNotFindMutualVersion => (BadRequest, UnsupportedVersion)
         case SelectedVersionNotHostedByThem(_) => (BadRequest, UnsupportedVersion)

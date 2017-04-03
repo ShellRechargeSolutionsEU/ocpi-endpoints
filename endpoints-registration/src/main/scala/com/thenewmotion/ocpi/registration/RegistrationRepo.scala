@@ -4,9 +4,9 @@ package registration
 import com.thenewmotion.ocpi.msgs.Ownership.Theirs
 import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
+import com.thenewmotion.ocpi.msgs.{GlobalPartyId, AuthToken}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 trait RegistrationRepo {
 
@@ -18,8 +18,8 @@ trait RegistrationRepo {
     globalPartyId: GlobalPartyId
   )(implicit ec: ExecutionContext): Future[Option[AuthToken[Theirs]]]
 
-  // Called after a 3rd party has called our credentials endpoint with a POST
-  def persistNewCredsResult(
+  // Called after a 3rd party has called our credentials endpoint with a POST or a PUT
+  def persistInfoAfterConnectToUs(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     token: AuthToken[Theirs],
@@ -27,17 +27,8 @@ trait RegistrationRepo {
     endpoints: Iterable[Endpoint]
   )(implicit ec: ExecutionContext): Future[Unit]
 
-  // Called after a 3rd party has called our credentials endpoint with a PUT
-  def persistUpdateCredsResult(
-    globalPartyId: GlobalPartyId,
-    version: VersionNumber,
-    token: AuthToken[Theirs],
-    creds: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext): Future[Unit]
-
-  // Called after _we_ start the registration by calling _their_ credentials endpoint with a POST
-  def persistRegistrationInitResult(
+  // Called after _we_ start the registration by calling _their_ credentials endpoint with a POST or a PUT
+  def persistInfoAfterConnectToThem(
     version: VersionNumber,
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
