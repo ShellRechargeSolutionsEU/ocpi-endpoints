@@ -148,7 +148,7 @@ class RegistrationService(
       }
     )
 
-    (for {
+      (for {
       verDet <- result(getTheirDetails(ourVersion, ourToken, theirVersionsUrl, initiatedByUs = true))
       credEp <- result(getCredsEndpoint(verDet))
       theirCreds <- result {
@@ -197,12 +197,17 @@ class RegistrationService(
 }
 
 trait FutureEitherUtils {
+  private val logger = Logger(getClass)
+
   type Result[E, T] = EitherT[Future, E, T]
 
   def result[L, T](future: Future[L \/ T]): Result[L, T] = EitherT(future)
 
   def resultWithRecover[L, T](future: Future[L \/ T], error: L)(implicit ec: ExecutionContext): Result[L, T] =
-    EitherT(future.recover { case _ => -\/(error) } )
+    EitherT { future.recover {
+      case exception => logger.error(s"recovering future with $error from $exception", exception.getCause)
+        -\/(error)
+    } }
 
   def futureLeft[L, T](left: L): Future[L \/ T] =
     Future.successful(-\/(left))

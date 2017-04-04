@@ -17,7 +17,7 @@ import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, TimeoutException}
 import scalaz._
 import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
@@ -71,17 +71,17 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         reactResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
       }
-      "return a versions retrieval error if the initiating party does not respond to the versions request" >> new RegistrationTestScope {
+      "return versions retrieval error if the initiating party does not return a valid response to the versions request" >> new RegistrationTestScope {
         _client.getTheirVersions(theirVersionsUrl, credsToConnectToThem.token) returns
-          Future.failed(new IllegalArgumentException)
+          Future.failed(new Exception)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val reactResult = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
         reactResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
       }
-      "return a versions details retrieval error if the initiating party does not respond to the versions details request" >> new RegistrationTestScope {
+      "return versions details retrieval error if the initiating party does not return a valid response to the versions details request" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
-          Future.failed(new IllegalArgumentException)
+          Future.failed(new Exception)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val reactResult = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
@@ -153,17 +153,17 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         initResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
       }
-      "return a versions retrieval error if the party we are trying to register does not respond to the versions request" >> new RegistrationTestScope {
+      "return versions retrieval error if the party we are trying to register does does not return a valid response to the versions request" >> new RegistrationTestScope {
         _client.getTheirVersions(theirVersionsUrl, credsToConnectToThem.token) returns
-          Future.failed(new IllegalArgumentException)
+          Future.failed(new TimeoutException)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
           credsToConnectToThem.url) must be_-\/(VersionsRetrievalFailed: RegistrationError).await
       }
-      "return a version details retrieval error if the party does not respond to the versions details request" >> new RegistrationTestScope {
+      "return version details retrieval error if the party does not return a valid response to the version details request" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
-          Future.failed(new IllegalArgumentException)
+          Future.failed(new Exception)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
@@ -243,7 +243,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         updateResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
       }
-      "return a versions retrieval error if the initiating party does not respond to the versions request" >> new RegistrationTestScope {
+      "return versions retrieval error if the initiating party does does not return a valid response to the versions request" >> new RegistrationTestScope {
         _client.getTheirVersions(theirVersionsUrl, credsToConnectToThem.token) returns
           Future.failed(new IllegalArgumentException)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(true)
@@ -251,9 +251,10 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         val reactResult = registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
         reactResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
       }
-      "return a versions retrieval error if the initiating party does not respond to the versions details request" >> new RegistrationTestScope {
+      s"""return versions retrieval error if the initiating party does not return a valid
+        response to the versions details request""" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns
-          Future.failed(new IllegalArgumentException)
+          Future.failed(new TimeoutException)
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(true)
 
         val reactResult = registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
