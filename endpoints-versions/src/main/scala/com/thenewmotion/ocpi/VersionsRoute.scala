@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi
 
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
-import akka.stream.ActorMaterializer
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import common.OcpiExceptionHandler
@@ -10,7 +9,7 @@ import msgs.{GlobalPartyId, SuccessWithDataResp}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
 import org.joda.time.DateTime
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 object VersionsRoute {
   case class OcpiVersionConfig(
@@ -18,7 +17,7 @@ object VersionsRoute {
   )
 }
 
-class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]])(implicit ec: ExecutionContext) extends JsonApi {
+class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) extends JsonApi {
   import VersionsRoute._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
@@ -71,7 +70,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]])(
   val VersionMatcher = Segment.flatMap(s => VersionNumber.opt(s))
 
 
-  def route(apiUser: GlobalPartyId, securedConnection: Boolean = true)(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
+  def route(apiUser: GlobalPartyId, securedConnection: Boolean = true) = {
     (handleRejections(VersionRejections.Handler) & handleExceptions(OcpiExceptionHandler.Default)) {
       extractUri { reqUri =>
         val uri = reqUri.withScheme(Uri.httpScheme(securedConnection))

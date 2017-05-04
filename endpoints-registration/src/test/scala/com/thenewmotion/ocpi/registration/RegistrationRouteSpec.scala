@@ -20,7 +20,7 @@ import org.specs2.specification.Scope
 import scala.concurrent.Future
 import scalaz._
 
-class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification with Specs2RouteTest with Mockito {
+class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {

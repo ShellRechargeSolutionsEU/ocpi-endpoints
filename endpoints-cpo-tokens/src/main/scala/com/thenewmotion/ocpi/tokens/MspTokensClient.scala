@@ -7,7 +7,7 @@ import akka.stream.ActorMaterializer
 import client.RequestBuilding._
 import com.thenewmotion.ocpi.msgs.{ErrorResp, SuccessWithDataResp}
 import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences}
-import com.thenewmotion.ocpi.common.{ClientObjectUri, OcpiClient}
+import com.thenewmotion.ocpi.common.OcpiClient
 
 import scala.concurrent._
 import scalaz.\/

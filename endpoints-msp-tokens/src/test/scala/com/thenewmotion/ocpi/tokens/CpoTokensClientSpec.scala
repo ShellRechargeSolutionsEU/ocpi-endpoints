@@ -125,7 +125,7 @@ object GenericRespTypes {
 
 
 class TestCpoTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit httpExt: HttpExt, materializer: ActorMaterializer) extends CpoTokensClient {
+  (implicit httpExt: HttpExt) extends CpoTokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
