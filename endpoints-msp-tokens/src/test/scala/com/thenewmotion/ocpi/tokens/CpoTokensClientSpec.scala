@@ -1,21 +1,25 @@
 package com.thenewmotion.ocpi.tokens
 
 import java.net.UnknownHostException
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.util.Timeout
+
 import scala.concurrent.duration.FiniteDuration
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
+
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.{\/, \/-}
 import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.ErrorResp
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
@@ -26,7 +30,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
-      client.getToken(tokenUri, "auth", "123") must beLike[\/[ErrorResp, Token]] {
+      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[\/[ErrorResp, Token]] {
         case \/-(r) =>
           r.uid === "123"
       }.await
@@ -34,7 +38,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "Push new/updated Token object to the CPO" in new TestScope {
 
-      client.uploadToken(tokenUri, "auth", testToken) must beLike[\/[ErrorResp, Unit]] {
+      client.uploadToken(tokenUri, AuthToken[Ours]("auth"), testToken) must beLike[\/[ErrorResp, Unit]] {
         case \/-(_) => ok
       }.await
     }
@@ -45,7 +49,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
         valid = Some(false)
       )
 
-      client.updateToken(tokenUri, "auth", patch) must beLike[\/[ErrorResp, Unit]] {
+      client.updateToken(tokenUri, AuthToken[Ours]("auth"), patch) must beLike[\/[ErrorResp, Unit]] {
         case \/-(_) => ok
       }.await
     }
@@ -127,7 +131,7 @@ object GenericRespTypes {
 class TestCpoTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit httpExt: HttpExt) extends CpoTokensClient {
 
-  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
+  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
 

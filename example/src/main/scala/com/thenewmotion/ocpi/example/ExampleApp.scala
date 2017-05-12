@@ -37,14 +37,6 @@ class ExampleRegistrationRepo extends RegistrationRepo {
   def deletePartyInformation(
     globalPartyId: GlobalPartyId
   )(implicit ec: ExecutionContext): Future[Unit] = ???
-
-  def persistUpdateCredsResult(
-    globalPartyId: GlobalPartyId,
-    version: VersionNumber,
-    token: AuthToken[Theirs],
-    creds: Creds[Theirs],
-    endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext): Future[Unit] = ???
 }
 
 

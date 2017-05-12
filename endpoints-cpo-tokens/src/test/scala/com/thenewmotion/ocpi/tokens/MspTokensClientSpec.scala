@@ -9,7 +9,8 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import com.thenewmotion.ocpi.msgs.ErrorResp
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Allowed, AuthorizationInfo, LocationReferences}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
@@ -26,7 +27,7 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "request authorization for a token and get it" in new TestScope {
 
-      client.authorize(theirTokensEndpointUri, "auth", tokenId, locationReferences = None) must beLike[\/[ErrorResp, AuthorizationInfo]] {
+      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId, locationReferences = None) must beLike[\/[ErrorResp, AuthorizationInfo]] {
         case \/-(r) =>
           r.allowed === Allowed.Allowed
       }.await
@@ -34,7 +35,7 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "request authorization for a token on a specific location" in new TestScope {
       val testLocRefs = LocationReferences(locationId = "ABCDEF", evseUids = List("evse-123456", "evse-1234567"))
-      client.authorize(theirTokensEndpointUri, "auth", tokenId, locationReferences = Some(testLocRefs)) must beLike[\/[ErrorResp, AuthorizationInfo]] {
+      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId, locationReferences = Some(testLocRefs)) must beLike[\/[ErrorResp, AuthorizationInfo]] {
         case \/-(r) =>
           r.allowed === Allowed.Allowed
       }.await
@@ -86,9 +87,9 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
 // generalize to testhttpclient?
 class TestMspTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
-  (implicit httpExt: HttpExt, materializer: ActorMaterializer) extends MspTokensClient {
+  (implicit httpExt: HttpExt) extends MspTokensClient {
 
-  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
+  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
     req.uri.toString match {
       case x => reqWithAuthFunc(x)

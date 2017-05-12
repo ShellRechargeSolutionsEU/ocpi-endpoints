@@ -5,12 +5,15 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import akka.stream.ActorMaterializer
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scalaz.{-\/, \/, \/-}
 import akka.stream.scaladsl.Sink
 import com.github.nscala_time.time.Imports._
-import msgs.{ErrorResp, SuccessResponse}
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import msgs.{AuthToken, ErrorResp, SuccessResponse}
+
 import scala.util.control.NonFatal
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
@@ -43,7 +46,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
   type ErrUnMar = FromEntityUnmarshaller[ErrorResp]
   type SucUnMar[T] = FromEntityUnmarshaller[PagedResp[T]]
 
-  def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](req: HttpRequest, auth: String)
+  def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](req: HttpRequest, auth: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: ActorMaterializer, errorU: ErrUnMar): Future[ErrorResp \/ T] =
       requestWithAuth(http, req, auth).flatMap { response =>
         Unmarshal(response).to[ErrorResp \/ T].recover{
@@ -52,7 +55,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
       }
 
   def traversePaginatedResource[T]
-    (uri: Uri, auth: String, dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None, limit: Int = MaxNumItems)
+    (uri: Uri, auth: AuthToken[Ours], dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None, limit: Int = MaxNumItems)
     (implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar): Future[ErrorResp \/ Iterable[T]] =
     PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
       \/-(_)

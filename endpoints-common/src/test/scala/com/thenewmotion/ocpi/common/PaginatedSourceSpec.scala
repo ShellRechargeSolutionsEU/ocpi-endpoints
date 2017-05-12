@@ -11,7 +11,8 @@ import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Link, LinkParam
 import akka.stream.ActorMaterializer
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestProbe
-import com.thenewmotion.ocpi.msgs.{ErrorResp, OcpiResponse, OcpiStatusCode, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs._
 import org.mockito.Matchers
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
@@ -59,7 +60,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
 
       val probe = TestProbe()
 
-      PaginatedSource[TestData](http, dataUrl, "auth", limit = 2)
+      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), limit = 2)
         .runWith(TestSink.probe[TestData])
         .request(5)
         .expectNext(TestData("DATA1"), TestData("DATA2"), TestData("DATA3"), TestData("DATA4"))
@@ -91,7 +92,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
 
       val probe = TestProbe()
 
-      PaginatedSource[TestData](http, dataUrl, "auth", limit = 2)
+      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), limit = 2)
         .runWith(TestSink.probe[TestData])
         .request(5)
         .expectNext(TestData("DATA1"), TestData("DATA2"))

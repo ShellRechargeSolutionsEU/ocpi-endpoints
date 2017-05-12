@@ -10,13 +10,15 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import com.github.nscala_time.time.Imports.DateTime
-import msgs.ErrorResp
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import msgs.{AuthToken, ErrorResp}
+
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import Scalaz._
 
 object PaginatedSource extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
-  private def singleRequestWithNextLink[T](http: HttpExt, req: HttpRequest, auth: String)
+  private def singleRequestWithNextLink[T](http: HttpExt, req: HttpRequest, auth: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T],
      errorU: ErrUnMar): Future[\/[ErrorResp, (PagedResp[T], Option[Uri])]] =
     (for {
@@ -24,7 +26,7 @@ object PaginatedSource extends AuthorizedRequests with DisjunctionMarshalling wi
       success <- result(Unmarshal(response).to[ErrorResp \/ (PagedResp[T], Option[Uri])])
     } yield success).run
 
-  def apply[T](http: HttpExt, uri: Uri, auth: String, dateFrom: Option[DateTime] = None,
+  def apply[T](http: HttpExt, uri: Uri, auth: AuthToken[Ours], dateFrom: Option[DateTime] = None,
     dateTo: Option[DateTime] = None, limit: Int = 100)
     (implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar): Source[T, NotUsed] = {
     val query = Query(Map(

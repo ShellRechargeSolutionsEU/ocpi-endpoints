@@ -13,7 +13,6 @@ import msgs.{AuthToken, GlobalPartyId}
 import msgs.OcpiStatusCode.GenericSuccess
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions.VersionNumber._
-import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope

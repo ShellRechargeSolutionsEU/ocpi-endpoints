@@ -11,7 +11,8 @@ import akka.http.scaladsl.{Http, HttpExt}
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
-import com.thenewmotion.ocpi.msgs.{ErrorResp, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessWithDataResp}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
@@ -32,14 +33,14 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   "single request" should {
     "unmarshal success response" in new TestScope {
       client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestOKUrl), "auth")  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
         case \/-(r) => r.data.id mustEqual "monkey"
       }.await
     }
 
     "unmarshal error response" in new TestScope {
       client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestErrUrl), "auth")  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
+        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
         case -\/(err) =>
           err.statusCode mustEqual GenericClientFailure
           err.statusMessage must beSome("something went horribly wrong...")
@@ -118,7 +119,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit http: HttpExt) extends OcpiClient {
 
-  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: String)
+  override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
 }
