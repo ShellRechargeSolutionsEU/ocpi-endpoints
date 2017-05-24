@@ -51,6 +51,7 @@ object ExampleApp extends App {
   val service = new RegistrationService(repo,
     ourGlobalPartyId = GlobalPartyId("nl", "exp"),
     ourPartyName = "Example",
+    ourVersions = Set(VersionNumber.`2.1`),
     ourVersionsUrl = Uri("www.ocpi-example.com/ocpi/versions"))
 
   val registrationRoute = new RegistrationRoute(service)

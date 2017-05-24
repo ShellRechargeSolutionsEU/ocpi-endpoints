@@ -25,5 +25,14 @@ class VersionNumberSpec extends Specification {
     "throw an error given an invalid version string" >> {
       VersionNumber("a.b") must throwA[IllegalArgumentException]
     }
+
+    "be correctly comparable" >> {
+      VersionNumber("2.1") > VersionNumber("2.0")
+      VersionNumber("2.1") == VersionNumber("2.1")
+      VersionNumber("2.1") == VersionNumber("2.1.0")
+      VersionNumber("2.1.1") > VersionNumber("2.1")
+      VersionNumber("2.1.2") > VersionNumber("2.1.1")
+      VersionNumber("2.2.1") > VersionNumber("2.1.1")
+    }
   }
 }

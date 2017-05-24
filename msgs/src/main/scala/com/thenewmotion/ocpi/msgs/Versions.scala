@@ -5,22 +5,23 @@ import scala.util.{Success, Try}
 
 object Versions {
 
-  case class Version(
-    version: VersionNumber,
-    url:  Url
-    )
+  case class Version(version: VersionNumber, url: Url)
 
-  case class Endpoint(
-    identifier: EndpointIdentifier,
-    url: Url
-    )
+  case class Endpoint(identifier: EndpointIdentifier, url: Url)
 
-  case class VersionDetails(
-    version: VersionNumber,
-    endpoints: Iterable[Endpoint]
-  )
+  case class VersionDetails(version: VersionNumber, endpoints: Iterable[Endpoint])
 
-  case class VersionNumber(major: Int, minor: Int, patch: Option[Int] = None) {
+  case class VersionNumber(
+    major: Int,
+    minor: Int,
+    patch: Option[Int] = None
+  ) extends Ordered[VersionNumber] {
+
+    def compare(that: VersionNumber): Int = {
+      def toNumber(v: VersionNumber) = v.major * 100 + v.minor * 10 + v.patch.getOrElse(0)
+      toNumber(this) - toNumber(that)
+    }
+
     override def toString = patch.foldLeft(s"$major.$minor")(_ + "." + _)
   }
 
@@ -39,6 +40,7 @@ object Versions {
 
     val `2.0` = VersionNumber(2, 0)
     val `2.1` = VersionNumber(2, 1)
+    val `2.1.1` = VersionNumber(2, 1, 1)
   }
 
   case class EndpointIdentifier(value: String) {

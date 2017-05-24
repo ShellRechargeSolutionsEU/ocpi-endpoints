@@ -62,6 +62,18 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
       }
+      "return an error if the selected version is not supported by us" >> new RegistrationTestScope {
+        val result = registrationService.reactToNewCredsRequest(theirGlobalId, `2.0`, credsToConnectToThem)
+        result must be_-\/(SelectedVersionNotHostedByUs(`2.0`): RegistrationError).await
+      }
+      "return an error if the selected version is not supported by them" >> new RegistrationTestScope {
+        _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns
+          Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
+        repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
+
+        val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
+        result must be_-\/(SelectedVersionNotHostedByThem(`2.1`): RegistrationError).await
+      }
       "return error if there was an error getting version details" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
           -\/(VersionDetailsRetrievalFailed))
@@ -282,6 +294,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     // registrationServices
     val registrationService = new RegistrationService(
       repo,
+      ourVersions = Set(`2.1`),
       ourVersionsUrl = Uri(ourBaseUrlStr + "/" + "cpo" + "/" + Versions.value),
       ourGlobalPartyId = ourGlobalPartyId,
       ourPartyName = ourCpoName) {

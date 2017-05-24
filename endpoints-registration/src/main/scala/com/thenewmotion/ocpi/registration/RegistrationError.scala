@@ -11,7 +11,7 @@ object RegistrationError{
     "Failed versions retrieval.")
 
   case object VersionDetailsRetrievalFailed extends RegistrationError(
-    "Failed version details retrieval.")
+    s"Failed version details retrieval.")
 
   case object SendingCredentialsFailed extends RegistrationError(
     "Failed sending the credentials to connect to us.")
