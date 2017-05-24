@@ -178,9 +178,9 @@ class RegistrationService(
     }
 
     (for {
-      theirVers <- resultWithRecover(client.getTheirVersions(theirVersionsUrl, token), VersionsRetrievalFailed)
+      theirVers <- result(client.getTheirVersions(theirVersionsUrl, token))
       commonVer <- result(findCommonVersion(theirVers))
-      theirVerDetails <- resultWithRecover(client.getTheirVersionDetails(commonVer.url, token), VersionDetailsRetrievalFailed)
+      theirVerDetails <- result(client.getTheirVersionDetails(commonVer.url, token))
     } yield theirVerDetails).run
   }
 
@@ -197,17 +197,9 @@ class RegistrationService(
 }
 
 trait FutureEitherUtils {
-  private val logger = Logger(getClass)
-
   type Result[E, T] = EitherT[Future, E, T]
 
   def result[L, T](future: Future[L \/ T]): Result[L, T] = EitherT(future)
-
-  def resultWithRecover[L, T](future: Future[L \/ T], error: L)(implicit ec: ExecutionContext): Result[L, T] =
-    EitherT { future.recover {
-      case exception => logger.error(s"recovering future with $error from $exception", exception.getCause)
-        -\/(error)
-    } }
 
   def futureLeft[L, T](left: L): Future[L \/ T] =
     Future.successful(-\/(left))
