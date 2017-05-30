@@ -75,7 +75,7 @@ class RegistrationService(
     (for {
       _ <- errIfNotSupported(version)
       _ <- errIfRegistered(globalPartyId)
-      details <- getVersionDetails(version, creds.token, Uri(creds.url))
+      details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
       newTokenToConnectToUs = AuthToken.generateTheirs
       _ <- result(repo.persistInfoAfterConnectToUs(globalPartyId, version, newTokenToConnectToUs, creds, details.endpoints).map(_.right))
     } yield generateCreds(newTokenToConnectToUs)).run.map {
@@ -106,7 +106,7 @@ class RegistrationService(
       _ <- errIfNotSupported(version)
       _ <- errIfNotRegistered(globalPartyId)
       _ <- errIfGlobalPartyIdChangedAndTaken
-      details <- getVersionDetails(version, creds.token, Uri(creds.url))
+      details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
       theirNewToken = AuthToken.generateTheirs
       _ <- result(repo.persistInfoAfterConnectToUs(globalPartyId, version, theirNewToken, creds, details.endpoints).map(_.right))
     } yield generateCreds(theirNewToken)).run.map {
@@ -116,7 +116,7 @@ class RegistrationService(
     }
   }
 
-  private def getVersionDetails(
+  private def getTheirVersionDetails(
     version: VersionNumber,
     token: AuthToken[Ours],
     versionsUrl: Uri
