@@ -208,20 +208,16 @@ object Locations {
     regularHours: Iterable[RegularHours] = Nil,
     exceptionalOpenings: Iterable[ExceptionalPeriod] = Nil,
     exceptionalClosings: Iterable[ExceptionalPeriod] = Nil
-  ) {
-    require(regularHours.nonEmpty && !twentyfourseven
-      || regularHours.isEmpty && twentyfourseven,
-      "Opening hours need to be either 24/7 or have non-empty regular_hours")
-  }
+  )
 
   object Hours {
     private[v2_1] def deserialize(
-      twentyfourseven: Boolean,
+      twentyfourseven: Option[Boolean],
       regularHours: Option[Iterable[RegularHours]],
       exceptionalOpenings: Option[Iterable[ExceptionalPeriod]],
       exceptionalClosings: Option[Iterable[ExceptionalPeriod]]
     ) = new Hours(
-      twentyfourseven,
+      twentyfourseven.fold(false)(_ == true),
       regularHours getOrElse Nil,
       exceptionalOpenings getOrElse Nil,
       exceptionalClosings getOrElse Nil
