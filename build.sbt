@@ -7,7 +7,7 @@ val logging = Seq(
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.0.6" else "2.5.1"
+  val v = if (name.startsWith("http")) "10.0.9" else "2.5.3"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -19,7 +19,7 @@ val akka =
     akkaModule("http-spray-json")
   )
 
-val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.12")
+val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.14")
 
 val misc = Seq(
   "com.github.nscala-time" %% "nscala-time" % "2.16.0")
