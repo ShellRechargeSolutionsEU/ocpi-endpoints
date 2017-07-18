@@ -2,14 +2,15 @@ package com.thenewmotion.ocpi
 package msgs
 package v2_1
 
+import java.time.ZonedDateTime
+
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
-import org.joda.time.DateTime
 
 object Locations {
 
   case class Location(
     id: String,
-    lastUpdated: DateTime,
+    lastUpdated: ZonedDateTime,
     `type`:	LocationType,
     name:	Option[String],
     address: String,
@@ -35,7 +36,7 @@ object Locations {
   object Location {
     private[v2_1] def deserialize(
       id: String,
-      lastUpdated: DateTime,
+      lastUpdated: ZonedDateTime,
       `type`:	LocationType,
       name:	Option[String],
       address: String,
@@ -81,7 +82,7 @@ object Locations {
 
   case class LocationPatch(
     id: Option[String] = None,
-    lastUpdated: Option[DateTime] = None,
+    lastUpdated: Option[ZonedDateTime] = None,
     `type`: Option[LocationType] = None,
     name: Option[String] = None,
     address: Option[String] = None,
@@ -199,8 +200,8 @@ object Locations {
   )
 
   case class ExceptionalPeriod(
-    periodBegin: DateTime,
-    periodEnd: DateTime
+    periodBegin: ZonedDateTime,
+    periodEnd: ZonedDateTime
   )
 
   case class Hours(
@@ -257,7 +258,7 @@ object Locations {
 
   case class Connector(
     id: String,
-    lastUpdated: DateTime,
+    lastUpdated: ZonedDateTime,
     standard: ConnectorType,
     format: ConnectorFormat,
     powerType:	PowerType,
@@ -291,7 +292,7 @@ object Locations {
 
   case class Evse(
     uid: String,
-    lastUpdated: DateTime,
+    lastUpdated: ZonedDateTime,
     status: ConnectorStatus,
     connectors: Iterable[Connector],
     statusSchedule: Iterable[StatusSchedule] = Nil,
@@ -310,7 +311,7 @@ object Locations {
   object Evse {
     private[v2_1] def deserialize(
       uid: String,
-      lastUpdated: DateTime,
+      lastUpdated: ZonedDateTime,
       status: ConnectorStatus,
       connectors: Option[Iterable[Connector]],
       statusSchedule: Option[Iterable[StatusSchedule]],
@@ -406,8 +407,8 @@ object Locations {
   }
 
   case class StatusSchedule(
-    periodBegin: DateTime,
-    periodEnd: Option[DateTime],
+    periodBegin: ZonedDateTime,
+    periodEnd: Option[ZonedDateTime],
     status: ConnectorStatus
   )
 

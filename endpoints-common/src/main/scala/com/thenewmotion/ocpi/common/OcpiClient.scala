@@ -1,6 +1,8 @@
 package com.thenewmotion.ocpi
 package common
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
@@ -10,7 +12,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scalaz.{-\/, \/, \/-}
 import akka.stream.scaladsl.Sink
-import com.github.nscala_time.time.Imports._
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResponse}
 
@@ -54,9 +55,13 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
         }
       }
 
-  def traversePaginatedResource[T]
-    (uri: Uri, auth: AuthToken[Ours], dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None, limit: Int = MaxNumItems)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar): Future[ErrorResp \/ Iterable[T]] =
+  def traversePaginatedResource[T](
+    uri: Uri,
+    auth: AuthToken[Ours],
+    dateFrom: Option[ZonedDateTime] = None,
+    dateTo: Option[ZonedDateTime] = None,
+    limit: Int = MaxNumItems
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar): Future[ErrorResp \/ Iterable[T]] =
     PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
       \/-(_)
     }.recover {

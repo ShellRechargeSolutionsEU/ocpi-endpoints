@@ -4,10 +4,13 @@ import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
 import com.thenewmotion.ocpi.msgs.{OcpiStatusCode, SuccessWithDataResp}
-import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+
+import com.thenewmotion.ocpi.OcpiDateTimeParser._
 
 class LocationsSpecs extends SpecificationWithJUnit {
 
@@ -146,18 +149,17 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
   private trait LocationsTestScope extends Scope {
 
-    val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
-    val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
-    val date2 = formatter.parseDateTime("2020-12-31T23:59:59Z")
-    val dateOfUpdate = formatter.parseDateTime("2016-12-31T23:59:59Z")
+    def parseToUtc(s: String) =
+      ZonedDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME).withZoneSameInstant(ZoneOffset.UTC)
 
+    val date1 = parseToUtc("2010-01-01T00:00:00Z")
+    val date2 = parseToUtc("2020-12-31T23:59:59Z")
+    val dateOfUpdate = parseToUtc("2016-12-31T23:59:59Z")
 
     val displayText_standard = List(DisplayText("nl", "Standaard Tarief"),
       DisplayText("en", "Standard Tariff") )
     val displayText_emsp =  List(DisplayText("nl", "eMSP Tarief"),
       DisplayText("en", "eMSP Tariff") )
-
-
 
      val connector1 = Connector(
         "1",
@@ -211,10 +213,10 @@ class LocationsSpecs extends SpecificationWithJUnit {
       physicalReference = Some("2")
     )
 
-    val excp_open_begin = formatter.parseDateTime("2014-06-21T09:00:00+02:00")
-    val excp_open_end = formatter.parseDateTime("2014-06-21T12:00:00+02:00")
-    val excp_close_begin = formatter.parseDateTime("2014-06-24T00:00:00+02:00")
-    val excp_close_end = formatter.parseDateTime("2014-06-25T00:00:00+02:00")
+    val excp_open_begin = parseToUtc("2014-06-21T09:00:00+02:00")
+    val excp_open_end = parseToUtc("2014-06-21T12:00:00+02:00")
+    val excp_close_begin = parseToUtc("2014-06-24T00:00:00+02:00")
+    val excp_close_end = parseToUtc("2014-06-25T00:00:00+02:00")
 
     val hours1 = Hours(
       regularHours = List(
@@ -511,7 +513,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
          |{
          |  "status_code": 1000,
          |  "status_message": "OK",
-         |  "timestamp": "${date1.toString(formatter)}",
+         |  "timestamp": "${format(date1)}",
          |  "data": [$locationJson1,$locationJson2]
          |}
        """.stripMargin

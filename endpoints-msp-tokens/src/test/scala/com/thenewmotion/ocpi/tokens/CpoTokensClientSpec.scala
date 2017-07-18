@@ -1,6 +1,8 @@
-package com.thenewmotion.ocpi.tokens
+package com.thenewmotion.ocpi
+package tokens
 
 import java.net.UnknownHostException
+import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
@@ -21,8 +23,8 @@ import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
-import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
+import com.thenewmotion.ocpi.OcpiDateTimeParser._
 
 class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -74,7 +76,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
       issuer = "NewMotion",
       valid = true,
       whitelist = WhitelistType.Allowed,
-      lastUpdated = DateTime.now
+      lastUpdated = ZonedDateTime.now
     )
 
 
@@ -100,12 +102,11 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
            |    "issuer": "${testToken.issuer}",
            |    "valid": ${testToken.valid},
            |    "whitelist": "${testToken.whitelist}",
-           |    "last_updated" : "${testToken.lastUpdated}"
+           |    "last_updated" : "${format(testToken.lastUpdated)}"
            |  }
            |}
            |""".stripMargin.getBytes)
     )
-
 
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
 

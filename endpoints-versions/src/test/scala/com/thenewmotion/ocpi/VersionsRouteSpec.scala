@@ -1,5 +1,7 @@
 package com.thenewmotion.ocpi
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
@@ -11,13 +13,13 @@ import msgs.Versions.{EndpointIdentifier, VersionNumber}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import org.joda.time.DateTime
 import spray.json._
 import lenses.JsonLenses._
 import spray.json.DefaultJsonProtocol._
+
 import scala.concurrent.Future
 
-class eVersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
+class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
 
   "Versions Route" should {
     "authenticate api calls with valid token info" in new VersionsScope {
@@ -127,7 +129,7 @@ class eVersionsRouteSpec extends Specification with Specs2RouteTest with Mockito
     )
 
     val versionsRoute = new VersionsRoute(Future.successful(versions)) {
-      override val currentTime = DateTime.parse("2010-01-01T00:00:00Z")
+      override val currentTime = ZonedDateTime.parse("2010-01-01T00:00:00Z")
     }
 
     val testRoute =

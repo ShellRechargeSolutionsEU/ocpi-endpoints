@@ -1,5 +1,7 @@
 package com.thenewmotion.ocpi
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import VersionRejections._
@@ -8,7 +10,6 @@ import common.OcpiExceptionHandler
 import msgs.{GlobalPartyId, SuccessWithDataResp}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
-import org.joda.time.DateTime
 import scala.concurrent.Future
 
 object VersionsRoute {
@@ -21,7 +22,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
   import VersionsRoute._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  def currentTime = DateTime.now
+  def currentTime = ZonedDateTime.now
 
   val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 

@@ -21,9 +21,6 @@ val akka =
 
 val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.14")
 
-val misc = Seq(
-  "com.github.nscala-time" %% "nscala-time" % "2.16.0")
-
 val specs2 = {
   def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.8.9" % "test"
   Seq(
@@ -55,7 +52,7 @@ val `msgs` = project
     commonSettings,
     name := "ocpi-msgs",
     description := "OCPI messages",
-    libraryDependencies := misc ++ specs2)
+    libraryDependencies := specs2)
 
 val `msgs-spray-json` = project
   .enablePlugins(OssLibPlugin)

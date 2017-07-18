@@ -1,13 +1,14 @@
 package com.thenewmotion.ocpi.msgs
 package v2_1
 
+import java.time.ZonedDateTime
+
 import CommonTypes.{BusinessDetails, _}
 import Credentials.Creds
 import Locations._
 import Tokens._
 import Versions._
-import com.github.nscala_time.time.Imports._
-import org.joda.time.format.ISODateTimeFormat
+import com.thenewmotion.ocpi.OcpiDateTimeParser
 import spray.json._
 
 trait OcpiJsonProtocol extends DefaultJsonProtocol {
@@ -27,11 +28,10 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     super.extractFieldNames(classTag) map snakify
   }
 
-  implicit val dateTimeOptionalMillisFormat = new JsonFormat[DateTime] {
-    val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
-    def write (x: DateTime) = JsString (formatterNoMillis.print (x) )
+  implicit val ZonedDateTimeOptionalMillisFormat = new JsonFormat[ZonedDateTime] {
+    def write (x: ZonedDateTime) = JsString(OcpiDateTimeParser.format(x))
     def read (value: JsValue) = value match {
-      case JsString (x) => OcpiDatetimeParser.toOcpiDateTime(x) match {
+      case JsString (x) => OcpiDateTimeParser.parseOpt(x) match {
         case Some(parsed) => parsed
         case None => deserializationError ("Expected DateTime conforming to pattern " +
           "specified in OCPI 2.1 section 14.2, but got " + x)

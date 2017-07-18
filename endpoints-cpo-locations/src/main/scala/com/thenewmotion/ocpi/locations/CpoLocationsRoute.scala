@@ -1,6 +1,8 @@
 package com.thenewmotion.ocpi
 package locations
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -9,14 +11,14 @@ import common._
 import locations.LocationsError._
 import msgs.OcpiStatusCode.GenericClientFailure
 import msgs.OcpiStatusCode.GenericSuccess
-import org.joda.time.DateTime
+
 import scala.concurrent.ExecutionContext
 
 class CpoLocationsRoute(
   service: CpoLocationsService,
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000,
-  currentTime: => DateTime = DateTime.now
+  currentTime: => ZonedDateTime = ZonedDateTime.now
 ) extends JsonApi with PaginatedRoute with DisjunctionMarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
@@ -41,7 +43,7 @@ class CpoLocationsRoute(
   private [locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
     get {
       pathEndOrSingleSlash {
-        paged { (pager: Pager, dateFrom: Option[DateTime], dateTo: Option[DateTime]) =>
+        paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
           onSuccess(service.locations(pager, dateFrom, dateTo
           )) {
              _.fold(complete(_), pagLocations => {

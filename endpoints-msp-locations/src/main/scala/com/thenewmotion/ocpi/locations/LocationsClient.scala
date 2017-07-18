@@ -1,6 +1,8 @@
 package com.thenewmotion.ocpi
 package locations
 
+import java.time.ZonedDateTime
+
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
@@ -11,7 +13,6 @@ import akka.stream.scaladsl.Source
 
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
-import com.github.nscala_time.time.Imports._
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp}
 
@@ -19,11 +20,11 @@ class LocationsClient(implicit http: HttpExt) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-  def getLocations(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None)
+  def getLocations(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorResp \/ Iterable[Location]] =
     traversePaginatedResource[Location](uri, auth, dateFrom, dateTo)
 
-  def locationsSource(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[DateTime] = None, dateTo: Option[DateTime] = None)
+  def locationsSource(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Source[Location, NotUsed] =
     PaginatedSource[Location](http, uri, auth, dateFrom, dateTo)
 

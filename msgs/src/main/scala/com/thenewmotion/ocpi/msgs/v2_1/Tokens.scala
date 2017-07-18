@@ -1,8 +1,9 @@
 package com.thenewmotion.ocpi
 package msgs.v2_1
 
+import java.time.ZonedDateTime
+
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
-import org.joda.time.DateTime
 
 object Tokens {
   sealed abstract class TokenType(val name: String) extends Nameable
@@ -30,7 +31,7 @@ object Tokens {
     valid: Boolean,
     whitelist: WhitelistType,
     language: Option[String] = None,
-    lastUpdated: DateTime
+    lastUpdated: ZonedDateTime
   ) {
     require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
   }
@@ -44,7 +45,7 @@ object Tokens {
     valid: Option[Boolean] = None,
     whitelist: Option[WhitelistType] = None,
     language: Option[String] = None,
-    lastUpdated: Option[DateTime] = None
+    lastUpdated: Option[ZonedDateTime] = None
   ) {
     require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
   }

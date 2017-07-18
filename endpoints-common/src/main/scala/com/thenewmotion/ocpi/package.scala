@@ -3,8 +3,8 @@ package com.thenewmotion
 import akka.http.scaladsl.server.Route
 import ocpi.msgs.GlobalPartyId
 import ocpi.msgs.Versions.VersionNumber
-import org.joda.time.format.ISODateTimeFormat
 import org.slf4j.LoggerFactory
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scalaz.\/
@@ -21,6 +21,4 @@ package object ocpi {
   type URI = String
 
   type GuardedRoute = (Version, GlobalPartyId) => Route
-
-  val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
 }

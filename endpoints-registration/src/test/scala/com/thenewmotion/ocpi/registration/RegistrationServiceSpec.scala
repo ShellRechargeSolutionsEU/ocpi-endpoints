@@ -1,5 +1,7 @@
 package com.thenewmotion.ocpi.registration
 
+import java.time.ZonedDateTime
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.testkit.TestKit
@@ -12,11 +14,11 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
-import org.joda.time.DateTime
 import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import org.specs2.concurrent.ExecutionEnv
@@ -234,7 +236,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     implicit val http = Http()
 
-    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
+    val dateTime1 = ZonedDateTime.parse("2010-01-01T00:00:00Z")
 
     val ourVersionsUrlStr = Uri("http://ocpi.newmotion.com/cpo/versions")
     val ourBaseUrlStr = Uri("http://ocpi.newmotion.com")

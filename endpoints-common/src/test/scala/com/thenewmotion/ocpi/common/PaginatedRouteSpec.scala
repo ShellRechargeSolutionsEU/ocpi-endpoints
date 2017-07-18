@@ -1,8 +1,9 @@
 package com.thenewmotion.ocpi.common
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
@@ -14,7 +15,7 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
       val testRoute =
         get {
           pathEndOrSingleSlash {
-            paged { (pager: Pager, _: Option[DateTime], _: Option[DateTime]) =>
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
               complete(pager.limit.toString)
             }
           }
@@ -29,7 +30,7 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
       val testRoute =
         get {
           pathEndOrSingleSlash {
-            paged { (pager: Pager, _: Option[DateTime], _: Option[DateTime]) =>
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
               complete(pager.limit.toString)
             }
           }
@@ -44,7 +45,7 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
       val testRoute =
         get {
           pathEndOrSingleSlash {
-            paged { (pager: Pager, _: Option[DateTime], _: Option[DateTime]) =>
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
               respondWithPaginationHeaders(pager, PaginatedResult(List("1", "2", "3"), 3)) {
                 complete("OK")
               }
@@ -63,7 +64,7 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
       val testRoute =
         get {
           pathEndOrSingleSlash {
-            paged { (pager: Pager, _: Option[DateTime], _: Option[DateTime]) =>
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
               respondWithPaginationHeaders(pager, PaginatedResult(List("1", "2", "3"), 100)) {
                  complete("OK")
               }
@@ -87,7 +88,7 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
       val testRoute =
         get {
           pathEndOrSingleSlash {
-            paged { (pager: Pager, _: Option[DateTime], _: Option[DateTime]) =>
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
               respondWithPaginationHeaders(pager, PaginatedResult((1 to 5).map(_.toString), 100)) {
                 complete("OK")
               }

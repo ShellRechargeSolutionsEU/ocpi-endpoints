@@ -1,12 +1,13 @@
 package com.thenewmotion.ocpi.locations
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.JsonApi
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
-import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -64,7 +65,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val dateFrom = "2015-06-29T20:39:09Z"
       val dateTo = "2016-06-29T20:39:09Z"
       Get(s"/?date_from=$dateFrom&date_to=$dateTo") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(cpoLocService).locations(Pager(0, ServerPageLimit), Some(DateTime.parse(dateFrom)), Some(DateTime.parse(dateTo)))
+        there was one(cpoLocService).locations(Pager(0, ServerPageLimit), Some(ZonedDateTime.parse(dateFrom)), Some(ZonedDateTime.parse(dateTo)))
       }
     }
 
@@ -92,14 +93,14 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
   trait LocationsTestScope extends Scope with JsonApi {
 
-    val dateTime1 = DateTime.parse("2010-01-01T00:00:00Z")
+    val ZonedDateTime1 = ZonedDateTime.parse("2010-01-01T00:00:00Z")
 
     val cpoLocService = mock[CpoLocationsService]
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val ServerPageLimit = 50
-    val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, ServerPageLimit, currentTime = dateTime1)
+    val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, ServerPageLimit, currentTime = ZonedDateTime1)
 
     val evse1conn1String =
       s"""
