@@ -24,3 +24,5 @@ trait OcpiDirectives {
     case _ => None
   }
 }
+
+object OcpiDirectives extends OcpiDirectives

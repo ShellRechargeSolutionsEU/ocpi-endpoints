@@ -14,20 +14,19 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
-import org.specs2.matcher.{DisjunctionMatchers, FutureMatchers}
+import org.specs2.matcher.{EitherMatchers, FutureMatchers}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz._
 import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
 import com.thenewmotion.ocpi.msgs._
 import org.mockito.Matchers
 
 class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
-  with DisjunctionMatchers {
+  with EitherMatchers {
 
   "RegistrationService" should {
 
@@ -38,8 +37,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        result must beLike[\/[RegistrationError, Creds[Ours]]] {
-          case \/-(Creds(_, v, bd, gpi)) =>
+        result must beLike[Either[RegistrationError, Creds[Ours]]] {
+          case Right(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://ocpi.newmotion.com/cpo/versions"
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
             gpi mustEqual ourGlobalPartyId
@@ -48,42 +47,42 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
       "return error if there was an error getting versions" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(-\/(VersionsRetrievalFailed))
+          Future.successful(Left(VersionsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val reactResult = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        reactResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
+        reactResult must beLeft(VersionsRetrievalFailed: RegistrationError).await
       }
       "return error if no versions were returned" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(\/-(Nil))
+          Future.successful(Right(Nil))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val reactResult = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        reactResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
+        reactResult must beLeft(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
       }
       "return an error if the selected version is not supported by us" >> new RegistrationTestScope {
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, `2.0`, credsToConnectToThem)
-        result must be_-\/(SelectedVersionNotHostedByUs(`2.0`): RegistrationError).await
+        result must beLeft(SelectedVersionNotHostedByUs(`2.0`): RegistrationError).await
       }
       "return an error if the selected version is not supported by them" >> new RegistrationTestScope {
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns
-          Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
+          Future.successful(Right(List(Version(`2.0`, theirVersionDetailsUrl))))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
-        result must be_-\/(SelectedVersionNotHostedByThem(`2.1`): RegistrationError).await
+        result must beLeft(SelectedVersionNotHostedByThem(`2.1`): RegistrationError).await
       }
       "return error if there was an error getting version details" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-          -\/(VersionDetailsRetrievalFailed))
+          Left(VersionDetailsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val reactResult = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        reactResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
+        reactResult must beLeft(VersionDetailsRetrievalFailed: RegistrationError).await
       }
     }
     "when requesting the initiation of the registration" >> {
@@ -93,8 +92,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
-        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
-          case \/-(Creds(_, v, bd, gpi)) =>
+        result must beLike[Either[RegistrationError, Creds[Theirs]]] {
+          case Right(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
             gpi mustEqual theirGlobalId
@@ -105,51 +104,51 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns
-          Future.successful(\/-(List(Version(`2.0`, theirVersionDetailsUrl))))
+          Future.successful(Right(List(Version(`2.0`, theirVersionDetailsUrl))))
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
           theirVersionsUrl)
 
-        result must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
+        result must beLeft(CouldNotFindMutualVersion: RegistrationError).await
       }
       "return an error when it fails sending the credentials" >> new RegistrationTestScope {
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns
-          Future.successful(-\/(SendingCredentialsFailed))
+          Future.successful(Left(SendingCredentialsFailed))
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
           theirVersionsUrl)
 
-        result must be_-\/(SendingCredentialsFailed: RegistrationError).await
+        result must beLeft(SendingCredentialsFailed: RegistrationError).await
       }
 
       "return error if there was an error getting versions" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(-\/(VersionsRetrievalFailed))
+          Future.successful(Left(VersionsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
         val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
           tokenToConnectToUs, credsToConnectToThem.url)
-        initResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
+        initResult must beLeft(VersionsRetrievalFailed: RegistrationError).await
       }
       "return error if no versions were returned" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(\/-(Nil))
+          Future.successful(Right(Nil))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
         val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
           tokenToConnectToUs, credsToConnectToThem.url)
 
-        initResult must be_-\/(CouldNotFindMutualVersion: RegistrationError).await
+        initResult must beLeft(CouldNotFindMutualVersion: RegistrationError).await
       }
       "return error if there was an error getting version details" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-          -\/(VersionDetailsRetrievalFailed))
+          Left(VersionDetailsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         val initResult = registrationService.initiateRegistrationProcess(credsToConnectToThem.token,
           tokenToConnectToUs, credsToConnectToThem.url)
 
-        initResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
+        initResult must beLeft(VersionDetailsRetrievalFailed: RegistrationError).await
       }
     }
     "when requesting the update of the registration Information" >> {
@@ -159,8 +158,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
-        result must beLike[\/[RegistrationError, Creds[Theirs]]] {
-          case \/-(Creds(_, v, bd, gpi)) =>
+        result must beLike[Either[RegistrationError, Creds[Theirs]]] {
+          case Right(Creds(_, v, bd, gpi)) =>
             v mustEqual "http://the-awesomes/msp/versions"
             bd mustEqual BusinessDetails("The Awesomes", None, None)
             gpi mustEqual theirGlobalId
@@ -172,7 +171,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs,
           theirVersionsUrl)
-        result must be_-\/(WaitingForRegistrationRequest(theirGlobalId): RegistrationError).await
+        result must beLeft(WaitingForRegistrationRequest(theirGlobalId): RegistrationError).await
       }
 
     }
@@ -182,7 +181,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
         registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem) must
-          be_-\/(WaitingForRegistrationRequest(theirGlobalId): RegistrationError).await
+          beLeft(WaitingForRegistrationRequest(theirGlobalId): RegistrationError).await
       }
 
       "return an error if trying to set their global id to one that is already taken" >> new RegistrationTestScope {
@@ -195,35 +194,35 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         val newCreds = credsToConnectToThem.copy[Theirs](globalPartyId = newGlobalId)
 
         registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, newCreds) must
-          be_-\/(AlreadyExistingParty(newGlobalId): RegistrationError).await
+          beLeft(AlreadyExistingParty(newGlobalId): RegistrationError).await
       }
 
       "return error if there was an error getting versions" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(-\/(VersionsRetrievalFailed))
+          Future.successful(Left(VersionsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(true)
 
         val updateResult = registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        updateResult must be_-\/(VersionsRetrievalFailed: RegistrationError).await
+        updateResult must beLeft(VersionsRetrievalFailed: RegistrationError).await
       }
       "return error if no versions were returned" >> new RegistrationTestScope {
         _client.getTheirVersions(credsToConnectToThem.url, credsToConnectToThem.token) returns
-          Future.successful(\/-(Nil))
+          Future.successful(Right(Nil))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(true)
 
         val updateResult = registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        updateResult must be_-\/(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
+        updateResult must beLeft(SelectedVersionNotHostedByThem(selectedVersion): RegistrationError).await
       }
       "return error if there was an error getting version details" >> new RegistrationTestScope {
         _client.getTheirVersionDetails(theirVersionDetailsUrl, credsToConnectToThem.token) returns Future.successful(
-          -\/(VersionDetailsRetrievalFailed))
+          Left(VersionDetailsRetrievalFailed))
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(true)
 
         val updateResult = registrationService.reactToUpdateCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
-        updateResult must be_-\/(VersionDetailsRetrievalFailed: RegistrationError).await
+        updateResult must beLeft(VersionDetailsRetrievalFailed: RegistrationError).await
       }
     }
   }
@@ -268,28 +267,28 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     // React to credentials request
     _client.getTheirVersions(credsToConnectToThem.url, tokenToConnectToThem) returns Future.successful(
-      \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
+      Right(List(Version(`2.1`, theirVersionDetailsUrl))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToThem) returns Future.successful(
-      \/-(VersionDetails(`2.1`,List(
+      Right(VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
     // Initiate credentials request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns Future.successful(
-      \/-(List(Version(`2.1`, theirVersionDetailsUrl))))
+      Right(List(Version(`2.1`, theirVersionDetailsUrl))))
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToThem) returns Future.successful(
-      \/-(VersionDetails(`2.1`,List(
+      Right(VersionDetails(`2.1`,List(
         Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
     _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
-      \/-(credsToConnectToThem))
+      Right(credsToConnectToThem))
     _client.updateCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
-      \/-(credsToConnectToThem))
+      Right(credsToConnectToThem))
 
     val repo = mock[RegistrationRepo]
 

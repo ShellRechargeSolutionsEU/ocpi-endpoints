@@ -19,7 +19,6 @@ import org.specs2.specification.Scope
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import scalaz.{\/, \/-}
 
 class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -27,16 +26,18 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "request authorization for a token and get it" in new TestScope {
 
-      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId, locationReferences = None) must beLike[\/[ErrorResp, AuthorizationInfo]] {
-        case \/-(r) =>
+      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId,
+        locationReferences = None) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        case Right(r) =>
           r.allowed === Allowed.Allowed
       }.await
     }
 
     "request authorization for a token on a specific location" in new TestScope {
       val testLocRefs = LocationReferences(locationId = "ABCDEF", evseUids = List("evse-123456", "evse-1234567"))
-      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId, locationReferences = Some(testLocRefs)) must beLike[\/[ErrorResp, AuthorizationInfo]] {
-        case \/-(r) =>
+      client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId,
+        locationReferences = Some(testLocRefs)) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        case Right(r) =>
           r.allowed === Allowed.Allowed
       }.await
     }

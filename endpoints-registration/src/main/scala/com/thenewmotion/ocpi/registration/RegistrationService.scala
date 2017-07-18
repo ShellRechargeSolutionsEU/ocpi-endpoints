@@ -4,9 +4,8 @@ package registration
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
+
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.Scalaz._
-import scalaz._
 import msgs.Versions.EndpointIdentifier.Credentials
 import msgs.Versions.{Version, VersionDetails, VersionNumber}
 import msgs.v2_1.CommonTypes._
@@ -14,6 +13,9 @@ import msgs.v2_1.Credentials.Creds
 import msgs.Ownership.{Ours, Theirs}
 import msgs._
 import RegistrationError._
+import cats.data.EitherT
+import cats.syntax.either._
+import cats.instances.future._
 
 class RegistrationService(
   repo: RegistrationRepo,
@@ -36,8 +38,8 @@ class RegistrationService(
       repo.isPartyRegistered(globalPartyId).map {
         case true =>
           logger.debug("{} is already registered", globalPartyId)
-          -\/(AlreadyExistingParty(globalPartyId))
-        case false => \/-(())
+          AlreadyExistingParty(globalPartyId).asLeft
+        case false => ().asRight
       }
     }
 
@@ -47,17 +49,17 @@ class RegistrationService(
   )(implicit ec: ExecutionContext): Result[RegistrationError, Unit] =
     result {
       repo.isPartyRegistered(globalPartyId).map {
-        case true => \/-(())
+        case true => ().asRight
         case false =>
           logger.debug("{} is not registered yet", globalPartyId)
-          -\/(error(globalPartyId))
+          error(globalPartyId).asLeft
       }
     }
 
   private def errIfNotSupported(version: VersionNumber): Result[RegistrationError, Unit] =
     result {
-      if (ourVersions.contains(version)) \/-(())
-      else -\/(SelectedVersionNotHostedByUs(version))
+      if (ourVersions.contains(version)) ().asRight
+      else SelectedVersionNotHostedByUs(version).asLeft
     }
 
   /**
@@ -69,7 +71,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Registration initiated by {}, for {} creds: {}", globalPartyId, version, creds)
 
     (for {
@@ -77,8 +79,11 @@ class RegistrationService(
       _ <- errIfRegistered(globalPartyId)
       details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
       newTokenToConnectToUs = AuthToken.generateTheirs
-      _ <- result(repo.persistInfoAfterConnectToUs(globalPartyId, version, newTokenToConnectToUs, creds, details.endpoints).map(_.right))
-    } yield generateCreds(newTokenToConnectToUs)).run.map {
+      _ <- result(
+        repo.persistInfoAfterConnectToUs(globalPartyId, version, newTokenToConnectToUs,
+          creds, details.endpoints).map(_.asRight[RegistrationError])
+      )
+    } yield generateCreds(newTokenToConnectToUs)).value.map {
       _.leftMap {
         e => logger.error("error during reactToPostCredsRequest: {}", e); e
       }
@@ -94,13 +99,13 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Ours]] = {
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Update credentials request sent by {}, for {}, creds {}", creds.globalPartyId, version, creds)
 
     def errIfGlobalPartyIdChangedAndTaken: Result[RegistrationError, Unit] =
       // If they try and change the global party id, make sure it's not already taken
       if (creds.globalPartyId != globalPartyId) errIfRegistered(creds.globalPartyId)
-      else result(\/-(()))
+      else result(().asRight)
 
     (for {
       _ <- errIfNotSupported(version)
@@ -108,8 +113,12 @@ class RegistrationService(
       _ <- errIfGlobalPartyIdChangedAndTaken
       details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
       theirNewToken = AuthToken.generateTheirs
-      _ <- result(repo.persistInfoAfterConnectToUs(globalPartyId, version, theirNewToken, creds, details.endpoints).map(_.right))
-    } yield generateCreds(theirNewToken)).run.map {
+      _ <- result(
+        repo.persistInfoAfterConnectToUs(
+          globalPartyId, version,
+           theirNewToken, creds, details.endpoints
+        ).map(_.asRight[RegistrationError]))
+    } yield generateCreds(theirNewToken)).value.map {
       _.leftMap {
         e => logger.error("error during reactToUpdateCredsRequest: {}", e); e
       }
@@ -121,11 +130,11 @@ class RegistrationService(
     token: AuthToken[Ours],
     versionsUrl: Uri
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Result[RegistrationError, VersionDetails] = {
-    def selectedVersionInfo(versionResp: List[Version]): RegistrationError \/ Version = {
+    def selectedVersionInfo(versionResp: List[Version]): Either[RegistrationError, Version] = {
       logger.debug(s"looking for $version, versionResp: $versionResp")
       versionResp
         .find(_.version == version)
-        .toRightDisjunction(SelectedVersionNotHostedByThem(version))
+        .toRight(SelectedVersionNotHostedByThem(version))
     }
 
     for {
@@ -137,13 +146,13 @@ class RegistrationService(
 
   def reactToDeleteCredsRequest(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[RegistrationError \/ Unit] = {
+  )(implicit ec: ExecutionContext): Future[Either[RegistrationError, Unit]] = {
     logger.info("delete credentials request sent by {}", globalPartyId)
 
     (for {
       _ <- errIfNotRegistered(globalPartyId, CouldNotUnregisterParty)
-      _ <- result(repo.deletePartyInformation(globalPartyId).map(_.right))
-    } yield ()).run.map {
+      _ <- result(repo.deletePartyInformation(globalPartyId).map(_.asRight[RegistrationError]))
+    } yield ()).value.map {
       _.leftMap {
         e => logger.error("error during reactToDeleteCredsRequest: {}", e); e
       }
@@ -173,28 +182,34 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri,
-    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => Future[RegistrationError \/ Creds[Theirs]],
+    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => Future[Either[RegistrationError, Creds[Theirs]]],
     registrationCheck: GlobalPartyId => Result[RegistrationError, Unit]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]]= {
+  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Theirs]]] = {
 
     def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
-      verDet.endpoints.find(_.identifier == Credentials) \/> {
+      verDet.endpoints.find(_.identifier == Credentials) toRight {
         logger.debug("Credentials endpoint not found in retrieved endpoints for version {}", verDet.version)
         SendingCredentialsFailed: RegistrationError
       }
     )
 
-      (for {
-        details <- getLatestCommonVersionDetails(ourToken, theirVersionsUrl)
-        credEp <- result(getCredsEndpoint(details))
-        theirCreds <- result {
-          logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
-          credentialExchange(credEp.url, ourToken, generateCreds(theirNewToken))
-        }
-        _ <- registrationCheck(theirCreds.globalPartyId)
-        _ <- result(repo.persistInfoAfterConnectToThem(details.version, theirNewToken, theirCreds, details.endpoints).map(_.right)
+    (for {
+      details <- getLatestCommonVersionDetails(ourToken, theirVersionsUrl)
+      credEp <- result(getCredsEndpoint(details))
+      theirCreds <- result {
+        logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
+        credentialExchange(credEp.url, ourToken, generateCreds(theirNewToken))
+      }
+      _ <- registrationCheck(theirCreds.globalPartyId)
+      _ <- result(
+        repo.persistInfoAfterConnectToThem(
+          details.version,
+          theirNewToken,
+          theirCreds,
+          details.endpoints
+        ).map(_.asRight[RegistrationError])
       )
-    } yield theirCreds).run.map {
+    } yield theirCreds).value.map {
         _.leftMap {
           e => logger.error("error during handshake: {}", e); e
         }
@@ -205,7 +220,7 @@ class RegistrationService(
     token: AuthToken[Ours],
     theirVersionsUrl: Uri
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Result[RegistrationError, VersionDetails] = {
-    def findLatestCommon(response: Iterable[Version]): RegistrationError \/ Version = {
+    def findLatestCommon(response: Iterable[Version]): Either[RegistrationError, Version] = {
       logger.debug(s"looking for the latest common version, versionResp: $response")
 
       val theirNumbers = response.map(_.version)
@@ -214,8 +229,8 @@ class RegistrationService(
         response
           .find(_.version == common.max)
           .getOrElse(throw new RuntimeException("this can't be"))
-          .right
-      } else -\/(CouldNotFindMutualVersion)
+          .asRight
+      } else CouldNotFindMutualVersion.asLeft
     }
 
     for {
@@ -225,10 +240,10 @@ class RegistrationService(
     } yield theirVerDetails
   }
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[RegistrationError \/ Creds[Ours]] =
+  def credsToConnectToUs(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[Either[RegistrationError, Creds[Ours]]] =
     (for {
-      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ \/> UnknownParty(globalPartyId)))
-    } yield generateCreds(theirToken)).run
+      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight UnknownParty(globalPartyId)))
+    } yield generateCreds(theirToken)).value
 
   private def generateCreds(token: AuthToken[Theirs]): Creds[Ours] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
@@ -240,6 +255,6 @@ class RegistrationService(
 trait FutureEitherUtils {
   type Result[E, T] = EitherT[Future, E, T]
 
-  protected def result[L, T](future: Future[L \/ T]): Result[L, T] = EitherT(future)
-  protected def result[L, T](value: L \/ T): Result[L, T] = EitherT(Future.successful(value))
+  protected def result[L, T](future: Future[Either[L, T]]): Result[L, T] = EitherT(future)
+  protected def result[L, T](value: Either[L, T]): Result[L, T] = EitherT(Future.successful(value))
 }

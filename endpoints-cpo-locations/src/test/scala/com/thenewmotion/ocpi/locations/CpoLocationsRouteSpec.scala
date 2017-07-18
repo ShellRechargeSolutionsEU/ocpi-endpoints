@@ -14,7 +14,6 @@ import org.specs2.specification.Scope
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location}
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import scala.concurrent.Future
-import scalaz._
 import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -35,7 +34,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val ThirdPageOffset = SecondPageOffset + ResultingPageLimit
 
       cpoLocService.locations(Pager(InitialClientOffset, ResultingPageLimit), None, None) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
+        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
       Get(s"/?offset=$InitialClientOffset&limit=$ClientPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual
@@ -47,7 +46,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
 
       cpoLocService.locations(Pager(SecondPageOffset, ResultingPageLimit), None, None) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
+        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
       Get(s"/?offset=$SecondPageOffset&limit=$ResultingPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual Link(Uri(s"http://example.com/?offset=$ThirdPageOffset&limit=$ResultingPageLimit"), LinkParams.next)
@@ -60,7 +59,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     "accept date_from and date_to" in new LocationsTestScope {
 
       cpoLocService.locations(any, any, any) returns
-        Future(\/-(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
+        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
 
       val dateFrom = "2015-06-29T20:39:09Z"
       val dateTo = "2016-06-29T20:39:09Z"
@@ -211,12 +210,12 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val loc2String = loc1String.replace("LOC1","LOC2")
 
     cpoLocService.location("LOC1") returns
-      Future(\/-(loc1String.parseJson.convertTo[Location]))
+      Future(Right(loc1String.parseJson.convertTo[Location]))
 
     cpoLocService.evse("LOC1", "3256") returns
-      Future(\/-(evse1String.parseJson.convertTo[Evse]))
+      Future(Right(evse1String.parseJson.convertTo[Evse]))
 
     cpoLocService.connector("LOC1", "3256", "1") returns
-      Future(\/-(evse1conn1String.parseJson.convertTo[Connector]))
+      Future(Right(evse1conn1String.parseJson.convertTo[Connector]))
   }
 }

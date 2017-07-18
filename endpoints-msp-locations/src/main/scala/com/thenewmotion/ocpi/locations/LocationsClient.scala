@@ -12,16 +12,15 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz._
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
-import msgs.{AuthToken, ErrorResp}
+import msgs.AuthToken
 
 class LocationsClient(implicit http: HttpExt) extends OcpiClient {
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
   def getLocations(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorResp \/ Iterable[Location]] =
+    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Iterable[Location]]] =
     traversePaginatedResource[Location](uri, auth, dateFrom, dateTo)
 
   def locationsSource(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)

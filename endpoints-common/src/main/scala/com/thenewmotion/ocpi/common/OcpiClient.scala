@@ -10,11 +10,10 @@ import akka.stream.ActorMaterializer
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
-import scalaz.{-\/, \/, \/-}
 import akka.stream.scaladsl.Sink
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResponse}
-
+import cats.syntax.either._
 import scala.util.control.NonFatal
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
@@ -42,15 +41,19 @@ case class FailedRequestException(request: HttpRequest, response: HttpResponse, 
   extends Exception("Failed to get response to OCPI request", cause)
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
-  extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
+  extends AuthorizedRequests with EitherMarshalling with OcpiResponseUnmarshalling {
 
   type ErrUnMar = FromEntityUnmarshaller[ErrorResp]
   type SucUnMar[T] = FromEntityUnmarshaller[PagedResp[T]]
 
-  def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](req: HttpRequest, auth: AuthToken[Ours])
-    (implicit ec: ExecutionContext, mat: ActorMaterializer, errorU: ErrUnMar): Future[ErrorResp \/ T] =
+  def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](
+    req: HttpRequest,
+    auth: AuthToken[Ours]
+  )(
+    implicit ec: ExecutionContext, mat: ActorMaterializer, errorU: ErrUnMar
+  ): Future[ErrorRespOr[T]] =
       requestWithAuth(http, req, auth).flatMap { response =>
-        Unmarshal(response).to[ErrorResp \/ T].recover{
+        Unmarshal(response).to[ErrorRespOr[T]].recover{
           case NonFatal(cause) => throw FailedRequestException(req, response, cause)
         }
       }
@@ -61,10 +64,12 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     dateFrom: Option[ZonedDateTime] = None,
     dateTo: Option[ZonedDateTime] = None,
     limit: Int = MaxNumItems
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar): Future[ErrorResp \/ Iterable[T]] =
+  )(
+    implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar
+  ): Future[ErrorRespOr[Iterable[T]]] =
     PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
-      \/-(_)
+      _.asRight
     }.recover {
-      case OcpiClientException(errorResp) => -\/(errorResp)
+      case OcpiClientException(errorResp) => errorResp.asLeft
     }
 }

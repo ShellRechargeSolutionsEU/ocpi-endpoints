@@ -14,19 +14,26 @@ import akka.stream.scaladsl.Source
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.OcpiDateTimeParser._
-
+import cats.syntax.either._
+import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz._
-import Scalaz._
 
-object PaginatedSource extends AuthorizedRequests with DisjunctionMarshalling with OcpiResponseUnmarshalling {
-  private def singleRequestWithNextLink[T](http: HttpExt, req: HttpRequest, auth: AuthToken[Ours])
-    (implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T],
-     errorU: ErrUnMar): Future[\/[ErrorResp, (PagedResp[T], Option[Uri])]] =
+object PaginatedSource extends AuthorizedRequests with EitherMarshalling with OcpiResponseUnmarshalling {
+
+  private def singleRequestWithNextLink[T](
+    http: HttpExt,
+    req: HttpRequest,
+    auth: AuthToken[Ours]
+  )(
+    implicit ec: ExecutionContext,
+    mat: ActorMaterializer,
+    successU: SucUnMar[T],
+    errorU: ErrUnMar
+  ): Future[Either[ErrorResp, (PagedResp[T], Option[Uri])]] =
     (for {
-      response <- result(requestWithAuth(http, req, auth).map(\/-(_)))
-      success <- result(Unmarshal(response).to[ErrorResp \/ (PagedResp[T], Option[Uri])])
-    } yield success).run
+      response <- result(requestWithAuth(http, req, auth).map(_.asRight))
+      success <- result(Unmarshal(response).to[Either[ErrorResp, (PagedResp[T], Option[Uri])]])
+    } yield success).value
 
   def apply[T](
     http: HttpExt,
@@ -47,8 +54,8 @@ object PaginatedSource extends AuthorizedRequests with DisjunctionMarshalling wi
     Source.unfoldAsync[Option[Uri], Iterable[T]](Some(uri withQuery query)) {
       case Some(x) =>
         singleRequestWithNextLink[T](http, Get(x), auth).map {
-          case -\/(err) => throw OcpiClientException(err)
-          case \/-((success, u)) => Some((u, success.data))
+          case Left(err) => throw OcpiClientException(err)
+          case Right((success, u)) => Some((u, success.data))
         }
       case None => Future.successful(None)
     }.mapConcat(_.toList)

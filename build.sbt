@@ -19,7 +19,7 @@ val akka =
     akkaModule("http-spray-json")
   )
 
-val scalaz = Seq("org.scalaz"        %% "scalaz-core"         %   "7.2.14")
+val cats = Seq("org.typelevel" %% "cats" % "0.9.0")
 
 val specs2 = {
   def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.8.9" % "test"
@@ -71,7 +71,7 @@ val `endpoints-common` = project
     commonSettings,
     name := "ocpi-endpoints-common",
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ akka ++ scalaz ++ specs2 ++ akkaHttpTestKit ++ akkaStreamTestKit
+    libraryDependencies := logging ++ akka ++ cats ++ specs2 ++ akkaHttpTestKit ++ akkaStreamTestKit
   )
 
 val `endpoints-msp-locations` = project

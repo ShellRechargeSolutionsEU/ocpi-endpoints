@@ -16,7 +16,6 @@ import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{\/, \/-}
 import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
@@ -32,16 +31,16 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
-      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[\/[ErrorResp, Token]] {
-        case \/-(r) =>
+      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[Either[ErrorResp, Token]] {
+        case Right(r) =>
           r.uid === "123"
       }.await
     }
 
     "Push new/updated Token object to the CPO" in new TestScope {
 
-      client.uploadToken(tokenUri, AuthToken[Ours]("auth"), testToken) must beLike[\/[ErrorResp, Unit]] {
-        case \/-(_) => ok
+      client.uploadToken(tokenUri, AuthToken[Ours]("auth"), testToken) must beLike[Either[ErrorResp, Unit]] {
+        case Right(_) => ok
       }.await
     }
 
@@ -51,8 +50,8 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
         valid = Some(false)
       )
 
-      client.updateToken(tokenUri, AuthToken[Ours]("auth"), patch) must beLike[\/[ErrorResp, Unit]] {
-        case \/-(_) => ok
+      client.updateToken(tokenUri, AuthToken[Ours]("auth"), patch) must beLike[Either[ErrorResp, Unit]] {
+        case Right(_) => ok
       }.await
     }
   }
