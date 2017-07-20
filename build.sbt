@@ -22,7 +22,7 @@ val akka =
 val cats = Seq("org.typelevel" %% "cats" % "0.9.0")
 
 val specs2 = {
-  def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.8.9" % "test"
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.9.4" % "test"
   Seq(
     module("core"), module("junit"), module("mock")
   )

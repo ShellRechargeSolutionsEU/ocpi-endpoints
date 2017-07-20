@@ -53,7 +53,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     }
 
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
-      registrationService.credsToConnectToUs(any)(any) returns Future.successful(credsToConnectToUs.asRight)
+      registrationService.credsToConnectToUs(any())(any()) returns Future.successful(credsToConnectToUs.asRight)
 
       Get("/credentials") ~> credentialsRoute.route(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
@@ -71,8 +71,8 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     }
 
     "accept the update of the credentials they sent us to connect to them" in new CredentialsTestScope {
-      registrationService.credsToConnectToUs(any)(any) returns Future.successful(credsToConnectToUs.asRight)
-      registrationService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
+      registrationService.credsToConnectToUs(any())(any()) returns Future.successful(credsToConnectToUs.asRight)
+      registrationService.reactToUpdateCredsRequest(any(), any(), any())(any(), any()) returns
         Future.successful(newCredsToConnectToUs.asRight)
 
       val theirLog = credsToConnectToThem.businessDetails.logo.get
@@ -104,7 +104,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
       }
     }
     "reject indicating the reason if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
-      registrationService.reactToUpdateCredsRequest(any, any, any)(any, any) returns
+      registrationService.reactToUpdateCredsRequest(any(), any(), any())(any(), any()) returns
         Future.successful(WaitingForRegistrationRequest(theirGlobalId).asLeft)
 
 
@@ -170,11 +170,11 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     val registrationService = mock[RegistrationService]
 
     //default mocks
-    registrationService.reactToNewCredsRequest(any, any, any)(any, any) returns
+    registrationService.reactToNewCredsRequest(any(), any(), any())(any(), any()) returns
       Future.successful(credsToConnectToUs.asRight)
     registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
       credsToConnectToThem.url) returns Future.successful(credsToConnectToThem.asRight)
-    registrationService.credsToConnectToUs(any)(any) returns Future.successful(UnknownParty(theirGlobalId).asLeft)
+    registrationService.credsToConnectToUs(any())(any()) returns Future.successful(UnknownParty(theirGlobalId).asLeft)
 
     val credentialsRoute = new RegistrationRoute(registrationService)
   }

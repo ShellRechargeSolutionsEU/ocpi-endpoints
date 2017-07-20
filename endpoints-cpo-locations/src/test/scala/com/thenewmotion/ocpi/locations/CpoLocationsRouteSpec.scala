@@ -50,15 +50,15 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
       Get(s"/?offset=$SecondPageOffset&limit=$ResultingPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual Link(Uri(s"http://example.com/?offset=$ThirdPageOffset&limit=$ResultingPageLimit"), LinkParams.next)
-        headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "50"))
-        headers.find(_.name == "X-Total-Count") mustEqual Some(RawHeader("X-Total-Count", "200"))
+        headers.find(_.name == "X-Limit") must beSome(RawHeader("X-Limit", "50"))
+        headers.find(_.name == "X-Total-Count") must beSome(RawHeader("X-Total-Count", "200"))
         there was one(cpoLocService).locations(Pager(SecondPageOffset, ResultingPageLimit), None, None)
       }
     }
 
     "accept date_from and date_to" in new LocationsTestScope {
 
-      cpoLocService.locations(any, any, any) returns
+      cpoLocService.locations(any(), any(), any()) returns
         Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
 
       val dateFrom = "2015-06-29T20:39:09Z"

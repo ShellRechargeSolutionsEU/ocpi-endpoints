@@ -25,7 +25,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string = loc2String)
 
       Put("/NL/TNM/LOC2", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any)
+        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any())
       }
     }
 
@@ -40,7 +40,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any)
+        there was one(mspLocService).updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any())
       }
     }
 
@@ -77,7 +77,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any)
+        there was one(mspLocService).updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any())
       }
     }
 
@@ -92,7 +92,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000/1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any)
+        there was one(mspLocService).updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any())
       }
     }
 
@@ -135,13 +135,13 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   trait LocationsTestScope extends Scope {
     val mspLocService = mock[MspLocationsService]
 
-    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any) returns Future(Right(true))
-    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any) returns Future(Right(()))
+    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any()) returns Future(Right(true))
+    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any()) returns Future(Right(()))
     mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===("LOC1")) returns Future(Left(LocationNotFound()))
     mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(Left(LocationNotFound()))
     mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(Left(LocationNotFound()))
-    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(Right(()))
-    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any) returns Future(Right(()))
+    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any()) returns Future(Right(()))
+    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any()) returns Future(Right(()))
 
     val apiUser = GlobalPartyId("NL", "TNM")
 

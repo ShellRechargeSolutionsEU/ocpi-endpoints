@@ -51,7 +51,7 @@ class RegistrationClientSpec(environment: Env)
 
   trait TestScope extends Scope {
     implicit val httpExt = mock[HttpExt]
-    httpExt.singleRequest(any, any, any, any)(any) returns Future.failed(new RuntimeException)
+    httpExt.singleRequest(any(), any(), any(), any())(any()) returns Future.failed(new RuntimeException)
     val client = new RegistrationClient()
   }
 }

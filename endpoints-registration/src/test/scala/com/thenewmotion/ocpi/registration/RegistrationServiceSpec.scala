@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
 import com.thenewmotion.ocpi.msgs._
-import org.mockito.Matchers
+import org.mockito.ArgumentMatchers
 
 class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification with Mockito with FutureMatchers
   with EitherMatchers {
@@ -32,8 +32,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     "when requesting react to registration" >> {
       "return credentials with new token if the initiating party's endpoints returned correct data" >> new RegistrationTestScope {
-        repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistInfoAfterConnectToUs(any, any, any, any, any)(any) returns Future.successful(())
+        repo.isPartyRegistered(ArgumentMatchers.eq(theirGlobalId))(any()) returns Future.successful(false)
+        repo.persistInfoAfterConnectToUs(any(), any(), any(), any(), any())(any()) returns Future.successful(())
 
         val result = registrationService.reactToNewCredsRequest(theirGlobalId, selectedVersion, credsToConnectToThem)
 
@@ -87,8 +87,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     }
     "when requesting the initiation of the registration" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
-        repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(false)
-        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
+        repo.isPartyRegistered(ArgumentMatchers.eq(theirGlobalId))(any()) returns Future.successful(false)
+        repo.persistInfoAfterConnectToThem(any(), any(), any(), any())(any()) returns Future.successful(())
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
@@ -114,7 +114,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
       "return an error when it fails sending the credentials" >> new RegistrationTestScope {
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
-        _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns
+        _client.sendCredentials(any(), any(), any())(any(), any()) returns
           Future.successful(Left(SendingCredentialsFailed))
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
@@ -153,8 +153,8 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     }
     "when requesting the update of the registration Information" >> {
       "return credentials with new token party provided, if the connected party endpoints returned correct data" >> new RegistrationTestScope {
-        repo.isPartyRegistered(Matchers.eq(theirGlobalId))(any) returns Future.successful(true)
-        repo.persistInfoAfterConnectToThem(any, any, any, any)(any) returns Future.successful(())
+        repo.isPartyRegistered(ArgumentMatchers.eq(theirGlobalId))(any()) returns Future.successful(true)
+        repo.persistInfoAfterConnectToThem(any(), any(), any(), any())(any()) returns Future.successful(())
 
         val result = registrationService.updateRegistrationInfo(tokenToConnectToThem, tokenToConnectToUs, theirVersionsUrl)
 
