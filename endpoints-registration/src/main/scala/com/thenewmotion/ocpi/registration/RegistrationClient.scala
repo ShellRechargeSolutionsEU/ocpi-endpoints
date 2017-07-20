@@ -63,7 +63,9 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = SendingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](Post(theirCredUrl, credToConnectToUs), tokenToConnectToThem) map {
+    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+      Post(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
+    ) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
@@ -81,7 +83,9 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = UpdatingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](Put(theirCredUrl, credToConnectToUs), tokenToConnectToThem) map {
+    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+      Put(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
+    ) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)

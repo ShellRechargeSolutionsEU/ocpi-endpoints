@@ -3,7 +3,6 @@ package example
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
@@ -52,7 +51,7 @@ object ExampleApp extends App {
     ourGlobalPartyId = GlobalPartyId("nl", "exp"),
     ourPartyName = "Example",
     ourVersions = Set(VersionNumber.`2.1`),
-    ourVersionsUrl = Uri("www.ocpi-example.com/ocpi/versions"))
+    ourVersionsUrl = Url("www.ocpi-example.com/ocpi/versions"))
 
   val registrationRoute = new RegistrationRoute(service)
 
@@ -60,7 +59,7 @@ object ExampleApp extends App {
     Future(Map(VersionNumber.`2.1` -> OcpiVersionConfig(
       Map(
         Credentials -> Right(registrationRoute.route),
-        Locations -> Left("http://locations.ocpi-example.com")
+        Locations -> Left(Url("http://locations.ocpi-example.com"))
       )
     )))
   )

@@ -4,11 +4,12 @@ package tokens
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import msgs.{ErrorResp, GlobalPartyId}
+import msgs.{ErrorResp, GlobalPartyId, Language}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
+
 import scala.concurrent.Future
 
 class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -39,7 +40,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         issuer = "TheNewMotion",
         valid = true,
         WhitelistType.Allowed,
-        language = Some("nl"),
+        language = Some(Language("nl")),
         lastUpdated = ZonedDateTime.now
       )
 

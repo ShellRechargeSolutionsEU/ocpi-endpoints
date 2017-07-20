@@ -32,3 +32,32 @@ object AuthToken {
 
   def generateTheirs: AuthToken[Theirs] = generateToken(TOKEN_LENGTH)
 }
+
+trait CountryCode extends Any { def value: String }
+object CountryCode {
+  private case class Impl(value: String) extends AnyVal with CountryCode
+
+  def apply(value: String): CountryCode = {
+    require(value.length == 3, "Must be a 3-letter, ISO 3166-1 country code")
+    Impl(value.toUpperCase)
+  }
+
+  def unapply(cc: CountryCode): Option[String] = Some(cc.value)
+}
+
+trait Language extends Any { def value: String }
+object Language {
+  private case class Impl(value: String) extends AnyVal with Language
+
+  def apply(value: String): Language = {
+    require(value.length == 2, "Must be a 2-letter, ISO 639-1 language code")
+    Impl(value.toUpperCase)
+  }
+
+  def unapply(l: Language): Option[String] = Some(l.value)
+}
+
+case class Url(value: String) extends AnyVal {
+  def +(other: String) = Url(value + other)
+  override def toString = value
+}

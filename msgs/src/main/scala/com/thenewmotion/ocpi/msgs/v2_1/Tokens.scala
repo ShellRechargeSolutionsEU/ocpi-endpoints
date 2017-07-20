@@ -3,6 +3,7 @@ package msgs.v2_1
 
 import java.time.ZonedDateTime
 
+import com.thenewmotion.ocpi.msgs.Language
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
 
 object Tokens {
@@ -30,11 +31,9 @@ object Tokens {
     issuer: String,
     valid: Boolean,
     whitelist: WhitelistType,
-    language: Option[String] = None,
+    language: Option[Language] = None,
     lastUpdated: ZonedDateTime
-  ) {
-    require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
-  }
+  )
 
   case class TokenPatch(
     uid: Option[String] = None,
@@ -44,11 +43,9 @@ object Tokens {
     issuer: Option[String] = None,
     valid: Option[Boolean] = None,
     whitelist: Option[WhitelistType] = None,
-    language: Option[String] = None,
+    language: Option[Language] = None,
     lastUpdated: Option[ZonedDateTime] = None
-  ) {
-    require(language.fold(true)(_.length == 2), "Token needs 2-letter, ISO 639-1 language code")
-  }
+  )
 
   case class LocationReferences(
     locationId: String,

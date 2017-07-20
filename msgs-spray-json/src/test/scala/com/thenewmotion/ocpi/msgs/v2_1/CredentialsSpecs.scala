@@ -25,12 +25,12 @@ class CredentialsSpecs extends SpecificationWithJUnit {
   private trait CredentialsTestScope extends Scope {
     val businessDetails1 = BusinessDetails(
       "Example Operator",
-      Some(Image("http://example.com/images/logo.png", ImageCategory.Operator, "png")),
-      Some("http://example.com")
+      Some(Image(Url("http://example.com/images/logo.png"), ImageCategory.Operator, "png")),
+      Some(Url("http://example.com"))
     )
     val credentials1 = Creds[Ours](
       token = AuthToken[Theirs]("ebf3b399-779f-4497-9b9d-ac6ad3cc44d2"),
-      url = "https://example.com/ocpi/cpo/",
+      url = Url("https://example.com/ocpi/cpo/"),
       businessDetails = businessDetails1,
       globalPartyId = GlobalPartyId("NL", "EXA")
     )

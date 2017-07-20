@@ -1,10 +1,11 @@
-package com.thenewmotion.ocpi.registration
+package com.thenewmotion.ocpi
+package registration
 
 import scala.concurrent.Future
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
-import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
+import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId, Url}
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
@@ -29,7 +30,7 @@ class RegistrationClientSpec(environment: Env)
   val ourToken = AuthToken[Ours]("token")
   val creds = Creds[Ours](
     AuthToken[Theirs]("token"),
-    "http://localhost/norHere",
+    Url("http://localhost/norHere"),
     BusinessDetails("someOne", None, None),
     GlobalPartyId("party")
   )
@@ -42,10 +43,10 @@ class RegistrationClientSpec(environment: Env)
       client.getTheirVersionDetails(uri, ourToken) must beLeft(VersionDetailsRetrievalFailed: RegistrationError).await
     }
     "sending credentials" >> new TestScope {
-      client.sendCredentials("url", ourToken, creds) must beLeft(SendingCredentialsFailed: RegistrationError).await
+      client.sendCredentials(Url("url"), ourToken, creds) must beLeft(SendingCredentialsFailed: RegistrationError).await
     }
     "updating credentials" >> new TestScope {
-      client.updateCredentials("url", ourToken, creds) must beLeft(UpdatingCredentialsFailed: RegistrationError).await
+      client.updateCredentials(Url("url"), ourToken, creds) must beLeft(UpdatingCredentialsFailed: RegistrationError).await
     }
   }
 

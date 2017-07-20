@@ -22,8 +22,8 @@ class RegistrationService(
   ourGlobalPartyId: GlobalPartyId,
   ourPartyName: String,
   ourVersions: Set[VersionNumber],
-  ourVersionsUrl: Uri,
-  ourWebsite: Option[Uri] = None,
+  ourVersionsUrl: Url,
+  ourWebsite: Option[Url] = None,
   ourLogo: Option[Image] = None
 )(implicit http: HttpExt) extends FutureEitherUtils {
 
@@ -77,7 +77,7 @@ class RegistrationService(
     (for {
       _ <- errIfNotSupported(version)
       _ <- errIfRegistered(globalPartyId)
-      details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
+      details <- getTheirVersionDetails(version, creds.token, creds.url)
       newTokenToConnectToUs = AuthToken.generateTheirs
       _ <- result(
         repo.persistInfoAfterConnectToUs(globalPartyId, version, newTokenToConnectToUs,
@@ -111,7 +111,7 @@ class RegistrationService(
       _ <- errIfNotSupported(version)
       _ <- errIfNotRegistered(globalPartyId)
       _ <- errIfGlobalPartyIdChangedAndTaken
-      details <- getTheirVersionDetails(version, creds.token, Uri(creds.url))
+      details <- getTheirVersionDetails(version, creds.token, creds.url)
       theirNewToken = AuthToken.generateTheirs
       _ <- result(
         repo.persistInfoAfterConnectToUs(
@@ -247,8 +247,8 @@ class RegistrationService(
 
   private def generateCreds(token: AuthToken[Theirs]): Creds[Ours] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
-    Creds[Ours](token, ourVersionsUrl.toString,
-      BusinessDetails(ourPartyName, ourLogo, ourWebsite.map(_.toString)), ourGlobalPartyId)
+    Creds[Ours](token, ourVersionsUrl,
+      BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourGlobalPartyId)
   }
 }
 

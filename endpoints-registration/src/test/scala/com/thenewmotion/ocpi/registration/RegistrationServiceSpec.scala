@@ -1,4 +1,5 @@
-package com.thenewmotion.ocpi.registration
+package com.thenewmotion.ocpi
+package registration
 
 import java.time.ZonedDateTime
 
@@ -10,7 +11,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
 import com.thenewmotion.ocpi.msgs.Versions._
-import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
@@ -39,7 +39,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         result must beLike[Either[RegistrationError, Creds[Ours]]] {
           case Right(Creds(_, v, bd, gpi)) =>
-            v mustEqual "http://ocpi.newmotion.com/cpo/versions"
+            v mustEqual Url("http://ocpi.newmotion.com/cpo/versions")
             bd mustEqual BusinessDetails("TNM (CPO)", None, None)
             gpi mustEqual ourGlobalPartyId
         }.await
@@ -94,7 +94,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         result must beLike[Either[RegistrationError, Creds[Theirs]]] {
           case Right(Creds(_, v, bd, gpi)) =>
-            v mustEqual "http://the-awesomes/msp/versions"
+            v mustEqual Url("http://the-awesomes/msp/versions")
             bd mustEqual BusinessDetails("The Awesomes", None, None)
             gpi mustEqual theirGlobalId
         }.await
@@ -114,7 +114,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
       "return an error when it fails sending the credentials" >> new RegistrationTestScope {
         repo.isPartyRegistered(theirGlobalId) returns Future.successful(false)
 
-        _client.sendCredentials(any(), any(), any())(any(), any()) returns
+        _client.sendCredentials(Url(any[String]), any(), any())(any(), any()) returns
           Future.successful(Left(SendingCredentialsFailed))
 
         val result = registrationService.initiateRegistrationProcess(tokenToConnectToThem, tokenToConnectToUs,
@@ -160,7 +160,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
         result must beLike[Either[RegistrationError, Creds[Theirs]]] {
           case Right(Creds(_, v, bd, gpi)) =>
-            v mustEqual "http://the-awesomes/msp/versions"
+            v mustEqual Url("http://the-awesomes/msp/versions")
             bd mustEqual BusinessDetails("The Awesomes", None, None)
             gpi mustEqual theirGlobalId
         }.await
@@ -237,19 +237,19 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     val dateTime1 = ZonedDateTime.parse("2010-01-01T00:00:00Z")
 
-    val ourVersionsUrlStr = Uri("http://ocpi.newmotion.com/cpo/versions")
-    val ourBaseUrlStr = Uri("http://ocpi.newmotion.com")
+    val ourVersionsUrlStr = Url("http://ocpi.newmotion.com/cpo/versions")
+    val ourBaseUrlStr = Url("http://ocpi.newmotion.com")
     val tokenToConnectToUs = AuthToken[Theirs]("123")
     val ourCpoName = "TNM (CPO)"
     val ourGlobalPartyId = GlobalPartyId("NL","TNM")
-    val ourCredentials = Creds[Ours](tokenToConnectToUs, ourVersionsUrlStr.toString(),
+    val ourCredentials = Creds[Ours](tokenToConnectToUs, ourVersionsUrlStr,
       BusinessDetails(ourCpoName, None, None), ourGlobalPartyId)
     val ourCredsResp = ourCredentials
 
     val selectedVersion = `2.1`
     val tokenToConnectToThem = AuthToken[Ours]("456")
-    val theirVersionsUrl = "http://the-awesomes/msp/versions"
-    val theirVersionDetailsUrl = "http://the-awesomes/msp/2.1"
+    val theirVersionsUrl = Url("http://the-awesomes/msp/versions")
+    val theirVersionDetailsUrl = Url("http://the-awesomes/msp/2.1")
     val theirGlobalId = GlobalPartyId("DE", "TAW")
 
     val credsToConnectToThem = Creds[Theirs](
@@ -285,10 +285,11 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
 
-    _client.sendCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
-      Right(credsToConnectToThem))
-    _client.updateCredentials(any[Url], any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext], any[ActorMaterializer]) returns Future.successful(
-      Right(credsToConnectToThem))
+    _client.sendCredentials(Url(any[String]), any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext],
+      any[ActorMaterializer]) returns Future.successful(Right(credsToConnectToThem))
+
+    _client.updateCredentials(Url(any[String]), any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext],
+      any[ActorMaterializer]) returns Future.successful(Right(credsToConnectToThem))
 
     val repo = mock[RegistrationRepo]
 
@@ -296,7 +297,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     val registrationService = new RegistrationService(
       repo,
       ourVersions = Set(`2.1`),
-      ourVersionsUrl = Uri(ourBaseUrlStr + "/" + "cpo" + "/" + Versions.value),
+      ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.value,
       ourGlobalPartyId = ourGlobalPartyId,
       ourPartyName = ourCpoName) {
       override val client = _client

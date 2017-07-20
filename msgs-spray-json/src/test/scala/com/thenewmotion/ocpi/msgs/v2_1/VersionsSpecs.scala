@@ -1,4 +1,6 @@
-package com.thenewmotion.ocpi.msgs.v2_1
+package com.thenewmotion.ocpi
+package msgs
+package v2_1
 
 import com.thenewmotion.ocpi.msgs.Versions._
 import org.specs2.mutable.SpecificationWithJUnit
@@ -37,10 +39,10 @@ class VersionsSpecs extends SpecificationWithJUnit {
     val date1 = OcpiDateTimeParser.parse("2010-01-01T00:00:00Z")
 
     val version20 = Version(
-      `2.0`, "https://example.com/ocpi/cpo/2.0/"
+      `2.0`, Url("https://example.com/ocpi/cpo/2.0/")
     )
     val version21 = Version(
-      `2.1`, "https://example.com/ocpi/cpo/2.1/"
+      `2.1`, Url("https://example.com/ocpi/cpo/2.1/")
     )
 
     val versionResp = SuccessWithDataResp(GenericSuccess, Some("Success"),
@@ -48,11 +50,11 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
     val credentialsEndpoint = Endpoint(
       EndpointIdentifier.Credentials,
-      "https://example.com/ocpi/cpo/2.0/credentials/")
+      Url("https://example.com/ocpi/cpo/2.0/credentials/"))
 
     val locationsEndpoint = Endpoint(
       EndpointIdentifier.Locations,
-      "https://example.com/ocpi/cpo/2.0/locations/")
+      Url("https://example.com/ocpi/cpo/2.0/locations/"))
 
     val version21Details = VersionDetails(
       version = `2.1`,

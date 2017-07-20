@@ -4,7 +4,7 @@ import akka.http.scaladsl.server.Route
 import ocpi.msgs.GlobalPartyId
 import ocpi.msgs.Versions.VersionNumber
 import org.slf4j.LoggerFactory
-import cats.syntax.either._
+import cats.syntax.either._  // Keep Scala 2.11 happy
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -18,7 +18,6 @@ package object ocpi {
   }
 
   type Version = VersionNumber
-  type URI = String
 
   type GuardedRoute = (Version, GlobalPartyId) => Route
 }

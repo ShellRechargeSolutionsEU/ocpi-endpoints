@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
-import com.thenewmotion.ocpi.msgs.{OcpiStatusCode, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.{CountryCode, OcpiStatusCode, SuccessWithDataResp}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
@@ -242,7 +242,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       address = "F.Rooseveltlaan 3A",
       city = "Gent",
       postalCode = "9000",
-      country = "BEL",
+      country = CountryCode("BEL"),
       coordinates = GeoLocation("3.729945", "51.047594"),
       evses = List(evse1),
       directions = List(dir1),
@@ -269,7 +269,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       address = "F.Rooseveltlaan 30",
       city = "Gent",
       postalCode = "9000",
-      country = "BEL",
+      country = CountryCode("BEL"),
       coordinates = GeoLocation("3.729955", "51.047604"),
       evses = List(evse2,evse3),
       directions = List(dir1),
