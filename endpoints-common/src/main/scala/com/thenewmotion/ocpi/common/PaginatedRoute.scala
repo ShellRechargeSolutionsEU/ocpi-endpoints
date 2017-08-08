@@ -1,10 +1,11 @@
 package com.thenewmotion.ocpi
 package common
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.server.{Directive0, Directives}
-import org.joda.time.DateTime
 
 case class PaginatedResult[+T](result: Iterable[T], total: Int)
 
@@ -25,9 +26,9 @@ trait PaginatedRoute extends Directives with DateDeserializers {
     case Tuple1(l) => Math.min(l, MaxLimit)
   }
 
-  private val dateFrom = parameter("date_from".as[DateTime].?)
+  private val dateFrom = parameter("date_from".as[ZonedDateTime].?)
 
-  private val dateTo = parameter("date_to".as[DateTime].?)
+  private val dateTo = parameter("date_to".as[ZonedDateTime].?)
 
   val paged = (offset & limit).as(Pager) & dateFrom & dateTo
 

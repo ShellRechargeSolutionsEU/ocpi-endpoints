@@ -13,8 +13,7 @@ import msgs.Versions._
 import msgs.v2_1.Credentials.Creds
 import msgs.{AuthToken, SuccessWithDataResp, Url}
 import registration.RegistrationError._
-import scalaz._
-import Scalaz._
+import cats.syntax.either._
 
 class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -23,7 +22,10 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
   def getTheirVersions(
     uri: Uri,
     token: AuthToken[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ List[Version]] = {
+  )(
+    implicit ec: ExecutionContext,
+    mat: ActorMaterializer
+  ): Future[Either[RegistrationError, List[Version]]] = {
     def errorMsg = s"Could not retrieve the versions information from $uri with token $token."
     val regError = VersionsRetrievalFailed
 
@@ -31,13 +33,15 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.left }
+    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
   }
 
   def getTheirVersionDetails(
     uri: Uri,
     token: AuthToken[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ VersionDetails] = {
+  )(
+    implicit ec: ExecutionContext, mat: ActorMaterializer
+  ): Future[Either[RegistrationError, VersionDetails]] = {
     def errorMsg = s"Could not retrieve the version details from $uri with token $token."
     val regError = VersionDetailsRetrievalFailed
 
@@ -45,38 +49,46 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.left }
+    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
   }
 
   def sendCredentials(
     theirCredUrl: Url,
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+  )(
+    implicit ec: ExecutionContext, mat: ActorMaterializer
+  ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token " +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = SendingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](Post(theirCredUrl, credToConnectToUs), tokenToConnectToThem) map {
+    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+      Post(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
+    ) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.left }
+    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
   }
 
   def updateCredentials(
     theirCredUrl: Url,
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[RegistrationError \/ Creds[Theirs]] = {
+  )(
+    implicit ec: ExecutionContext, mat: ActorMaterializer
+  ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token" +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = UpdatingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](Put(theirCredUrl, credToConnectToUs), tokenToConnectToThem) map {
+    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+      Put(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
+    ) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.left }
+    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
   }
 }

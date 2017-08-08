@@ -1,13 +1,14 @@
 package com.thenewmotion.ocpi.msgs
 package v2_1
 
+import java.time.ZonedDateTime
+
 import CommonTypes.{BusinessDetails, _}
 import Credentials.Creds
 import Locations._
 import Tokens._
 import Versions._
-import com.github.nscala_time.time.Imports._
-import org.joda.time.format.ISODateTimeFormat
+import com.thenewmotion.ocpi.OcpiDateTimeParser
 import spray.json._
 
 trait OcpiJsonProtocol extends DefaultJsonProtocol {
@@ -27,11 +28,10 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     super.extractFieldNames(classTag) map snakify
   }
 
-  implicit val dateTimeOptionalMillisFormat = new JsonFormat[DateTime] {
-    val formatterNoMillis = ISODateTimeFormat.dateTimeNoMillis.withZoneUTC
-    def write (x: DateTime) = JsString (formatterNoMillis.print (x) )
+  implicit val ZonedDateTimeOptionalMillisFormat = new JsonFormat[ZonedDateTime] {
+    def write (x: ZonedDateTime) = JsString(OcpiDateTimeParser.format(x))
     def read (value: JsValue) = value match {
-      case JsString (x) => OcpiDatetimeParser.toOcpiDateTime(x) match {
+      case JsString (x) => OcpiDateTimeParser.parseOpt(x) match {
         case Some(parsed) => parsed
         case None => deserializationError ("Expected DateTime conforming to pattern " +
           "specified in OCPI 2.1 section 14.2, but got " + x)
@@ -106,6 +106,13 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     override def read(json: JsValue) = readFormat.read(json)
     override def write(obj: Hours): JsValue = writeFormat.write(obj)
   }
+  implicit val urlFmt = new JsonFormat[Url] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => Url(s)
+      case _ => deserializationError("Url must be a string")
+    }
+    override def write(obj: Url) = JsString(obj.value)
+  }
   implicit val imageFormat = jsonFormat6(Image)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
 
@@ -120,11 +127,25 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   }
   implicit val evsePatchFormat = jsonFormat12(EvsePatch)
   implicit val operatorFormat = jsonFormat3(Operator)
+  implicit val countryCodeFmt = new JsonFormat[CountryCode] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => CountryCode(s)
+      case _ => deserializationError("Country Code must be a string")
+    }
+    override def write(obj: CountryCode) = JsString(obj.value)
+  }
   implicit val locationFormat = new RootJsonFormat[Location] {
     val readFormat = jsonFormat21(Location.deserialize)
     val writeFormat = jsonFormat21(Location.apply)
     override def read(json: JsValue) = readFormat.read(json)
     override def write(obj: Location): JsValue = writeFormat.write(obj)
+  }
+  implicit val languageFmt = new JsonFormat[Language] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => Language(s)
+      case _ => deserializationError("Language must be a string")
+    }
+    override def write(obj: Language) = JsString(obj.value)
   }
   implicit val tokensFormat = jsonFormat9(Token)
 
@@ -187,7 +208,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     override def write(obj: Creds[O]) =
       JsObject(
         Fields.token -> tokenFormat.write(obj.token),
-        Fields.url -> JsString(obj.url),
+        Fields.url -> urlFmt.write(obj.url),
         Fields.businessDetails -> businessDetailsFormat.write(obj.businessDetails),
         Fields.partyId -> JsString(obj.globalPartyId.partyId),
         Fields.countryCode -> JsString(obj.globalPartyId.countryCode)

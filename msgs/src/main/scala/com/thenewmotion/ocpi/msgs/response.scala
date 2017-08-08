@@ -1,18 +1,19 @@
 package com.thenewmotion.ocpi.msgs
 
+import java.time.ZonedDateTime
+
 import OcpiStatusCode.{ErrorCode, SuccessCode}
-import com.github.nscala_time.time.Imports.DateTime
 
 trait OcpiResponse[Code <: OcpiStatusCode] {
   def statusCode: Code
   def statusMessage: Option[String]
-  def timestamp: DateTime
+  def timestamp: ZonedDateTime
 }
 
 case class ErrorResp(
   statusCode: ErrorCode,
   statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now
+  timestamp: ZonedDateTime = ZonedDateTime.now
 ) extends OcpiResponse[ErrorCode]
 
 trait SuccessResponse extends OcpiResponse[SuccessCode]
@@ -20,12 +21,12 @@ trait SuccessResponse extends OcpiResponse[SuccessCode]
 case class SuccessResp(
   statusCode: SuccessCode,
   statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now
+  timestamp: ZonedDateTime = ZonedDateTime.now
 ) extends SuccessResponse
 
 case class SuccessWithDataResp[D](
   statusCode: SuccessCode,
   statusMessage: Option[String] = None,
-  timestamp: DateTime = DateTime.now,
+  timestamp: ZonedDateTime = ZonedDateTime.now,
   data: D
 ) extends SuccessResponse

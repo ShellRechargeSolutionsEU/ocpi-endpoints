@@ -5,7 +5,6 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import scala.concurrent.Future
-import scalaz._
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
@@ -26,7 +25,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string = loc2String)
 
       Put("/NL/TNM/LOC2", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any)
+        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any())
       }
     }
 
@@ -41,7 +40,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any)
+        there was one(mspLocService).updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any())
       }
     }
 
@@ -78,7 +77,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any)
+        there was one(mspLocService).updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any())
       }
     }
 
@@ -93,7 +92,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
            |""".stripMargin)
 
       Patch("/NL/TNM/LOC1/NL-TNM-02000000/1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any)
+        there was one(mspLocService).updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any())
       }
     }
 
@@ -136,13 +135,13 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   trait LocationsTestScope extends Scope {
     val mspLocService = mock[MspLocationsService]
 
-    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any) returns Future(\/-(true))
-    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any) returns Future(\/-(()))
-    mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===("LOC1")) returns Future(-\/(LocationNotFound()))
-    mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(-\/(LocationNotFound()))
-    mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(-\/(LocationNotFound()))
-    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any) returns Future(\/-(()))
-    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any) returns Future(\/-(()))
+    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC2"), any()) returns Future(Right(true))
+    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), any()) returns Future(Right(()))
+    mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===("LOC1")) returns Future(Left(LocationNotFound()))
+    mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000")) returns Future(Left(LocationNotFound()))
+    mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1")) returns Future(Left(LocationNotFound()))
+    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), any()) returns Future(Right(()))
+    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===("LOC1"), ===("NL-TNM-02000000"), ===("1"), any()) returns Future(Right(()))
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
@@ -151,7 +150,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val loc1String = s"""
                        |{
                        |    "id": "LOC1",
-                       |    "last_updated": "2014-06-25T00:00:00+02:00",
+                       |    "last_updated": "2014-06-25T00:00:00Z",
                        |    "type": "ON_STREET",
                        |    "name": "Keizersgracht 585",
                        |    "address": "Keizersgracht 585",
@@ -165,7 +164,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |    "related_locations": [],
                        |    "evses": [{
                        |        "uid": "3256",
-                       |        "last_updated": "2014-06-25T00:00:00+02:00",
+                       |        "last_updated": "2014-06-25T00:00:00Z",
                        |        "id": "ICEEVE000123_1",
                        |        "status": "AVAILABLE",
                        |        "status_schedule": [],
@@ -174,7 +173,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        ],
                        |        "connectors": [{
                        |            "id": "1",
-                       |            "last_updated": "2014-06-25T00:00:00+02:00",
+                       |            "last_updated": "2014-06-25T00:00:00Z",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "CABLE",
@@ -184,7 +183,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |            "tariff_id": "11"
                        |        }, {
                        |            "id": "2",
-                       |            "last_updated": "2014-06-25T00:00:00+02:00",
+                       |            "last_updated": "2014-06-25T00:00:00Z",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "SOCKET",
@@ -200,7 +199,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        "images": []
                        |    }, {
                        |        "uid": "3257",
-                       |        "last_updated": "2014-06-25T00:00:00+02:00",
+                       |        "last_updated": "2014-06-25T00:00:00Z",
                        |        "id": "ICEEVE000123_2",
                        |        "status": "RESERVED",
                        |        "status_schedule": [],
@@ -209,7 +208,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
                        |        ],
                        |        "connectors": [{
                        |            "id": "1",
-                       |            "last_updated": "2014-06-25T00:00:00+02:00",
+                       |            "last_updated": "2014-06-25T00:00:00Z",
                        |            "status": "AVAILABLE",
                        |            "standard": "IEC_62196_T2",
                        |            "format": "SOCKET",

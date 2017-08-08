@@ -6,12 +6,12 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import msgs.v2_1.OcpiJsonProtocol._
-import common.DisjunctionMarshalling
+import common.EitherMarshalling
 import RegistrationError._
 import msgs.{ErrorResp, OcpiStatusCode}
 import OcpiStatusCode._
 
-object ErrorMarshalling extends DisjunctionMarshalling {
+object ErrorMarshalling extends EitherMarshalling {
 
   implicit val registrationErrorToResponseMarshaller: ToResponseMarshaller[RegistrationError] =
     implicitly[ToResponseMarshaller[(StatusCode, ErrorResp)]]

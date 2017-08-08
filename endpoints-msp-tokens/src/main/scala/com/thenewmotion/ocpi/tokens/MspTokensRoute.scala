@@ -1,14 +1,15 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import common.{DisjunctionMarshalling, Pager, PaginatedRoute}
+import common.{EitherMarshalling, Pager, PaginatedRoute}
 import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
-import org.joda.time.DateTime
 import msgs.OcpiStatusCode._
 import msgs.v2_1.Tokens.LocationReferences
 import tokens.AuthorizeError._
@@ -18,7 +19,7 @@ class MspTokensRoute(
   service: MspTokensService,
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000
-) extends JsonApi with PaginatedRoute with DisjunctionMarshalling {
+) extends JsonApi with PaginatedRoute with EitherMarshalling {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
@@ -44,7 +45,7 @@ class MspTokensRoute(
   def route(apiUser: GlobalPartyId)(implicit ec: ExecutionContext) =
     get {
       pathEndOrSingleSlash {
-        paged { (pager: Pager, dateFrom: Option[DateTime], dateTo: Option[DateTime]) =>
+        paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
           onSuccess(service.tokens(pager, dateFrom, dateTo)) { pagTokens =>
             respondWithPaginationHeaders(pager, pagTokens ) {
               complete(SuccessWithDataResp(GenericSuccess, data = pagTokens.result))

@@ -5,7 +5,7 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import msgs.ErrorResp
-import common.{DisjunctionMarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common.{EitherMarshalling, OcpiDirectives, OcpiRejectionHandler}
 import locations.LocationsError._
 import msgs.v2_1.Locations._
 import msgs._
@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 
 class MspLocationsRoute(
   service: MspLocationsService
-) extends JsonApi with DisjunctionMarshalling with OcpiDirectives {
+) extends JsonApi with EitherMarshalling with OcpiDirectives {
 
   import msgs.v2_1.OcpiJsonProtocol._
 

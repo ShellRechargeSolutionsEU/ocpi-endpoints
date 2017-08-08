@@ -6,15 +6,18 @@ import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromResponseUnmarshaller, Unmarshaller}
 import msgs.{ErrorResp, SuccessResponse, SuccessWithDataResp}
 import scala.reflect.ClassTag
-import scalaz.\/
+import cats.syntax.either._
 
 case class UnexpectedResponseException(response: HttpResponse)
   extends Exception(s"Unexpected HTTP status code ${response.status}")
 
 trait OcpiResponseUnmarshalling {
+  type ErrorRespOr[T] = Either[ErrorResp, T]
+
   protected implicit def fromOcpiResponseUnmarshaller[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](
-    implicit disjUnMa: FromEntityUnmarshaller[ErrorResp \/ T]): FromResponseUnmarshaller[ErrorResp \/ T] =
-    Unmarshaller.withMaterializer[HttpResponse, ErrorResp \/ T] {
+    implicit disjUnMa: FromEntityUnmarshaller[ErrorRespOr[T]]
+  ): FromResponseUnmarshaller[ErrorRespOr[T]] =
+    Unmarshaller.withMaterializer[HttpResponse, ErrorRespOr[T]] {
       implicit ex => implicit mat => response: HttpResponse =>
         if (response.status.isSuccess)
           disjUnMa(response.entity)
@@ -27,10 +30,10 @@ trait OcpiResponseUnmarshalling {
   type PagedResp[T] = SuccessWithDataResp[Iterable[T]]
 
   protected implicit def fromPagedOcpiResponseUnmarshaller[T](
-    implicit um: FromResponseUnmarshaller[ErrorResp \/ PagedResp[T]]):
-     FromResponseUnmarshaller[ErrorResp \/ (PagedResp[T], Option[Uri])] =
+    implicit um: FromResponseUnmarshaller[ErrorRespOr[PagedResp[T]]]
+  ): FromResponseUnmarshaller[ErrorRespOr[(PagedResp[T], Option[Uri])]] =
 
-    Unmarshaller.withMaterializer[HttpResponse, ErrorResp \/ (PagedResp[T], Option[Uri])] {
+    Unmarshaller.withMaterializer[HttpResponse, ErrorRespOr[(PagedResp[T], Option[Uri])]] {
       implicit ex => implicit mat => response: HttpResponse =>
         um(response).map { _.map {
           (x: PagedResp[T]) =>

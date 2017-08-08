@@ -1,6 +1,8 @@
-package com.thenewmotion.ocpi.tokens
+package com.thenewmotion.ocpi
+package tokens
 
 import java.net.UnknownHostException
+import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
@@ -14,15 +16,14 @@ import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{\/, \/-}
 import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
-import org.joda.time.DateTime
 import org.specs2.concurrent.ExecutionEnv
+import com.thenewmotion.ocpi.OcpiDateTimeParser._
 
 class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -30,16 +31,16 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
-      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[\/[ErrorResp, Token]] {
-        case \/-(r) =>
+      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[Either[ErrorResp, Token]] {
+        case Right(r) =>
           r.uid === "123"
       }.await
     }
 
     "Push new/updated Token object to the CPO" in new TestScope {
 
-      client.uploadToken(tokenUri, AuthToken[Ours]("auth"), testToken) must beLike[\/[ErrorResp, Unit]] {
-        case \/-(_) => ok
+      client.uploadToken(tokenUri, AuthToken[Ours]("auth"), testToken) must beLike[Either[ErrorResp, Unit]] {
+        case Right(_) => ok
       }.await
     }
 
@@ -49,8 +50,8 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
         valid = Some(false)
       )
 
-      client.updateToken(tokenUri, AuthToken[Ours]("auth"), patch) must beLike[\/[ErrorResp, Unit]] {
-        case \/-(_) => ok
+      client.updateToken(tokenUri, AuthToken[Ours]("auth"), patch) must beLike[Either[ErrorResp, Unit]] {
+        case Right(_) => ok
       }.await
     }
   }
@@ -74,7 +75,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
       issuer = "NewMotion",
       valid = true,
       whitelist = WhitelistType.Allowed,
-      lastUpdated = DateTime.now
+      lastUpdated = ZonedDateTime.now
     )
 
 
@@ -100,12 +101,11 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
            |    "issuer": "${testToken.issuer}",
            |    "valid": ${testToken.valid},
            |    "whitelist": "${testToken.whitelist}",
-           |    "last_updated" : "${testToken.lastUpdated}"
+           |    "last_updated" : "${format(testToken.lastUpdated)}"
            |  }
            |}
            |""".stripMargin.getBytes)
     )
-
 
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
 

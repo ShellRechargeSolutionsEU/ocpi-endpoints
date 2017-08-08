@@ -1,13 +1,16 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import msgs.{ErrorResp, GlobalPartyId}
+import msgs.{ErrorResp, GlobalPartyId, Language}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
+import cats.syntax.either._
+
 import scala.concurrent.Future
-import scalaz._
 
 class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -16,7 +19,6 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   import akka.http.scaladsl.model.StatusCodes
   import msgs.v2_1.OcpiJsonProtocol._
   import msgs.v2_1.Tokens._
-  import org.joda.time.DateTime
 
   "tokens endpoint" should {
     "reject unauthorized access" in new TokensTestScope {
@@ -38,17 +40,18 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         issuer = "TheNewMotion",
         valid = true,
         WhitelistType.Allowed,
-        language = Some("nl"),
-        lastUpdated = DateTime.now
+        language = Some(Language("nl")),
+        lastUpdated = ZonedDateTime.now
       )
 
       cpoTokensService.createOrUpdateToken(
         ===(apiUser),
         ===(tokenUid),
         any[Token]
-      ) returns Future(\/-(true))
+      ) returns Future(true.asRight)
 
-      def beMostlyEqualTo = (be_==(_: Token)) ^^^ ((_: Token).copy(lastUpdated = new DateTime(0)))
+      def beMostlyEqualTo = (be_==(_: Token)) ^^^ ((_: Token).copy(lastUpdated =
+        ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneOffset.UTC)))
 
       Put(s"$tokenPath/$tokenUid", token) ~>
         cpoTokensRoute.route(apiUser) ~> check {
@@ -71,7 +74,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         apiUser,
         tokenUid,
         tokenPatch
-      ) returns Future(\/-(()))
+      ) returns Future(().asRight)
 
       Patch(s"$tokenPath/$tokenUid", tokenPatch) ~>
         cpoTokensRoute.route(apiUser) ~> check {
@@ -88,7 +91,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       cpoTokensService.token(
         apiUser,
         tokenUid
-      ) returns Future(-\/(TokenNotFound()))
+      ) returns Future(TokenNotFound().asLeft)
 
       Get(s"$tokenPath/$tokenUid") ~>
         cpoTokensRoute.route(apiUser) ~> check {

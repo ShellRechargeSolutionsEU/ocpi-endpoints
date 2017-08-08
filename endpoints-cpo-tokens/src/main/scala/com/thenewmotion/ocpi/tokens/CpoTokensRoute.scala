@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common.{DisjunctionMarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common.{EitherMarshalling, OcpiDirectives, OcpiRejectionHandler}
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 
 class CpoTokensRoute(
   service: CpoTokensService
-) extends JsonApi with DisjunctionMarshalling with OcpiDirectives {
+) extends JsonApi with EitherMarshalling with OcpiDirectives {
 
   implicit def tokenErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

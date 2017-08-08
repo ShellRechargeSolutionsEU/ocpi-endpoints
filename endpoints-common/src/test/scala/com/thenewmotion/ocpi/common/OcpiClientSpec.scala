@@ -20,7 +20,6 @@ import org.specs2.specification.Scope
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{-\/, \/, \/-}
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -33,15 +32,15 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   "single request" should {
     "unmarshal success response" in new TestScope {
       client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
-        case \/-(r) => r.data.id mustEqual "monkey"
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessWithDataResp[TestData]]] {
+        case Right(r) => r.data.id mustEqual "monkey"
       }.await
     }
 
     "unmarshal error response" in new TestScope {
       client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[\/[ErrorResp, SuccessWithDataResp[TestData]]] {
-        case -\/(err) =>
+        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessWithDataResp[TestData]]] {
+        case Left(err) =>
           err.statusCode mustEqual GenericClientFailure
           err.statusMessage must beSome("something went horribly wrong...")
       }.await

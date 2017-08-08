@@ -1,12 +1,15 @@
-package com.thenewmotion.ocpi.msgs.v2_1
+package com.thenewmotion.ocpi
+package msgs
+package v2_1
 
 import com.thenewmotion.ocpi.msgs.Versions._
-import org.joda.time.format.ISODateTimeFormat
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
 import VersionNumber._
 import com.thenewmotion.ocpi.msgs.SuccessWithDataResp
+import com.thenewmotion.ocpi.OcpiDateTimeParser
+
 class VersionsSpecs extends SpecificationWithJUnit {
 
   import OcpiJsonProtocol._
@@ -19,7 +22,6 @@ class VersionsSpecs extends SpecificationWithJUnit {
       versionResp.toJson mustEqual versionRespJson1
     }
   }
-
 
   "VersionDetailsResp" should {
     "succeed to deserialize if minimum expected endpoints included" in new VersionsTestScope {
@@ -34,14 +36,13 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
     import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 
-    val formatter = ISODateTimeFormat.dateTimeNoMillis().withZoneUTC
-    val date1 = formatter.parseDateTime("2010-01-01T00:00:00Z")
+    val date1 = OcpiDateTimeParser.parse("2010-01-01T00:00:00Z")
 
     val version20 = Version(
-      `2.0`, "https://example.com/ocpi/cpo/2.0/"
+      `2.0`, Url("https://example.com/ocpi/cpo/2.0/")
     )
     val version21 = Version(
-      `2.1`, "https://example.com/ocpi/cpo/2.1/"
+      `2.1`, Url("https://example.com/ocpi/cpo/2.1/")
     )
 
     val versionResp = SuccessWithDataResp(GenericSuccess, Some("Success"),
@@ -49,11 +50,11 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
     val credentialsEndpoint = Endpoint(
       EndpointIdentifier.Credentials,
-      "https://example.com/ocpi/cpo/2.0/credentials/")
+      Url("https://example.com/ocpi/cpo/2.0/credentials/"))
 
     val locationsEndpoint = Endpoint(
       EndpointIdentifier.Locations,
-      "https://example.com/ocpi/cpo/2.0/locations/")
+      Url("https://example.com/ocpi/cpo/2.0/locations/"))
 
     val version21Details = VersionDetails(
       version = `2.1`,

@@ -1,19 +1,21 @@
 package com.thenewmotion.ocpi
 
+import java.time.ZonedDateTime
+
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.Route
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import common.OcpiExceptionHandler
-import msgs.{GlobalPartyId, SuccessWithDataResp}
+import msgs.{GlobalPartyId, SuccessWithDataResp, Url}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
-import org.joda.time.DateTime
+
 import scala.concurrent.Future
 
 object VersionsRoute {
   case class OcpiVersionConfig(
-    endPoints: Map[EndpointIdentifier, Either[URI, GuardedRoute]]
+    endPoints: Map[EndpointIdentifier, Either[Url, GuardedRoute]]
   )
 }
 
@@ -21,7 +23,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
   import VersionsRoute._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  def currentTime = DateTime.now
+  def currentTime = ZonedDateTime.now
 
   val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 
@@ -38,7 +40,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
         GenericSuccess,
         None,
         currentTime,
-        v.keys.map(x => Version(x, appendPath(uri, x.toString).toString())).toList)
+        v.keys.map(x => Version(x, Url(appendPath(uri, x.toString).toString))).toList)
       )
     case _ => reject(NoVersionsRejection())
   }
@@ -52,7 +54,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
           currentTime,
           VersionDetails(
             version, versionInfo.endPoints.map {
-              case (k, Right(v)) => Endpoint(k, appendPath(uri, k.value).toString() )
+              case (k, Right(v)) => Endpoint(k, Url(appendPath(uri, k.value).toString))
               case (k, Left(extUri)) => Endpoint(k, extUri)
             }
           )
