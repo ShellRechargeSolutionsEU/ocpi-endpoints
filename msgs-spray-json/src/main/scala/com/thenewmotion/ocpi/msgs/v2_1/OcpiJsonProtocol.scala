@@ -1,7 +1,9 @@
 package com.thenewmotion.ocpi.msgs
 package v2_1
 
-import java.time.ZonedDateTime
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.ChronoField.{HOUR_OF_DAY, MINUTE_OF_HOUR}
+import java.time.{LocalTime, ZonedDateTime}
 
 import CommonTypes.{BusinessDetails, _}
 import Credentials.Creds
@@ -37,6 +39,21 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
           "specified in OCPI 2.1 section 14.2, but got " + x)
       }
       case x => deserializationError ("Expected DateTime as JsString, but got " + x)
+    }
+  }
+
+  implicit object localTimeJsonFormat extends JsonFormat[LocalTime] {
+    private val fmt: DateTimeFormatter =
+      new DateTimeFormatterBuilder()
+        .appendValue(HOUR_OF_DAY, 2)
+        .appendLiteral(':')
+        .appendValue(MINUTE_OF_HOUR, 2)
+        .toFormatter
+
+    def write(c: LocalTime) = JsString(fmt.format(c))
+    def read(value: JsValue) = value match {
+      case JsString(str) => LocalTime.parse(str, fmt)
+      case x => deserializationError("Expected Time as String, but got " + x)
     }
   }
 
@@ -98,7 +115,7 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val displayTestFormat = jsonFormat2(DisplayText)
   implicit val geoLocationFormat = jsonFormat2(GeoLocation)
   implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
-  implicit val regularHoursFormat = jsonFormat3(RegularHours)
+  implicit val regularHoursFormat = jsonFormat3(RegularHours.apply(_: Int, _: LocalTime, _: LocalTime))
   implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
   implicit val hoursFormat = new JsonFormat[Hours] {
     val readFormat = jsonFormat4(Hours.deserialize)

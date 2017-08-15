@@ -2,7 +2,7 @@ package com.thenewmotion.ocpi
 package msgs
 package v2_1
 
-import java.time.ZonedDateTime
+import java.time.{LocalTime, ZonedDateTime}
 
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 
@@ -191,9 +191,19 @@ object Locations {
 
   case class RegularHours(
     weekday: Int,
-    periodBegin: String,
-    periodEnd: String
-  )
+    periodBegin: LocalTime,
+    periodEnd: LocalTime
+  ) {
+    require(periodEnd isAfter periodBegin, "periodEnd must be after periodBegin")
+  }
+
+  object RegularHours {
+    def apply(
+       weekday: Int,
+       periodBegin: String,
+       periodEnd: String
+     ): RegularHours = RegularHours(weekday, LocalTime.parse(periodBegin), LocalTime.parse(periodEnd))
+  }
 
   case class ExceptionalPeriod(
     periodBegin: ZonedDateTime,
