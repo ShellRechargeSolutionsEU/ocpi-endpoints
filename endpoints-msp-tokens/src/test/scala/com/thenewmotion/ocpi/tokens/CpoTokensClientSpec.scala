@@ -8,17 +8,17 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.util.Timeout
-
 import scala.concurrent.duration.FiniteDuration
+
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import akka.http.scaladsl.model.ContentTypes._
-
 import scala.concurrent.{ExecutionContext, Future}
+
 import com.thenewmotion.ocpi.common.ClientObjectUri
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
@@ -85,7 +85,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
       endpointUri = dataUrl,
       ourCountryCode = ourCountryCode,
       ourPartyId = ourPartyId,
-      uid = testToken.uid
+      ids = testToken.uid
     )
 
     def successResp = HttpResponse(
@@ -132,7 +132,7 @@ class TestCpoTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit httpExt: HttpExt) extends CpoTokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
+    (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
 
 }
