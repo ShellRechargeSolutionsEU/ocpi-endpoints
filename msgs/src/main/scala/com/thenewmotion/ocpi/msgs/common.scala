@@ -61,3 +61,16 @@ case class Url(value: String) extends AnyVal {
   def +(other: String) = Url(value + other)
   override def toString = value
 }
+
+trait CurrencyCode extends Any { def value: String }
+object CurrencyCode {
+  private case class Impl(value: String) extends AnyVal with CurrencyCode
+
+  def apply(value: String): CurrencyCode = {
+    require(value.length == 3, "Must be a 3-letter, ISO 4217 Code")
+    Impl(value.toUpperCase)
+  }
+
+  def unapply(cc: CurrencyCode): Option[String] = Some(cc.value)
+}
+
