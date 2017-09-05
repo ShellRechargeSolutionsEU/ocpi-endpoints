@@ -2,14 +2,16 @@ package com.thenewmotion.ocpi.msgs
 package v2_1
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
-import java.time.temporal.ChronoField.{HOUR_OF_DAY, MINUTE_OF_HOUR}
-import java.time.{LocalTime, ZonedDateTime}
+import java.time.temporal.ChronoField._
+import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
 
 import CommonTypes.{BusinessDetails, _}
 import Credentials.Creds
 import Locations._
 import Tokens._
 import Versions._
+import Tariffs._
+import Cdrs._
 import com.thenewmotion.ocpi.OcpiDateTimeParser
 import spray.json._
 
@@ -54,6 +56,32 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     def read(value: JsValue) = value match {
       case JsString(str) => LocalTime.parse(str, fmt)
       case x => deserializationError("Expected Time as String, but got " + x)
+    }
+  }
+
+  implicit object localDateJsonFormat extends JsonFormat[LocalDate] {
+    private val fmt: DateTimeFormatter =
+      new DateTimeFormatterBuilder()
+        .appendValue(YEAR, 4)
+        .appendLiteral('-')
+        .appendValue(MONTH_OF_YEAR, 2)
+        .appendLiteral('-')
+        .appendValue(DAY_OF_MONTH, 2)
+        .toFormatter
+
+    def write(c: LocalDate) = JsString(fmt.format(c))
+    def read(value: JsValue) = value match {
+      case JsString(str) => LocalDate.parse(str, fmt)
+      case x => deserializationError("Expected Date as String, but got " + x)
+    }
+  }
+
+  implicit val durationFormat = new JsonFormat[Duration] {
+    override def write(obj: Duration) = JsNumber(obj.getSeconds)
+
+    override def read(json: JsValue) = json match {
+      case JsNumber(n) => java.time.Duration.ofSeconds(n.toLong)
+      case x => deserializationError(s"Expected Duration as JsNumber, but got $x")
     }
   }
 
@@ -253,6 +281,41 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat
 
   implicit val authorizationInfoFormat = jsonFormat3(AuthorizationInfo)
+
+  implicit val authMethodFormat =
+    new SimpleStringEnumSerializer[AuthMethod](AuthMethod).enumFormat
+
+  implicit val currencyCodeFormat = new JsonFormat[CurrencyCode] {
+    override def write(obj: CurrencyCode) = JsString(obj.value)
+
+    override def read(json: JsValue) = json match {
+      case JsString(s) => CurrencyCode(s)
+      case x => deserializationError(s"Expected CurrencyCode as JsString, but got $x")
+    }
+  }
+
+  implicit val tariffDimensionTypeFormat =
+    new SimpleStringEnumSerializer[TariffDimensionType](TariffDimensionType).enumFormat
+
+  implicit val dayOfWeekFormat =
+    new SimpleStringEnumSerializer[DayOfWeek](DayOfWeek).enumFormat
+
+  implicit val priceComponentFormat = jsonFormat3(PriceComponent)
+
+  implicit val tariffRestrictionsFormat = jsonFormat11(TariffRestrictions)
+
+  implicit val tariffElementFormat = jsonFormat2(TariffElement)
+
+  implicit val tariffFormat = jsonFormat7(Tariff)
+
+  implicit val cdrDimensionTypeFormat =
+    new SimpleStringEnumSerializer[CdrDimensionType](CdrDimensionType).enumFormat
+
+  implicit val cdrDimensionFormat = jsonFormat2(CdrDimension)
+
+  implicit val chargingPeriodFormat = jsonFormat2(ChargingPeriod)
+
+  implicit val cdrFormat = jsonFormat16(Cdr)
 }
 
 object OcpiJsonProtocol extends OcpiJsonProtocol
