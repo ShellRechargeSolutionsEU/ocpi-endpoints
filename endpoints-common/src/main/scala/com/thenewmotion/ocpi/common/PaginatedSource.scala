@@ -9,7 +9,7 @@ import akka.http.scaladsl.client.RequestBuilding.Get
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp}
@@ -26,7 +26,7 @@ object PaginatedSource extends AuthorizedRequests with EitherMarshalling with Oc
     auth: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    mat: ActorMaterializer,
+    mat: Materializer,
     successU: SucUnMar[T],
     errorU: ErrUnMar
   ): Future[Either[ErrorResp, (PagedResp[T], Option[Uri])]] =
@@ -42,7 +42,7 @@ object PaginatedSource extends AuthorizedRequests with EitherMarshalling with Oc
     dateFrom: Option[ZonedDateTime] = None,
     dateTo: Option[ZonedDateTime] = None,
     limit: Int = 100
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer,
+  )(implicit ec: ExecutionContext, mat: Materializer,
       successU: SucUnMar[T], errorU: ErrUnMar): Source[T, NotUsed] = {
     val query = Query(Map(
       "offset" -> "0",

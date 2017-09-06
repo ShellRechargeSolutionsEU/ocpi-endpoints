@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.http.scaladsl.{Http, HttpExt}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
@@ -17,7 +17,6 @@ import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -119,6 +118,6 @@ class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit http: HttpExt) extends OcpiClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
+    (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
     req.uri.toString match { case x => reqWithAuthFunc(x) }
 }

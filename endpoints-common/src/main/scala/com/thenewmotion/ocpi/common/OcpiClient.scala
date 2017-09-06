@@ -6,10 +6,10 @@ import java.time.ZonedDateTime
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
-import akka.stream.ActorMaterializer
-
+import akka.stream.Materializer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
+
 import akka.stream.scaladsl.Sink
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResponse}
@@ -20,12 +20,18 @@ import scala.util.control.NonFatal
 class ClientObjectUri (val value: Uri) extends AnyVal
 
 object ClientObjectUri {
-  def apply(endpointUri: Uri,
+  def apply(
+    endpointUri: Uri,
     ourCountryCode: String,
     ourPartyId: String,
-    uid: String) = {
-    val epUriNormalised = if (endpointUri.path.endsWithSlash) endpointUri.path else endpointUri.path ++ Uri.Path./
-    new ClientObjectUri(endpointUri.withPath(epUriNormalised ++ Uri.Path(ourCountryCode) / ourPartyId / uid))
+    ids: String*
+  ): ClientObjectUri = {
+    val epUriNormalised =
+      if (endpointUri.path.endsWithSlash) endpointUri.path
+      else endpointUri.path ++ Uri.Path./
+
+    val rest = ids.foldLeft(Uri.Path(ourCountryCode) / ourPartyId)(_ / _)
+    new ClientObjectUri(endpointUri.withPath(epUriNormalised ++ rest))
   }
 }
 
@@ -50,10 +56,10 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     req: HttpRequest,
     auth: AuthToken[Ours]
   )(
-    implicit ec: ExecutionContext, mat: ActorMaterializer, errorU: ErrUnMar
+    implicit ec: ExecutionContext, mat: Materializer, errorU: ErrUnMar
   ): Future[ErrorRespOr[T]] =
       requestWithAuth(http, req, auth).flatMap { response =>
-        Unmarshal(response).to[ErrorRespOr[T]].recover{
+        Unmarshal(response).to[ErrorRespOr[T]].recover {
           case NonFatal(cause) => throw FailedRequestException(req, response, cause)
         }
       }
@@ -65,7 +71,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     dateTo: Option[ZonedDateTime] = None,
     limit: Int = MaxNumItems
   )(
-    implicit ec: ExecutionContext, mat: ActorMaterializer, successU: SucUnMar[T], errorU: ErrUnMar
+    implicit ec: ExecutionContext, mat: Materializer, successU: SucUnMar[T], errorU: ErrUnMar
   ): Future[ErrorRespOr[Iterable[T]]] =
     PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
       _.asRight

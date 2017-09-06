@@ -7,7 +7,7 @@ import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
@@ -91,7 +91,7 @@ class TestMspTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit httpExt: HttpExt) extends MspTokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[HttpResponse] =
+    (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
     req.uri.toString match {
       case x => reqWithAuthFunc(x)
     }
