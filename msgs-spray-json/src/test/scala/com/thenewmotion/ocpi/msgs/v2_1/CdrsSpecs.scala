@@ -110,7 +110,7 @@ class CdrsSpecs extends SpecificationWithJUnit {
                   PowerType.AC1Phase,
                   230,
                   64,
-                  Some("11"),
+                  Some("11")
                 )
               ),
               evseId = Some("BE-BEC-E041503003")

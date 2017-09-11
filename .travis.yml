@@ -4,7 +4,7 @@ scala:
   - 2.12.1
 jdk:
   - oraclejdk8
-script: sbt clean test
+script: sbt ++$TRAVIS_SCALA_VERSION clean test
 notifications:
   slack: thenewmotion:AXSluctig1mmZbeKRDeeY41s
 cache:

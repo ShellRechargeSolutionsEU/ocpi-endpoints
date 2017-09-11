@@ -90,7 +90,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
                 PowerType.AC1Phase,
                 230,
                 64,
-                Some("11"),
+                Some("11")
               )
             ),
             evseId = Some("BE-BEC-E041503003")
