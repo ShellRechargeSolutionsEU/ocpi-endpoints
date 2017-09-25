@@ -5,11 +5,10 @@ import java.time.ZonedDateTime
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
+import akka.http.scaladsl.unmarshalling.{FromByteStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
-
 import akka.stream.scaladsl.Sink
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResponse}
@@ -47,22 +46,19 @@ case class FailedRequestException(request: HttpRequest, response: HttpResponse, 
   extends Exception("Failed to get response to OCPI request", cause)
 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
-  extends AuthorizedRequests with EitherMarshalling with OcpiResponseUnmarshalling {
+  extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
-  type ErrUnMar = FromEntityUnmarshaller[ErrorResp]
-  type SucUnMar[T] = FromEntityUnmarshaller[PagedResp[T]]
-
-  def singleRequest[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](
+  def singleRequest[T <: SuccessResponse : FromByteStringUnmarshaller : ClassTag](
     req: HttpRequest,
     auth: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext, mat: Materializer, errorU: ErrUnMar
   ): Future[ErrorRespOr[T]] =
-      requestWithAuth(http, req, auth).flatMap { response =>
-        Unmarshal(response).to[ErrorRespOr[T]].recover {
-          case NonFatal(cause) => throw FailedRequestException(req, response, cause)
-        }
+    requestWithAuth(http, req, auth).flatMap { response =>
+      Unmarshal(response).to[ErrorRespOr[T]].recover {
+        case NonFatal(cause) => throw FailedRequestException(req, response, cause)
       }
+    }
 
   def traversePaginatedResource[T](
     uri: Uri,

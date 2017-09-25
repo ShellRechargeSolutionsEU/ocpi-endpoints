@@ -18,7 +18,7 @@ import cats.syntax.either._
 import cats.instances.future._
 import scala.concurrent.{ExecutionContext, Future}
 
-object PaginatedSource extends AuthorizedRequests with EitherMarshalling with OcpiResponseUnmarshalling {
+object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
   private def singleRequestWithNextLink[T](
     http: HttpExt,

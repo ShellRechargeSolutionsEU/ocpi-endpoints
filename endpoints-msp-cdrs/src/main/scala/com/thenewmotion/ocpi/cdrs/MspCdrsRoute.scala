@@ -5,7 +5,7 @@ import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import msgs.ErrorResp
-import common.{EitherMarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
 import cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.Cdr
 import msgs._
@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 
 class MspCdrsRoute(
   service: MspCdrsService
-) extends JsonApi with EitherMarshalling with OcpiDirectives {
+) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
   import msgs.v2_1.OcpiJsonProtocol._
 
