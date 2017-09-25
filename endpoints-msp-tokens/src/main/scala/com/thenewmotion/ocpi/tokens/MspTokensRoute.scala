@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import common.{EitherMarshalling, Pager, PaginatedRoute}
+import common.{EitherUnmarshalling, Pager, PaginatedRoute}
 import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
 import msgs.OcpiStatusCode._
 import msgs.v2_1.Tokens.LocationReferences
@@ -19,7 +19,7 @@ class MspTokensRoute(
   service: MspTokensService,
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000
-) extends JsonApi with PaginatedRoute with EitherMarshalling {
+) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
 
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
