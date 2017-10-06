@@ -5,6 +5,7 @@ import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.PathMatcher1
 import msgs._
 import msgs.v2_1.OcpiJsonProtocol._
 import msgs.OcpiStatusCode.GenericClientFailure
@@ -30,9 +31,11 @@ class CpoTokensRoute(
     }
   }
 
+  private val TokenUidSegment: PathMatcher1[TokenUid] = Segment.map(TokenUid(_))
+
   def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default) {
-      (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(Segment)) { tokenUid =>
+      (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(TokenUidSegment)) { tokenUid =>
         pathEndOrSingleSlash {
           put {
             entity(as[Token]) { token =>

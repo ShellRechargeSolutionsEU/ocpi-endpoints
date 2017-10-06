@@ -6,6 +6,7 @@ import java.time.ZonedDateTime
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import common._
 import locations.LocationsError._
@@ -40,6 +41,10 @@ class CpoLocationsRoute(
   def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
 
+  private val LocationIdSegment = Segment.map(LocationId(_))
+  private val EvseUidSegment = Segment.map(EvseUid(_))
+  private val ConnectorIdSegment = Segment.map(ConnectorId(_))
+
   private [locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
     get {
       pathEndOrSingleSlash {
@@ -56,7 +61,7 @@ class CpoLocationsRoute(
           }
         }
       } ~
-      pathPrefix(Segment) { locId =>
+      pathPrefix(LocationIdSegment) { locId =>
         pathEndOrSingleSlash {
           complete {
             service.location(locId).mapRight { location =>
@@ -64,7 +69,7 @@ class CpoLocationsRoute(
             }
           }
         } ~
-        pathPrefix(Segment) { evseId =>
+        pathPrefix(EvseUidSegment) { evseId =>
           pathEndOrSingleSlash {
             complete {
               service.evse(locId, evseId).mapRight { evse =>
@@ -72,7 +77,7 @@ class CpoLocationsRoute(
               }
             }
           } ~
-          (path(Segment) & pathEndOrSingleSlash) { connId =>
+          (path(ConnectorIdSegment) & pathEndOrSingleSlash) { connId =>
             complete {
               service.connector(locId, evseId, connId).mapRight { connector =>
                 SuccessResp(GenericSuccess, data = connector)

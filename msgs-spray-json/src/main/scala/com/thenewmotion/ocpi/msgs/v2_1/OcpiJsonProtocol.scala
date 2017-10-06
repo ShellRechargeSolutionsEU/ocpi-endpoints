@@ -162,6 +162,54 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val imageFormat = jsonFormat6(Image)
   implicit val businessDetailsFormat = jsonFormat3(BusinessDetails)
 
+  implicit val connectorIdFmt = new JsonFormat[ConnectorId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => ConnectorId(s)
+      case _ => deserializationError("ConnectorId must be a string")
+    }
+    override def write(obj: ConnectorId) = JsString(obj.value)
+  }
+
+  implicit val locationIdFmt = new JsonFormat[LocationId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => LocationId(s)
+      case _ => deserializationError("LocationId must be a string")
+    }
+    override def write(obj: LocationId) = JsString(obj.value)
+  }
+
+  implicit val evseUidFmt = new JsonFormat[EvseUid] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => EvseUid(s)
+      case _ => deserializationError("EvseUid must be a string")
+    }
+    override def write(obj: EvseUid) = JsString(obj.value)
+  }
+
+  implicit val tokenUidFmt = new JsonFormat[TokenUid] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => TokenUid(s)
+      case _ => deserializationError("TokenUid must be a string")
+    }
+    override def write(obj: TokenUid) = JsString(obj.value)
+  }
+
+  implicit val tariffIdFmt = new JsonFormat[TariffId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => TariffId(s)
+      case _ => deserializationError("TariffId must be a string")
+    }
+    override def write(obj: TariffId) = JsString(obj.value)
+  }
+
+  implicit val cdrIdFmt = new JsonFormat[CdrId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => CdrId(s)
+      case _ => deserializationError("CdrId must be a string")
+    }
+    override def write(obj: CdrId) = JsString(obj.value)
+  }
+
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)

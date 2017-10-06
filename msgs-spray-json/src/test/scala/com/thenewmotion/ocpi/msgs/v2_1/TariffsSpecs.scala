@@ -87,7 +87,7 @@ class TariffsSpecs extends SpecificationWithJUnit {
       import DayOfWeek._
 
       val expected  = Tariff(
-        id = "11",
+        id = TariffId("11"),
         currency = CurrencyCode("EUR"),
         tariffAltUrl = Some(Url("https://company.com/tariffs/11")),
         elements = List(

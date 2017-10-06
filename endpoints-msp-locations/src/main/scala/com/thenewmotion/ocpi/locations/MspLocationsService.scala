@@ -15,7 +15,7 @@ trait MspLocationsService {
     */
   def createOrUpdateLocation(
     globalPartyId: GlobalPartyId,
-    locId: String,
+    locId: LocationId,
     loc: Location
   ): Future[Either[LocationsError, Boolean]]
 
@@ -24,8 +24,8 @@ trait MspLocationsService {
     */
   def addOrUpdateEvse(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String,
+    locId: LocationId,
+    evseUid: EvseUid,
     evse: Evse
   ): Future[Either[LocationsError, Boolean]]
 
@@ -34,49 +34,49 @@ trait MspLocationsService {
     */
   def addOrUpdateConnector(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String,
-    connId: String,
+    locId: LocationId,
+    evseUid: EvseUid,
+    connId: ConnectorId,
     connector: Connector
   ): Future[Either[LocationsError, Boolean]]
 
   def updateLocation(
     globalPartyId: GlobalPartyId,
-    locId: String,
+    locId: LocationId,
     locPatch: LocationPatch
   ): Future[Either[LocationsError, Unit]]
 
   def updateEvse(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String,
+    locId: LocationId,
+    evseUid: EvseUid,
     evsePatch: EvsePatch
   ): Future[Either[LocationsError, Unit]]
 
   def updateConnector(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String,
-    connId: String,
+    locId: LocationId,
+    evseUid: EvseUid,
+    connId: ConnectorId,
     connectorPatch: ConnectorPatch
   ): Future[Either[LocationsError, Unit]]
 
   def location(
     globalPartyId: GlobalPartyId,
-    locId: String
+    locId: LocationId
   ): Future[Either[LocationsError, Location]]
 
   def evse(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String
+    locId: LocationId,
+    evseUid: EvseUid
   ): Future[Either[LocationsError, Evse]]
 
   def connector(
     globalPartyId: GlobalPartyId,
-    locId: String,
-    evseId: String,
-    connectorId: String
+    locId: LocationId,
+    evseUid: EvseUid,
+    connectorId: ConnectorId
    ): Future[Either[LocationsError, Connector]]
 
 }

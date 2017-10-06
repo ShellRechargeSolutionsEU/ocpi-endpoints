@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
 import client.RequestBuilding._
 import com.thenewmotion.ocpi.msgs.AuthToken
-import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences}
+import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}
 import com.thenewmotion.ocpi.common.OcpiClient
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import cats.syntax.either._
@@ -20,10 +20,10 @@ class MspTokensClient(implicit http: HttpExt) extends OcpiClient {
   def authorize(
     endpointUri: Uri,
     authToken: AuthToken[Ours],
-    tokenUid: String,
+    tokenUid: TokenUid,
     locationReferences: Option[LocationReferences]
   )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[AuthorizationInfo]] = {
-    val authorizeUri = endpointUri.withPath(endpointUri.path / tokenUid / "authorize")
+    val authorizeUri = endpointUri.withPath(endpointUri.path / tokenUid.value / "authorize")
     singleRequest[AuthorizationInfo](Post(authorizeUri, locationReferences), authToken) map {
       _.bimap({ err =>
         logger.error(s"Error getting real-time authorization from $authorizeUri: $err")

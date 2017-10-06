@@ -105,7 +105,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   }
 
   trait TokensTestScope extends Scope {
-    val tokenUid = "012345678"
+    val tokenUid = TokenUid("012345678")
     val countryCodeString = "NL"
     val operatorIdString = "TNM"
     val apiUser = GlobalPartyId(countryCodeString, operatorIdString)

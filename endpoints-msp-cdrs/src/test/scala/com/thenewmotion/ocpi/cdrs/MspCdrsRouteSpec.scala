@@ -32,10 +32,10 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     }
 
     "handle NotFound failure" in new TestScope {
-      service.cdr(apiUser, "does-not-exist") returns Future(CdrNotFound().asLeft)
+      service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
 
       Get("/NL/TNM/does-not-exist") ~> route.route(apiUser) ~> check {
-        there was one(service).cdr(apiUser, "does-not-exist")
+        there was one(service).cdr(apiUser, CdrId("does-not-exist"))
         status mustEqual StatusCodes.NotFound
       }
     }
@@ -63,13 +63,13 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val cdr = Cdr(
-      id = "12345",
+      id = CdrId("12345"),
       startDateTime = ZonedDateTime.parse("2015-06-29T21:39:09Z"),
       stopDateTime = ZonedDateTime.parse("2015-06-29T23:37:32Z"),
       authId = "DE8ACC12E46L89",
       authMethod = AuthMethod.Whitelist,
       location = Location(
-        "LOC1",
+        LocationId("LOC1"),
         ZonedDateTime.parse("2015-06-29T21:39:01Z"),
         LocationType.OnStreet,
         Some("Gent Zuid"),
@@ -80,10 +80,10 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
         GeoLocation("3.72994", "51.04759"),
         List(),
         List(
-          Evse("3256", ZonedDateTime.parse("2015-06-29T21:39:01Z"), ConnectorStatus.Available,
+          Evse(EvseUid("3256"), ZonedDateTime.parse("2015-06-29T21:39:01Z"), ConnectorStatus.Available,
             List(
               Connector(
-                "1",
+                ConnectorId("1"),
                 ZonedDateTime.parse("2015-06-29T21:39:01Z"),
                 ConnectorType.`IEC_62196_T2`,
                 ConnectorFormat.Socket,

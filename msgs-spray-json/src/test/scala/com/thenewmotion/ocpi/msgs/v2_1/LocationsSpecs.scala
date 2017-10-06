@@ -162,18 +162,18 @@ class LocationsSpecs extends SpecificationWithJUnit {
       DisplayText("en", "eMSP Tariff") )
 
      val connector1 = Connector(
-        "1",
-        lastUpdated = dateOfUpdate,
-        ConnectorType.`IEC_62196_T2`,
-        ConnectorFormat.Cable,
-        PowerType.AC3Phase,
-        230,
-        16,
-        tariffId = Some("kwrate")
+       ConnectorId("1"),
+       lastUpdated = dateOfUpdate,
+       ConnectorType.`IEC_62196_T2`,
+       ConnectorFormat.Cable,
+       PowerType.AC3Phase,
+       230,
+       16,
+       tariffId = Some("kwrate")
      )
 
     val connector2 = Connector(
-      "2",
+      ConnectorId("2"),
       lastUpdated = dateOfUpdate,
       ConnectorType.`IEC_62196_T2`,
       ConnectorFormat.Socket,
@@ -184,7 +184,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     )
 
     val evse1 = Evse(
-      "BE-BEC-E041503001",
+      EvseUid("BE-BEC-E041503001"),
       lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
@@ -194,7 +194,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     )
 
     val evse2 = Evse(
-      "BE-BEC-E041503002",
+      EvseUid("BE-BEC-E041503002"),
       lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
@@ -204,7 +204,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     )
 
     val evse3 = Evse(
-      "BE-BEC-E041503003",
+      EvseUid("BE-BEC-E041503003"),
       lastUpdated = dateOfUpdate,
       ConnectorStatus.Available,
       capabilities = List(Capability.Reservable),
@@ -235,7 +235,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     )
     val dir1 = DisplayText("en", "left, left, left, right, left")
     val location1 = Location(
-      "LOC1",
+      LocationId("LOC1"),
       lastUpdated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),
@@ -262,7 +262,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
     )
 
     val location2 = Location(
-      "LOC2",
+      LocationId("LOC2"),
       lastUpdated = dateOfUpdate,
       `type` = LocationType.OnStreet,
       Some("Gent Zuid"),

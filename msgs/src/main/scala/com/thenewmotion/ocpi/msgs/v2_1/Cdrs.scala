@@ -36,8 +36,30 @@ object Cdrs {
     dimensions: Iterable[CdrDimension]
   )
 
+  trait CdrId extends Any { def value: String }
+  object CdrId {
+    private class CdrIdImpl(val value: String) extends CdrId {
+      override def toString: String = value
+
+      override def equals(obj: scala.Any): Boolean = obj match {
+        case CdrId(x) if x.toUpperCase.equals(value.toUpperCase) => true
+        case _ => false
+      }
+
+      override def hashCode(): Int = value.hashCode
+    }
+
+    def apply(value: String): CdrId = {
+      require(value.length <= 36, "Cdr Id must be 36 characters or less")
+      new CdrIdImpl(value)
+    }
+
+    def unapply(conId: CdrId): Option[String] =
+      Some(conId.value)
+  }
+
   final case class Cdr(
-    id: String,
+    id: CdrId,
     startDateTime: ZonedDateTime,
     stopDateTime: ZonedDateTime,
     authId: String,

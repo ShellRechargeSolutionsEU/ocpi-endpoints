@@ -1,9 +1,8 @@
 package com.thenewmotion.ocpi
 package cdrs
 
-import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.Cdr
+import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{Cdr, CdrId}
 import msgs.GlobalPartyId
-
 import scala.concurrent.Future
 
 /**
@@ -24,6 +23,6 @@ trait MspCdrsService {
     */
   def cdr(
     globalPartyId: GlobalPartyId,
-    cdrId: String
+    cdrId: CdrId
   ): Future[Either[CdrsError, Cdr]]
 }

@@ -8,8 +8,23 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 
 object Locations {
 
+  trait LocationId extends Any { def value: String }
+  object LocationId {
+    private case class LocationIdImpl(value: String) extends AnyVal with LocationId {
+      override def toString: String = value
+    }
+
+    def apply(value: String): LocationId = {
+      require(value.length <= 39, "Location Id must be 39 characters or less")
+      LocationIdImpl(value)
+    }
+
+    def unapply(locId: LocationId): Option[String] =
+      Some(locId.value)
+  }
+
   case class Location(
-    id: String,
+    id: LocationId,
     lastUpdated: ZonedDateTime,
     `type`:	LocationType,
     name:	Option[String],
@@ -33,7 +48,7 @@ object Locations {
 
   object Location {
     private[v2_1] def deserialize(
-      id: String,
+      id: LocationId,
       lastUpdated: ZonedDateTime,
       `type`:	LocationType,
       name:	Option[String],
@@ -77,9 +92,8 @@ object Locations {
       energyMix)
   }
 
-
   case class LocationPatch(
-    id: Option[String] = None,
+    id: Option[LocationId] = None,
     lastUpdated: Option[ZonedDateTime] = None,
     `type`: Option[LocationType] = None,
     name: Option[String] = None,
@@ -262,8 +276,23 @@ object Locations {
     val values = Iterable(Charging, Parking)
   }
 
+  trait ConnectorId extends Any { def value: String }
+  object ConnectorId {
+    private case class ConnectorIdImpl(value: String) extends AnyVal with ConnectorId {
+      override def toString: String = value
+    }
+
+    def apply(value: String): ConnectorId = {
+      require(value.length <= 36, "Connector Id must be 36 characters or less")
+      ConnectorIdImpl(value)
+    }
+
+    def unapply(conId: ConnectorId): Option[String] =
+      Some(conId.value)
+  }
+
   case class Connector(
-    id: String,
+    id: ConnectorId,
     lastUpdated: ZonedDateTime,
     standard: ConnectorType,
     format: ConnectorFormat,
@@ -275,7 +304,7 @@ object Locations {
   )
 
   case class ConnectorPatch(
-    id: Option[String] = None,
+    id: Option[ConnectorId] = None,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
     powerType:	Option[PowerType] = None,
@@ -296,8 +325,23 @@ object Locations {
     val values = Iterable(ChargingProfileCapable, CreditCardPayable, Reservable, RfidReader, RemoteStartStopCapable, UnlockCapabale)
   }
 
+  trait EvseUid extends Any { def value: String }
+  object EvseUid {
+    private case class EvseUidImpl(value: String) extends AnyVal with EvseUid  {
+      override def toString: String = value
+    }
+
+    def apply(value: String): EvseUid = {
+      require(value.length <= 39, "Evse Uid must be 39 characters or less")
+      EvseUidImpl(value)
+    }
+
+    def unapply(evseUid: EvseUid): Option[String] =
+      Some(evseUid.value)
+  }
+
   case class Evse(
-    uid: String,
+    uid: EvseUid,
     lastUpdated: ZonedDateTime,
     status: ConnectorStatus,
     connectors: Iterable[Connector],
@@ -316,7 +360,7 @@ object Locations {
 
   object Evse {
     private[v2_1] def deserialize(
-      uid: String,
+      uid: EvseUid,
       lastUpdated: ZonedDateTime,
       status: ConnectorStatus,
       connectors: Option[Iterable[Connector]],
@@ -347,7 +391,7 @@ object Locations {
   }
 
   case class EvsePatch(
-    uid: Option[String] = None,
+    uid: Option[EvseUid] = None,
     status: Option[ConnectorStatus] = None,
     connectors: Option[Iterable[Connector]] = None,
     status_schedule: Option[Iterable[StatusSchedule]] = None,

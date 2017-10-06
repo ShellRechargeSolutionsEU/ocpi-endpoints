@@ -11,7 +11,7 @@ import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import common.{EitherUnmarshalling, Pager, PaginatedRoute}
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import msgs.OcpiStatusCode._
-import msgs.v2_1.Tokens.LocationReferences
+import msgs.v2_1.Tokens.{LocationReferences, TokenUid}
 import tokens.AuthorizeError._
 import scala.concurrent.ExecutionContext
 
@@ -42,6 +42,8 @@ class MspTokensRoute(
       }
     }
 
+  private val TokenUidSegment = Segment.map(TokenUid(_))
+
   def route(apiUser: GlobalPartyId)(implicit ec: ExecutionContext) =
     get {
       pathEndOrSingleSlash {
@@ -54,7 +56,7 @@ class MspTokensRoute(
         }
       }
     } ~
-    pathPrefix(Segment) { tokenUid =>
+    pathPrefix(TokenUidSegment) { tokenUid =>
       path("authorize") {
         (post & optionalEntity(as[LocationReferences])) { lr =>
           complete {

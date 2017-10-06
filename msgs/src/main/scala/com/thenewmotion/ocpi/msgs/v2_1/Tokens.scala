@@ -5,6 +5,7 @@ import java.time.ZonedDateTime
 
 import com.thenewmotion.ocpi.msgs.Language
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 
 object Tokens {
   sealed abstract class TokenType(val name: String) extends Nameable
@@ -23,8 +24,23 @@ object Tokens {
     val values = Set(Always, Allowed, AllowedOffline, Never)
   }
 
+  trait TokenUid extends Any { def value: String }
+  object TokenUid {
+    private case class TokenUidImpl(value: String) extends AnyVal with TokenUid {
+      override def toString: String = value
+    }
+
+    def apply(value: String): TokenUid = {
+      require(value.length <= 36, "Token Uid must be 36 characters or less")
+      TokenUidImpl(value)
+    }
+
+    def unapply(tokId: TokenUid): Option[String] =
+      Some(tokId.value)
+  }
+
   case class Token(
-    uid: String,
+    uid: TokenUid,
     `type`: TokenType,
     authId: String,
     visualNumber: Option[String] = None,
@@ -36,7 +52,7 @@ object Tokens {
   )
 
   case class TokenPatch(
-    uid: Option[String] = None,
+    uid: Option[TokenUid] = None,
     `type`: Option[TokenType] = None,
     authId: Option[String] = None,
     visualNumber: Option[String] = None,
@@ -48,16 +64,16 @@ object Tokens {
   )
 
   case class LocationReferences(
-    locationId: String,
-    evseUids: Iterable[String] = Nil,
-    connectorIds: Iterable[String] = Nil
+    locationId: LocationId,
+    evseUids: Iterable[EvseUid] = Nil,
+    connectorIds: Iterable[ConnectorId] = Nil
   )
 
   object LocationReferences {
     private[v2_1] def deserialize(
-      locationId: String,
-      evseUids: Option[Iterable[String]],
-      connectorIds: Option[Iterable[String]]
+      locationId: LocationId,
+      evseUids: Option[Iterable[EvseUid]],
+      connectorIds: Option[Iterable[ConnectorId]]
     ) = new LocationReferences(
       locationId,
       evseUids getOrElse Nil,

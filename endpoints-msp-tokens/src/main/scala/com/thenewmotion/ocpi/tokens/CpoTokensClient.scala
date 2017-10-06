@@ -8,7 +8,7 @@ import akka.stream.ActorMaterializer
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import common.{ClientObjectUri, OcpiClient}
 import msgs.AuthToken
-import msgs.v2_1.Tokens.{Token, TokenPatch}
+import msgs.v2_1.Tokens.{Token, TokenPatch, TokenUid}
 import cats.syntax.either._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -16,7 +16,7 @@ class CpoTokensClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 
-  def getToken(tokenUri: ClientObjectUri, authToken: AuthToken[Ours], tokenUid: String)
+  def getToken(tokenUri: ClientObjectUri, authToken: AuthToken[Ours], tokenUid: TokenUid)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Token]] =
     singleRequest[Token](Get(tokenUri.value), authToken).map {
       _.bimap(err => {

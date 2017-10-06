@@ -10,8 +10,9 @@ import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Allowed, AuthorizationInfo, LocationReferences}
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Allowed, AuthorizationInfo, LocationReferences, TokenUid}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
@@ -34,7 +35,8 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
     }
 
     "request authorization for a token on a specific location" in new TestScope {
-      val testLocRefs = LocationReferences(locationId = "ABCDEF", evseUids = List("evse-123456", "evse-1234567"))
+      val testLocRefs = LocationReferences(locationId = LocationId("ABCDEF"),
+        evseUids = List("evse-123456", "evse-1234567").map(EvseUid(_)))
       client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId,
         locationReferences = Some(testLocRefs)) must beLike[Either[ErrorResp, AuthorizationInfo]] {
         case Right(r) =>
@@ -51,7 +53,7 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     implicit val http: HttpExt = Http()
 
-    val tokenId = "DEADBEEF"
+    val tokenId = TokenUid("DEADBEEF")
 
     val theirTokensEndpoint = "http://localhost:8095/msp/versions/2.1/tokens"
     val theirTokensEndpointUri = Uri(theirTokensEndpoint)

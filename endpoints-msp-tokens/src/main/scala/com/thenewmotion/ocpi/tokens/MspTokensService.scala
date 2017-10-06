@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.tokens
 import java.time.ZonedDateTime
 
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, Token}
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, Token, TokenUid}
 import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait AuthorizeError
@@ -23,6 +23,6 @@ trait MspTokensService {
     dateTo: Option[ZonedDateTime] = None
   )(implicit ec: ExecutionContext): Future[PaginatedResult[Token]]
 
-  def authorize(tokenUid: String, locationReferences: Option[LocationReferences])
+  def authorize(tokenUid: TokenUid, locationReferences: Option[LocationReferences])
     (implicit ec: ExecutionContext): Future[Either[AuthorizeError, AuthorizationInfo]]
 }

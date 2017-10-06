@@ -31,9 +31,9 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
     "Retrieve a Token as it is stored in the CPO system" in new TestScope {
 
-      client.getToken(tokenUri, AuthToken[Ours]("auth"), "123") must beLike[Either[ErrorResp, Token]] {
+      client.getToken(tokenUri, AuthToken[Ours]("auth"), TokenUid("123")) must beLike[Either[ErrorResp, Token]] {
         case Right(r) =>
-          r.uid === "123"
+          r.uid === TokenUid("123")
       }.await
     }
 
@@ -68,7 +68,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
     val ourPartyId = "TNM"
 
     val testToken = Token(
-      uid = "123",
+      uid = TokenUid("123"),
       `type` = TokenType.Rfid,
       authId = "A1B2C3",
       visualNumber = None,
@@ -85,7 +85,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
       endpointUri = dataUrl,
       ourCountryCode = ourCountryCode,
       ourPartyId = ourPartyId,
-      ids = testToken.uid
+      ids = testToken.uid.value
     )
 
     def successResp = HttpResponse(

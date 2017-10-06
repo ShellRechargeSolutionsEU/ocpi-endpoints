@@ -11,10 +11,10 @@ import msgs.v2_1.Tokens._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 
 import scala.concurrent.Future
 import msgs.v2_1.OcpiJsonProtocol._
@@ -36,10 +36,10 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "authorize without location references" in new TestScope {
-      service.authorize("23455655A", None) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
+      service.authorize(TokenUid("23455655A"), None) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
 
       Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
-        there was one(service).authorize("23455655A", None)
+        there was one(service).authorize(TokenUid("23455655A"), None)
         val res = entityAs[SuccessResp[AuthorizationInfo]]
         res.data.allowed mustEqual Allowed.Allowed
       }
@@ -47,22 +47,22 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
     "authorize with location references" in new TestScope {
 
-      val lr = LocationReferences("1234", List("1234"), List("1234", "5678"))
+      val lr = LocationReferences(LocationId("1234"), List(EvseUid("1234")), List(ConnectorId("1234"), ConnectorId("5678")))
 
-      service.authorize("23455655A", Some(lr)) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
+      service.authorize(TokenUid("23455655A"), Some(lr)) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
 
       Post("/23455655A/authorize", lr) ~> route.route(apiUser) ~> check {
-        there was one(service).authorize("23455655A", Some(lr))
+        there was one(service).authorize(TokenUid("23455655A"), Some(lr))
         val res = entityAs[SuccessResp[AuthorizationInfo]]
         res.data.allowed mustEqual Allowed.Allowed
       }
     }
 
     "handle MustProvideLocationReferences failure" in new TestScope {
-      service.authorize("23455655A", None) returns Future(MustProvideLocationReferences.asLeft)
+      service.authorize(TokenUid("23455655A"), None) returns Future(MustProvideLocationReferences.asLeft)
 
       Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
-        there was one(service).authorize("23455655A", None)
+        there was one(service).authorize(TokenUid("23455655A"), None)
         val res = entityAs[ErrorResp]
         res.statusCode mustEqual NotEnoughInformation
         status mustEqual StatusCodes.OK
@@ -70,10 +70,10 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "handle NotFound failure" in new TestScope {
-      service.authorize("23455655A", None) returns Future(TokenNotFound.asLeft)
+      service.authorize(TokenUid("23455655A"), None) returns Future(TokenNotFound.asLeft)
 
       Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
-        there was one(service).authorize("23455655A", None)
+        there was one(service).authorize(TokenUid("23455655A"), None)
         status mustEqual StatusCodes.NotFound
       }
     }
@@ -83,7 +83,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val token = Token(
-      uid = "23455655A",
+      uid = TokenUid("23455655A"),
       `type` = TokenType.Rfid,
       authId = "NL-TNM-000660755-V",
       visualNumber = Some("NL-TNM-066075-5"),

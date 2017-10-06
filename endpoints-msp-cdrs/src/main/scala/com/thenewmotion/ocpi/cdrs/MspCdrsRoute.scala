@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import msgs.ErrorResp
 import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
 import cdrs.CdrsError._
-import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.Cdr
+import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{Cdr, CdrId}
 import msgs._
 import msgs.OcpiStatusCode._
 
@@ -35,6 +35,8 @@ class MspCdrsRoute(
   def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
+  private val CdrIdSegment = Segment.map(CdrId(_))
+
   private[cdrs] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
     authPathPrefixGlobalPartyIdEquality(apiUser) {
       (post & pathEndOrSingleSlash) {
@@ -46,7 +48,7 @@ class MspCdrsRoute(
           }
         }
       } ~
-      (get & pathPrefix(Segment) & pathEndOrSingleSlash) { cdrId =>
+      (get & pathPrefix(CdrIdSegment) & pathEndOrSingleSlash) { cdrId =>
         complete {
           service.cdr(apiUser, cdrId).mapRight { cdr =>
             SuccessResp(GenericSuccess, data = cdr)

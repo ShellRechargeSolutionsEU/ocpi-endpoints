@@ -34,8 +34,12 @@ class MspLocationsRoute(
   def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
+  private val LocationIdSegment = Segment.map(LocationId(_))
+  private val EvseUidSegment = Segment.map(EvseUid(_))
+  private val ConnectorIdSegment = Segment.map(ConnectorId(_))
+
   private[locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
-    (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(Segment)) { locId =>
+    (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(LocationIdSegment)) { locId =>
       pathEndOrSingleSlash {
         put {
           entity(as[Location]) { location =>
@@ -63,7 +67,7 @@ class MspLocationsRoute(
           }
         }
       } ~
-      pathPrefix(Segment) { evseId =>
+      pathPrefix(EvseUidSegment) { evseId =>
         pathEndOrSingleSlash {
           put {
             entity(as[Evse]) { evse =>
@@ -91,7 +95,7 @@ class MspLocationsRoute(
             }
           }
         } ~
-        (path(Segment) & pathEndOrSingleSlash) { connId =>
+        (path(ConnectorIdSegment) & pathEndOrSingleSlash) { connId =>
           put {
             entity(as[Connector]) { conn =>
               complete {

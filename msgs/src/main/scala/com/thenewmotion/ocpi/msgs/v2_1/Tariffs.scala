@@ -54,8 +54,23 @@ object Tariffs {
     restrictions: Option[TariffRestrictions] = None
   )
 
+  trait TariffId extends Any { def value: String }
+  object TariffId {
+    private case class TariffIdImpl(value: String) extends AnyVal with TariffId {
+      override def toString: String = value
+    }
+
+    def apply(value: String): TariffId = {
+      require(value.length <= 36, "Tariff Id must be 36 characters or less")
+      TariffIdImpl(value)
+    }
+
+    def unapply(conId: TariffId): Option[String] =
+      Some(conId.value)
+  }
+
   final case class Tariff(
-    id: String,
+    id: TariffId,
     currency: CurrencyCode,
     tariffAltText: Option[Iterable[DisplayText]] = None,
     tariffAltUrl: Option[Url] = None,

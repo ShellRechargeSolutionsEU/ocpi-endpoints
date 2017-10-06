@@ -11,7 +11,7 @@ import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location, LocationId, EvseUid, ConnectorId}
 import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
 import scala.concurrent.Future
 import spray.json._
@@ -72,19 +72,19 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
       "location object" in new LocationsTestScope {
         Get("/LOC1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-          there was one(cpoLocService).location(===("LOC1"))
+          there was one(cpoLocService).location(===(LocationId("LOC1")))
         }
       }
 
       "EVSE object" in new LocationsTestScope {
         Get("/LOC1/3256") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-          there was one(cpoLocService).evse(===("LOC1"), ===("3256"))
+          there was one(cpoLocService).evse(===(LocationId("LOC1")), ===(EvseUid("3256")))
         }
       }
 
       "connector object" in new LocationsTestScope {
         Get("/LOC1/3256/1") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-          there was one(cpoLocService).connector(===("LOC1"), ===("3256"), ===("1"))
+          there was one(cpoLocService).connector(===(LocationId("LOC1")), ===(EvseUid("3256")), ===(ConnectorId("1")))
         }
       }
     }
@@ -209,13 +209,13 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val loc2String = loc1String.replace("LOC1","LOC2")
 
-    cpoLocService.location("LOC1") returns
+    cpoLocService.location(LocationId("LOC1")) returns
       Future(Right(loc1String.parseJson.convertTo[Location]))
 
-    cpoLocService.evse("LOC1", "3256") returns
+    cpoLocService.evse(LocationId("LOC1"), EvseUid("3256")) returns
       Future(Right(evse1String.parseJson.convertTo[Evse]))
 
-    cpoLocService.connector("LOC1", "3256", "1") returns
+    cpoLocService.connector(LocationId("LOC1"), EvseUid("3256"), ConnectorId("1")) returns
       Future(Right(evse1conn1String.parseJson.convertTo[Connector]))
   }
 }

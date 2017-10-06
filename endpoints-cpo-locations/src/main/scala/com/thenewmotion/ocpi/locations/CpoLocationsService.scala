@@ -16,9 +16,9 @@ trait CpoLocationsService {
     dateTo: Option[ZonedDateTime] = None
   ): Future[Either[LocationsError, PaginatedResult[Location]]]
 
-  def location(locId: String): Future[Either[LocationsError, Location]]
+  def location(locId: LocationId): Future[Either[LocationsError, Location]]
 
-  def evse(locId: String, evseUid: String): Future[Either[LocationsError, Evse]]
+  def evse(locId: LocationId, evseUid: EvseUid): Future[Either[LocationsError, Evse]]
 
-  def connector(locId: String, evseUid: String, connectorId: String): Future[Either[LocationsError, Connector]]
+  def connector(locId: LocationId, evseUid: EvseUid, connectorId: ConnectorId): Future[Either[LocationsError, Connector]]
 }
