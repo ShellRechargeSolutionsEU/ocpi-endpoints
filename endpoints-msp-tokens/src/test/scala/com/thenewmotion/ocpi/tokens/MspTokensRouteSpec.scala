@@ -30,7 +30,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "1000"))
         headers.find(_.name == "X-Total-Count") mustEqual Some(RawHeader("X-Total-Count", "1"))
         there was one(service).tokens(Pager(0, 1000), None, None)
-        val res = entityAs[SuccessWithDataResp[List[Token]]]
+        val res = entityAs[SuccessResp[List[Token]]]
         res.data mustEqual List(token)
       }
     }
@@ -40,7 +40,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       Post("/23455655A/authorize") ~> route.route(apiUser) ~> check {
         there was one(service).authorize("23455655A", None)
-        val res = entityAs[SuccessWithDataResp[AuthorizationInfo]]
+        val res = entityAs[SuccessResp[AuthorizationInfo]]
         res.data.allowed mustEqual Allowed.Allowed
       }
     }
@@ -53,7 +53,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       Post("/23455655A/authorize", lr) ~> route.route(apiUser) ~> check {
         there was one(service).authorize("23455655A", Some(lr))
-        val res = entityAs[SuccessWithDataResp[AuthorizationInfo]]
+        val res = entityAs[SuccessResp[AuthorizationInfo]]
         res.data.allowed mustEqual Allowed.Allowed
       }
     }

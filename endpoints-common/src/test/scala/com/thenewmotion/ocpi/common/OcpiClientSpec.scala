@@ -12,7 +12,7 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
-import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessResp}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
@@ -29,16 +29,23 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   implicit val testDataFormat = jsonFormat1(TestData)
 
   "single request" should {
-    "unmarshal success response" in new TestScope {
-      client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessWithDataResp[TestData]]] {
+    "unmarshal success response with data" in new TestScope {
+      client.singleRequest[TestData](
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[TestData]]] {
         case Right(r) => r.data.id mustEqual "monkey"
       }.await
     }
 
+    "unmarshal success response without data" in new TestScope {
+      client.singleRequest[Unit](
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[Unit]]] {
+        case Right(r) => r.data.mustEqual(())
+      }.await
+    }
+
     "unmarshal error response" in new TestScope {
-      client.singleRequest[SuccessWithDataResp[TestData]](
-        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessWithDataResp[TestData]]] {
+      client.singleRequest[TestData](
+        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[TestData]]] {
         case Left(err) =>
           err.statusCode mustEqual GenericClientFailure
           err.statusMessage must beSome("something went horribly wrong...")
@@ -84,24 +91,14 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
 
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
 
-    val wrongJsonUrl = s"$dataUrl/wrongjson"
-    val notFoundUrl = s"$dataUrl/notfound"
-    val emptyUrl = s"$dataUrl/empty"
-    val ocpiErrorUrl = s"$dataUrl/ocpierror"
     val singleRequestOKUrl = s"$dataUrl/animals-ok"
     val singleRequestErrUrl = s"$dataUrl/animals-err"
 
     val urlPattern = s"$dataUrl\\?offset=([0-9]+)&limit=[0-9]+".r
-    val wrongJsonUrlWithParams = s"$wrongJsonUrl?offset=0&limit=1"
-    val notFoundUrlWithParams = s"$notFoundUrl?offset=0&limit=1"
-    val emptyUrlWithParams = s"$emptyUrl?offset=0&limit=1"
-    val ocpiErrorUrlWithParams = s"$ocpiErrorUrl?offset=0&limit=1"
     val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
 
     def requestWithAuth(uri: String) = uri match {
       case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
-      case `notFoundUrlWithParams` => Future.successful(notFoundResp)
-      case `ocpiErrorUrlWithParams` => Future.successful(ocpiErrorResp)
       case `singleRequestOKUrl` => Future.successful(successResponse)
       case `singleRequestErrUrl` => Future.successful(ocpiErrorResp)
       case x =>
@@ -112,7 +109,6 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     lazy val client = new TestOcpiClient(requestWithAuth)
   }
 }
-
 
 class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit http: HttpExt) extends OcpiClient {

@@ -7,7 +7,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
 import VersionNumber._
-import com.thenewmotion.ocpi.msgs.SuccessWithDataResp
+import com.thenewmotion.ocpi.msgs.SuccessResp
 import com.thenewmotion.ocpi.OcpiDateTimeParser
 
 class VersionsSpecs extends SpecificationWithJUnit {
@@ -16,7 +16,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
   "VersionsResp" should {
     "deserialize" in new VersionsTestScope {
-      versionRespJson1.convertTo[SuccessWithDataResp[List[Version]]] mustEqual versionResp
+      versionRespJson1.convertTo[SuccessResp[List[Version]]] mustEqual versionResp
     }
     "serialize" in new VersionsTestScope {
       versionResp.toJson mustEqual versionRespJson1
@@ -25,7 +25,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
 
   "VersionDetailsResp" should {
     "succeed to deserialize if minimum expected endpoints included" in new VersionsTestScope {
-      version21DetailsRespJson.convertTo[SuccessWithDataResp[VersionDetails]] mustEqual version21DetailsResp
+      version21DetailsRespJson.convertTo[SuccessResp[VersionDetails]] mustEqual version21DetailsResp
     }
     "serialize" in new VersionsTestScope {
       version21DetailsResp.toJson mustEqual version21DetailsRespJson
@@ -45,7 +45,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
       `2.1`, Url("https://example.com/ocpi/cpo/2.1/")
     )
 
-    val versionResp = SuccessWithDataResp(GenericSuccess, Some("Success"),
+    val versionResp = SuccessResp(GenericSuccess, Some("Success"),
       date1, List(version20, version21))
 
     val credentialsEndpoint = Endpoint(
@@ -61,7 +61,7 @@ class VersionsSpecs extends SpecificationWithJUnit {
       endpoints = List(credentialsEndpoint, locationsEndpoint)
     )
 
-    val version21DetailsResp = SuccessWithDataResp(
+    val version21DetailsResp = SuccessResp(
       GenericSuccess, Some("Success"),
       date1, version21Details
     )

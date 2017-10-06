@@ -13,6 +13,7 @@ import Versions._
 import Tariffs._
 import Cdrs._
 import com.thenewmotion.ocpi.OcpiDateTimeParser
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.SuccessCode
 import spray.json._
 
 trait OcpiJsonProtocol extends DefaultJsonProtocol {
@@ -238,8 +239,14 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
   implicit val errorRespFormat = jsonFormat3(ErrorResp)
-  implicit val successRespFormat = jsonFormat3(SuccessResp)
-  implicit def successRespWithDataFormat[D : JsonFormat] = jsonFormat4(SuccessWithDataResp[D])
+
+  implicit val successRespUnitFormat = {
+    val Array(p1, p2, p3, _) = extractFieldNames(classTag[SuccessResp[Unit]])
+    jsonFormat((statusCode: SuccessCode, statusMsg: Option[String], timeStamp: ZonedDateTime) =>
+      SuccessResp(statusCode, statusMsg, timeStamp, ()), p1, p2, p3)
+  }
+
+  implicit def successRespFormat[D : JsonFormat] = jsonFormat4(SuccessResp[D])
 
   implicit def credentialsFormat[O <: Ownership] = new RootJsonFormat[Creds[O]] {
     private object Fields {

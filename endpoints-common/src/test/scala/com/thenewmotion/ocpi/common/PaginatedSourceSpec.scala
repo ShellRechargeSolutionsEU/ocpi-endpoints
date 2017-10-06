@@ -36,7 +36,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
       implicit val ac = system
 
       mockRequest(page1Req,
-        SuccessWithDataResp(
+        SuccessResp(
           OcpiStatusCode.GenericSuccess,
           data = List(TestData("DATA1"), TestData("DATA2"))
         ),
@@ -48,7 +48,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
       )
 
       mockRequest(page2Req,
-        SuccessWithDataResp(
+        SuccessResp(
           OcpiStatusCode.GenericSuccess,
           data = List(TestData("DATA3"), TestData("DATA4"))
         ),
@@ -72,7 +72,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
       implicit val ac = system
 
       mockRequest(page1Req,
-        SuccessWithDataResp(
+        SuccessResp(
           OcpiStatusCode.GenericSuccess,
           data = List(TestData("DATA1"), TestData("DATA2"))
         ),

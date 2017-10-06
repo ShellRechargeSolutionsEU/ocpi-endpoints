@@ -49,7 +49,7 @@ class MspCdrsRoute(
       (get & pathPrefix(Segment) & pathEndOrSingleSlash) { cdrId =>
         complete {
           service.cdr(apiUser, cdrId).mapRight { cdr =>
-            SuccessWithDataResp(GenericSuccess, None, data = cdr)
+            SuccessResp(GenericSuccess, data = cdr)
           }
         }
       }

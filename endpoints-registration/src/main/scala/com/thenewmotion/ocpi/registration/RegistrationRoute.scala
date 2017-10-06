@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
 import akka.stream.ActorMaterializer
 import msgs.Ownership.Theirs
-import msgs.{GlobalPartyId, SuccessWithDataResp}
+import msgs.{GlobalPartyId, SuccessResp}
 
 class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMaterializer) extends JsonApi {
   import msgs.v2_1.OcpiJsonProtocol._
@@ -18,7 +18,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
         complete {
           service
             .reactToNewCredsRequest(user, accessedVersion, credsToConnectToThem)
-            .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
+            .mapRight(x => SuccessResp(GenericSuccess, data = x))
         }
       }
     } ~
@@ -26,7 +26,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
       complete {
         service
           .credsToConnectToUs(user)
-          .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
+          .mapRight(x => SuccessResp(GenericSuccess, data = x))
       }
     } ~
     put {
@@ -34,7 +34,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
         complete {
           service
             .reactToUpdateCredsRequest(user, accessedVersion, credsToConnectToThem)
-            .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
+            .mapRight(x => SuccessResp(GenericSuccess, data = x))
         }
       }
     } ~
@@ -42,7 +42,7 @@ class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMateria
       complete {
         service
           .reactToDeleteCredsRequest(user)
-          .mapRight(x => SuccessWithDataResp(GenericSuccess, data = x))
+          .mapRight(x => SuccessResp(GenericSuccess, data = x))
       }
     }
   }

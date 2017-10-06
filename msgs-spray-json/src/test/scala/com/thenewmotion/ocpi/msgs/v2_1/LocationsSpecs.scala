@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
-import com.thenewmotion.ocpi.msgs.{CountryCode, OcpiStatusCode, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.{CountryCode, OcpiStatusCode, SuccessResp}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
@@ -42,7 +42,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
 
    "LocationResp" should {
       "deserialize" in new LocationsTestScope {
-         locationRespJson1.parseJson.convertTo[SuccessWithDataResp[List[Location]]] mustEqual locationResp1
+         locationRespJson1.parseJson.convertTo[SuccessResp[List[Location]]] mustEqual locationResp1
       }
       "serialize" in new LocationsTestScope {
          locationResp1.toJson mustEqual locationRespJson1.parseJson
@@ -281,7 +281,7 @@ class LocationsSpecs extends SpecificationWithJUnit {
       images = List.empty
     )
 
-    val locationResp1 = SuccessWithDataResp(
+    val locationResp1 = SuccessResp(
       OcpiStatusCode.GenericSuccess,
       Some("OK"),
       timestamp = date1,

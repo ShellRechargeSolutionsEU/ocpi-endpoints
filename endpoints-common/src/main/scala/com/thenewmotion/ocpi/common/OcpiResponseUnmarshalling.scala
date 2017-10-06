@@ -4,9 +4,8 @@ package common
 import akka.http.scaladsl.model.headers.{Link, LinkParams}
 import akka.http.scaladsl.model.{HttpResponse, Uri}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromResponseUnmarshaller, Unmarshaller}
-import msgs.{ErrorResp, SuccessResponse, SuccessWithDataResp}
-import scala.reflect.ClassTag
-import cats.syntax.either._
+import msgs.{ErrorResp, SuccessResp}
+import cats.syntax.either._  // For Scala 2.11
 
 case class UnexpectedResponseException(response: HttpResponse)
   extends Exception(s"Unexpected HTTP status code ${response.status}")
@@ -14,10 +13,10 @@ case class UnexpectedResponseException(response: HttpResponse)
 trait OcpiResponseUnmarshalling {
   type ErrorRespOr[T] = Either[ErrorResp, T]
 
-  protected implicit def fromOcpiResponseUnmarshaller[T <: SuccessResponse : FromEntityUnmarshaller : ClassTag](
-    implicit disjUnMa: FromEntityUnmarshaller[ErrorRespOr[T]]
-  ): FromResponseUnmarshaller[ErrorRespOr[T]] =
-    Unmarshaller.withMaterializer[HttpResponse, ErrorRespOr[T]] {
+  protected implicit def fromOcpiResponseUnmarshaller[D](
+    implicit disjUnMa: FromEntityUnmarshaller[ErrorRespOr[D]]
+  ): FromResponseUnmarshaller[ErrorRespOr[D]] =
+    Unmarshaller.withMaterializer[HttpResponse, ErrorRespOr[D]] {
       implicit ex => implicit mat => response: HttpResponse =>
         if (response.status.isSuccess)
           disjUnMa(response.entity)
@@ -27,7 +26,7 @@ trait OcpiResponseUnmarshalling {
     }
   }
 
-  type PagedResp[T] = SuccessWithDataResp[Iterable[T]]
+  type PagedResp[T] = SuccessResp[Iterable[T]]
 
   protected implicit def fromPagedOcpiResponseUnmarshaller[T](
     implicit um: FromResponseUnmarshaller[ErrorRespOr[PagedResp[T]]]

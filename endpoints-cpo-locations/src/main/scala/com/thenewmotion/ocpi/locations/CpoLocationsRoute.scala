@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
+import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import common._
 import locations.LocationsError._
 import msgs.OcpiStatusCode.GenericClientFailure
@@ -49,7 +49,7 @@ class CpoLocationsRoute(
              _.fold(complete(_), pagLocations => {
               respondWithPaginationHeaders(pager, pagLocations) {
                 complete {
-                  SuccessWithDataResp(GenericSuccess, None, data = pagLocations.result)
+                  SuccessResp(GenericSuccess, data = pagLocations.result)
                 }
               }
             })
@@ -60,7 +60,7 @@ class CpoLocationsRoute(
         pathEndOrSingleSlash {
           complete {
             service.location(locId).mapRight { location =>
-              SuccessWithDataResp(GenericSuccess, None, data = location)
+              SuccessResp(GenericSuccess, data = location)
             }
           }
         } ~
@@ -68,14 +68,14 @@ class CpoLocationsRoute(
           pathEndOrSingleSlash {
             complete {
               service.evse(locId, evseId).mapRight { evse =>
-                SuccessWithDataResp(GenericSuccess, None, data = evse)
+                SuccessResp(GenericSuccess, data = evse)
               }
             }
           } ~
           (path(Segment) & pathEndOrSingleSlash) { connId =>
             complete {
               service.connector(locId, evseId, connId).mapRight { connector =>
-                SuccessWithDataResp(GenericSuccess, None, data = connector)
+                SuccessResp(GenericSuccess, data = connector)
               }
             }
           }

@@ -9,7 +9,7 @@ import com.thenewmotion.ocpi.{JsonApi, msgs}
 import com.thenewmotion.ocpi.cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import com.thenewmotion.ocpi.msgs.{CountryCode, CurrencyCode, GlobalPartyId, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.{CountryCode, CurrencyCode, GlobalPartyId, SuccessResp}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
@@ -26,7 +26,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
       Get("/NL/TNM/12345") ~> route.route(apiUser) ~> check {
         header[Link] must beNone
         there was one(service).cdr(apiUser, cdr.id)
-        val res = entityAs[SuccessWithDataResp[Cdr]]
+        val res = entityAs[SuccessResp[Cdr]]
         res.data mustEqual cdr
       }
     }

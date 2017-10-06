@@ -55,7 +55,7 @@ class CpoTokensRoute(
           get {
             complete {
               service.token(apiUser, tokenUid).mapRight { token =>
-                SuccessWithDataResp(GenericSuccess, None, data = token)
+                SuccessResp(GenericSuccess, data = token)
               }
             }
           }

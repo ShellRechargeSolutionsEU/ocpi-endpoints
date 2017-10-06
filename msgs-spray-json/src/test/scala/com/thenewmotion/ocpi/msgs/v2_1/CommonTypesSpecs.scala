@@ -1,9 +1,8 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
 import java.time.{LocalDate, LocalTime, ZoneOffset, ZonedDateTime}
-
-import com.thenewmotion.ocpi.msgs.{CurrencyCode, ErrorResp}
-import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
+import com.thenewmotion.ocpi.msgs.{CurrencyCode, ErrorResp, SuccessResp}
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.{GenericClientFailure, GenericSuccess}
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.Scope
 import spray.json._
@@ -24,12 +23,27 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
     }
   }
 
-  "GenericResp" should {
+  "ErrorResp" should {
     "deserialize" in new TestScope {
       genericErrorRespJson1.convertTo[ErrorResp] mustEqual genericErrorResp1
     }
     "serialize" in new TestScope {
       genericErrorResp1.toJson mustEqual genericErrorRespJson1
+    }
+  }
+
+  "SuccessResp" should {
+    "deserialize response without data" in new TestScope {
+      successRespJson1.convertTo[SuccessResp[Unit]] mustEqual successResp1
+    }
+    "serialize response without data" in new TestScope {
+      successResp1.toJson mustEqual successRespJson1
+    }
+    "deserialize response with data" in new TestScope {
+      successRespJson2.convertTo[SuccessResp[Int]] mustEqual successResp2
+    }
+    "serialize response with data" in new TestScope {
+      successResp2.toJson mustEqual successRespJson2
     }
   }
 
@@ -64,6 +78,37 @@ class CommonTypesSpecs extends SpecificationWithJUnit {
   private trait TestScope extends Scope {
 
     val date1 = OcpiDateTimeParser.parse("2010-01-01T00:00:00Z")
+
+    val successRespJson1 =
+      s"""
+         |{
+         |  "status_code" : 1000,
+         |  "status_message" : "It worked!",
+         |  "timestamp": "2010-01-01T00:00:00Z"
+         |}
+     """.stripMargin.parseJson
+
+    val successResp1 =
+      SuccessResp(
+        GenericSuccess,
+        Some("It worked!"),
+        date1)
+
+    val successRespJson2 =
+      s"""
+         |{
+         |  "status_code" : 1000,
+         |  "status_message" : "It worked!",
+         |  "timestamp": "2010-01-01T00:00:00Z",
+         |  "data": 42
+         |}
+     """.stripMargin.parseJson
+
+    val successResp2 =
+      SuccessResp(
+        GenericSuccess,
+        Some("It worked!"),
+        date1, 42)
 
     val genericErrorRespJson1 =
     s"""

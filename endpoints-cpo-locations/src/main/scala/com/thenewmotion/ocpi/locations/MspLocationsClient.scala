@@ -1,18 +1,16 @@
 package com.thenewmotion.ocpi.locations
 
 import scala.concurrent.{ExecutionContext, Future}
-
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.stream.Materializer
 import com.thenewmotion.ocpi.common.{ClientObjectUri, OcpiClient}
-import com.thenewmotion.ocpi.msgs.{AuthToken, SuccessResp, SuccessWithDataResp}
+import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import cats.syntax.either._
 import spray.json.JsonFormat
-
 
 class MspLocationsClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -22,7 +20,7 @@ class MspLocationsClient(implicit http: HttpExt) extends OcpiClient {
     uri: ClientObjectUri,
     authToken: AuthToken[Ours]
   )(implicit ec: ExecutionContext, mat: Materializer): Future[ErrorRespOr[T]] =
-    singleRequest[SuccessWithDataResp[T]](Get(uri.value), authToken).map {
+    singleRequest[T](Get(uri.value), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not retrieve data from ${uri.value}. Reason: $err")
         err
@@ -34,7 +32,7 @@ class MspLocationsClient(implicit http: HttpExt) extends OcpiClient {
     authToken: AuthToken[Ours],
     data: T
   )(implicit ec: ExecutionContext, mat: Materializer): Future[ErrorRespOr[Unit]] =
-    singleRequest[SuccessResp](Put(uri.value, data), authToken).map {
+    singleRequest[Unit](Put(uri.value, data), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not upload data to ${uri.value}. Reason: $err")
         err
@@ -46,7 +44,7 @@ class MspLocationsClient(implicit http: HttpExt) extends OcpiClient {
     authToken: AuthToken[Ours],
     patch: T
   )(implicit ec: ExecutionContext, mat: Materializer): Future[ErrorRespOr[Unit]] =
-    singleRequest[SuccessResp](Patch(uri.value, patch), authToken).map {
+    singleRequest[Unit](Patch(uri.value, patch), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not update data at ${uri.value}. Reason: $err")
         err

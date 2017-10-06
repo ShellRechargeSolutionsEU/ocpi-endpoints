@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import common.{EitherUnmarshalling, Pager, PaginatedRoute}
-import msgs.{ErrorResp, GlobalPartyId, SuccessWithDataResp}
+import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import msgs.OcpiStatusCode._
 import msgs.v2_1.Tokens.LocationReferences
 import tokens.AuthorizeError._
@@ -48,7 +48,7 @@ class MspTokensRoute(
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
           onSuccess(service.tokens(pager, dateFrom, dateTo)) { pagTokens =>
             respondWithPaginationHeaders(pager, pagTokens ) {
-              complete(SuccessWithDataResp(GenericSuccess, data = pagTokens.result))
+              complete(SuccessResp(GenericSuccess, data = pagTokens.result))
             }
           }
         }
@@ -59,7 +59,7 @@ class MspTokensRoute(
         (post & optionalEntity(as[LocationReferences])) { lr =>
           complete {
             service.authorize(tokenUid, lr).mapRight { authInfo =>
-              SuccessWithDataResp(GenericSuccess, data = authInfo)
+              SuccessResp(GenericSuccess, data = authInfo)
             }
           }
         }

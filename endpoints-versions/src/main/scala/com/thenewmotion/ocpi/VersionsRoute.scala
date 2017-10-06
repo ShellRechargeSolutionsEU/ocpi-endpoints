@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import common.OcpiExceptionHandler
-import msgs.{GlobalPartyId, SuccessWithDataResp, Url}
+import msgs.{GlobalPartyId, SuccessResp, Url}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
 
@@ -36,7 +36,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
 
   def versionsRoute(uri: Uri): Route = onSuccess(versions) {
     case v if v.nonEmpty =>
-      complete(SuccessWithDataResp(
+      complete(SuccessResp(
         GenericSuccess,
         None,
         currentTime,
@@ -48,7 +48,7 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
   def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: GlobalPartyId): Route =
     pathEndOrSingleSlash {
       complete(
-        SuccessWithDataResp(
+        SuccessResp(
           GenericSuccess,
           None,
           currentTime,

@@ -16,6 +16,7 @@ import msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.OcpiDateTimeParser._
 import cats.syntax.either._
 import cats.instances.future._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {

@@ -58,7 +58,7 @@ class MspLocationsRoute(
         get {
           complete {
             service.location(apiUser, locId).mapRight { location =>
-              SuccessWithDataResp(GenericSuccess, None, data = location)
+              SuccessResp(GenericSuccess, None, data = location)
             }
           }
         }
@@ -86,7 +86,7 @@ class MspLocationsRoute(
           get {
             complete {
               service.evse(apiUser, locId, evseId).mapRight { evse =>
-                SuccessWithDataResp(GenericSuccess, None, data = evse)
+                SuccessResp(GenericSuccess, None, data = evse)
               }
             }
           }
@@ -105,7 +105,7 @@ class MspLocationsRoute(
             entity(as[ConnectorPatch]) { conn =>
               complete {
                 service.updateConnector(apiUser, locId, evseId, connId, conn).mapRight { _ =>
-                SuccessResp(GenericSuccess)
+                  SuccessResp(GenericSuccess)
                 }
               }
             }
@@ -114,7 +114,7 @@ class MspLocationsRoute(
             complete {
               service.connector(apiUser, locId, evseId, connId).mapRight {
                 connector =>
-                  SuccessWithDataResp(GenericSuccess, None, data = connector)
+                  SuccessResp(GenericSuccess, data = connector)
               }
             }
           }

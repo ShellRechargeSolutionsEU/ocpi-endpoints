@@ -16,17 +16,29 @@ case class ErrorResp(
   timestamp: ZonedDateTime = ZonedDateTime.now
 ) extends OcpiResponse[ErrorCode]
 
-trait SuccessResponse extends OcpiResponse[SuccessCode]
-
-case class SuccessResp(
-  statusCode: SuccessCode,
-  statusMessage: Option[String] = None,
-  timestamp: ZonedDateTime = ZonedDateTime.now
-) extends SuccessResponse
-
-case class SuccessWithDataResp[D](
+case class SuccessResp[D](
   statusCode: SuccessCode,
   statusMessage: Option[String] = None,
   timestamp: ZonedDateTime = ZonedDateTime.now,
   data: D
-) extends SuccessResponse
+) extends OcpiResponse[SuccessCode]
+
+object SuccessResp {
+  def apply(
+   statusCode: SuccessCode,
+   statusMessage: Option[String],
+   timestamp: ZonedDateTime
+  ): SuccessResp[Unit] =
+    SuccessResp[Unit](statusCode, statusMessage, timestamp, ())
+
+  def apply(
+   statusCode: SuccessCode
+ ): SuccessResp[Unit] =
+    SuccessResp(statusCode, None, ZonedDateTime.now)
+
+  def apply(
+    statusCode: SuccessCode,
+    statusMessage: String
+  ): SuccessResp[Unit] =
+    SuccessResp(statusCode, Some(statusMessage), ZonedDateTime.now)
+}

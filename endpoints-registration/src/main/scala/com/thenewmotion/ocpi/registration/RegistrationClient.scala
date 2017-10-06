@@ -11,7 +11,7 @@ import common.OcpiClient
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions._
 import msgs.v2_1.Credentials.Creds
-import msgs.{AuthToken, SuccessWithDataResp, Url}
+import msgs.{AuthToken, Url}
 import registration.RegistrationError._
 import cats.syntax.either._
 
@@ -29,7 +29,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     def errorMsg = s"Could not retrieve the versions information from $uri with token $token."
     val regError = VersionsRetrievalFailed
 
-    singleRequest[SuccessWithDataResp[List[Version]]](Get(uri), token) map {
+    singleRequest[List[Version]](Get(uri), token) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
@@ -45,7 +45,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     def errorMsg = s"Could not retrieve the version details from $uri with token $token."
     val regError = VersionDetailsRetrievalFailed
 
-    singleRequest[SuccessWithDataResp[VersionDetails]](Get(uri), token) map {
+    singleRequest[VersionDetails](Get(uri), token) map {
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
@@ -63,7 +63,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = SendingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+    singleRequest[Creds[Theirs]](
       Post(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
     ) map {
       _.bimap(err => {
@@ -83,7 +83,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = UpdatingCredentialsFailed
 
-    singleRequest[SuccessWithDataResp[Creds[Theirs]]](
+    singleRequest[Creds[Theirs]](
       Put(theirCredUrl.value, credToConnectToUs), tokenToConnectToThem
     ) map {
       _.bimap(err => {
