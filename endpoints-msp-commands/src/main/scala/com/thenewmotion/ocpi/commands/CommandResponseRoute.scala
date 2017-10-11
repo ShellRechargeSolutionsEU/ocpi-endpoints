@@ -24,15 +24,11 @@ class CommandResponseRoute(
   private val CommandNameSegment = Segment.flatMap(x => CommandName.values.find(_.name == x))
 
   private[commands] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
-    authPathPrefixGlobalPartyIdEquality(apiUser) {
-      (path(CommandNameSegment) & path(JavaUUID)) { (commandName, commandId) =>
-        pathEndOrSingleSlash {
-          post {
-            entity(as[CommandResponse]) { response =>
-              complete {
-                callback(apiUser, commandName, commandId, response.result).map(_ => SuccessResp(GenericSuccess))
-              }
-            }
+    (pathPrefix(CommandNameSegment) & pathPrefix(JavaUUID) & pathEndOrSingleSlash) { (commandName, commandId) =>
+      post {
+        entity(as[CommandResponse]) { response =>
+          complete {
+            callback(apiUser, commandName, commandId, response.result).map(_ => SuccessResp(GenericSuccess))
           }
         }
       }
