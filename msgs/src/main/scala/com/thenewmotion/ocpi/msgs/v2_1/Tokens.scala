@@ -39,10 +39,25 @@ object Tokens {
       Some(tokId.value)
   }
 
+  trait AuthId extends Any { def value: String }
+  object AuthId {
+    private case class AuthIdImpl(value: String) extends AnyVal with AuthId {
+      override def toString: String = value
+    }
+
+    def apply(value: String): AuthId = {
+      require(value.length <= 36, "Auth Id must be 36 characters or less")
+      AuthIdImpl(value)
+    }
+
+    def unapply(id: AuthId): Option[String] =
+      Some(id.value)
+  }
+
   case class Token(
     uid: TokenUid,
     `type`: TokenType,
-    authId: String,
+    authId: AuthId,
     visualNumber: Option[String] = None,
     issuer: String,
     valid: Boolean,
@@ -54,7 +69,7 @@ object Tokens {
   case class TokenPatch(
     uid: Option[TokenUid] = None,
     `type`: Option[TokenType] = None,
-    authId: Option[String] = None,
+    authId: Option[AuthId] = None,
     visualNumber: Option[String] = None,
     issuer: Option[String] = None,
     valid: Option[Boolean] = None,

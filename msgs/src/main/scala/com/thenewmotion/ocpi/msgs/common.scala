@@ -58,8 +58,9 @@ object Language {
 }
 
 case class Url(value: String) extends AnyVal {
-  def +(other: String) = Url(value + other)
-  override def toString = value
+  def /(segment: String) = Url(value + (if (value.endsWith("/")) "" else "/") + segment)
+
+  override def toString: String = value
 }
 
 trait CurrencyCode extends Any { def value: String }

@@ -85,7 +85,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     val token = Token(
       uid = TokenUid("23455655A"),
       `type` = TokenType.Rfid,
-      authId = "NL-TNM-000660755-V",
+      authId = AuthId("NL-TNM-000660755-V"),
       visualNumber = Some("NL-TNM-066075-5"),
       issuer = "TheNewMotion",
       valid = true,

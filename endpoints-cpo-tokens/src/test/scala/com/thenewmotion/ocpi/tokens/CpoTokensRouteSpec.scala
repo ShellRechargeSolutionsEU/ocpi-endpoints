@@ -35,7 +35,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       val token = Token(
         tokenUid,
         TokenType.Rfid,
-        authId = "FA54320",
+        authId = AuthId("FA54320"),
         visualNumber = Some("DF000-2001-8999"),
         issuer = "TheNewMotion",
         valid = true,

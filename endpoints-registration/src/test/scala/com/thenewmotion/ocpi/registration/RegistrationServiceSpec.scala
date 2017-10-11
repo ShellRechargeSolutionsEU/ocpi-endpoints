@@ -271,9 +271,9 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToThem) returns Future.successful(
       Right(VersionDetails(`2.1`,List(
-        Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
-        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
-        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
+        Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl / "credentials"),
+        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl / "locations"),
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl / "tariffs")))))
 
     // Initiate credentials request
     _client.getTheirVersions(theirVersionsUrl, tokenToConnectToThem) returns Future.successful(
@@ -281,9 +281,9 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     _client.getTheirVersionDetails(theirVersionDetailsUrl, tokenToConnectToThem) returns Future.successful(
       Right(VersionDetails(`2.1`,List(
-        Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl + "/credentials"),
-        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl + "/locations"),
-        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl + "/tariffs")))))
+        Endpoint(EndpointIdentifier.Credentials, theirVersionDetailsUrl / "credentials"),
+        Endpoint(EndpointIdentifier.Locations, theirVersionDetailsUrl / "locations"),
+        Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl / "tariffs")))))
 
     _client.sendCredentials(Url(any[String]), any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext],
       any[ActorMaterializer]) returns Future.successful(Right(credsToConnectToThem))
@@ -297,7 +297,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
     val registrationService = new RegistrationService(
       repo,
       ourVersions = Set(`2.1`),
-      ourVersionsUrl = ourBaseUrlStr + "/" + "cpo" + "/" + Versions.value,
+      ourVersionsUrl = ourBaseUrlStr / "cpo" / Versions.value,
       ourGlobalPartyId = ourGlobalPartyId,
       ourPartyName = ourCpoName) {
       override val client = _client

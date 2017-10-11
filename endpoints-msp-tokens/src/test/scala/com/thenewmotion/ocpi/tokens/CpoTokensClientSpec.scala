@@ -70,7 +70,7 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
     val testToken = Token(
       uid = TokenUid("123"),
       `type` = TokenType.Rfid,
-      authId = "A1B2C3",
+      authId = AuthId("A1B2C3"),
       visualNumber = None,
       issuer = "NewMotion",
       valid = true,

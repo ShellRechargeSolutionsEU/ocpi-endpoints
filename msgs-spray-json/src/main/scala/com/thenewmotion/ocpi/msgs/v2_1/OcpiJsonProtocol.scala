@@ -13,7 +13,9 @@ import Versions._
 import Tariffs._
 import Cdrs._
 import com.thenewmotion.ocpi.OcpiDateTimeParser
-import com.thenewmotion.ocpi.msgs.OcpiStatusCode.SuccessCode
+import OcpiStatusCode.SuccessCode
+import com.thenewmotion.ocpi.msgs.v2_1.Sessions.SessionId
+import v2_1.Commands._
 import spray.json._
 
 trait OcpiJsonProtocol extends DefaultJsonProtocol {
@@ -210,6 +212,22 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
     override def write(obj: CdrId) = JsString(obj.value)
   }
 
+  implicit val authIdFmt = new JsonFormat[AuthId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => AuthId(s)
+      case _ => deserializationError("AuthId must be a string")
+    }
+    override def write(obj: AuthId) = JsString(obj.value)
+  }
+
+  implicit val sessionIdFmt = new JsonFormat[SessionId] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => SessionId(s)
+      case _ => deserializationError("SessionId must be a string")
+    }
+    override def write(obj: SessionId) = JsString(obj.value)
+  }
+
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)
   implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
@@ -371,6 +389,17 @@ trait OcpiJsonProtocol extends DefaultJsonProtocol {
   implicit val chargingPeriodFormat = jsonFormat2(ChargingPeriod)
 
   implicit val cdrFormat = jsonFormat16(Cdr)
+
+  implicit val commandResponseTypeFormat =
+    new SimpleStringEnumSerializer(CommandResponseType).enumFormat
+
+  implicit val commandResponse = jsonFormat1(CommandResponse)
+
+  implicit val reserveNowF = jsonFormat6(Command.ReserveNow.apply)
+  implicit val startSessionF = jsonFormat4(Command.StartSession.apply)
+  implicit val stopSessionF = jsonFormat2(Command.StopSession.apply)
+  implicit val unlockConnectorF = jsonFormat4(Command.UnlockConnector.apply)
+
 }
 
 object OcpiJsonProtocol extends OcpiJsonProtocol
