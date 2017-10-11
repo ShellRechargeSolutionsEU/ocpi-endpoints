@@ -14,7 +14,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CpoTokensClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.TokensJsonProtocol._
 
   def getToken(tokenUri: ClientObjectUri, authToken: AuthToken[Ours], tokenUid: TokenUid)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Token]] =

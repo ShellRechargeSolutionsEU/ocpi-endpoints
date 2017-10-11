@@ -15,7 +15,8 @@ import scala.concurrent._
 class MspTokensClient(implicit http: HttpExt) extends OcpiClient {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.TokensJsonProtocol._
 
   def authorize(
     endpointUri: Uri,

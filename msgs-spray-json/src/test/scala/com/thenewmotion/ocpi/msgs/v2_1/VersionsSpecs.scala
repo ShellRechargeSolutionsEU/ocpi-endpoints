@@ -12,7 +12,8 @@ import com.thenewmotion.ocpi.OcpiDateTimeParser
 
 class VersionsSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
+  import DefaultJsonProtocol._
+  import VersionsJsonProtocol._
 
   "VersionsResp" should {
     "deserialize" in new VersionsTestScope {

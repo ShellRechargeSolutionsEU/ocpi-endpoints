@@ -16,7 +16,8 @@ class MspLocationsRoute(
   service: MspLocationsService
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
-  import msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.LocationsJsonProtocol._
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

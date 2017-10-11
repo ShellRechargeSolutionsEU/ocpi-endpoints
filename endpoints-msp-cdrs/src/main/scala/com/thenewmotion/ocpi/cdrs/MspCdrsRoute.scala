@@ -17,7 +17,8 @@ class MspCdrsRoute(
   service: MspCdrsService
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
-  import msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.CdrsJsonProtocol._
 
   implicit def cdrsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

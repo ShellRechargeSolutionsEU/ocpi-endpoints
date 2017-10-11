@@ -11,7 +11,7 @@ import msgs.OcpiStatusCode._
 
 object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
   val Default = RejectionHandler.newBuilder().handle {
 

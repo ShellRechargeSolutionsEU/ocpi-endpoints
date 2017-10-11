@@ -10,11 +10,14 @@ import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import cats.syntax.either._
+import com.thenewmotion.ocpi.msgs
 import spray.json.JsonFormat
 
 class MspLocationsClient(implicit http: HttpExt) extends OcpiClient {
+
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.LocationsJsonProtocol._
 
   private def get[T: JsonFormat](
     uri: ClientObjectUri,

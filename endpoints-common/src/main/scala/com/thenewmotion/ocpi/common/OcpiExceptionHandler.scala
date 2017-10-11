@@ -13,7 +13,7 @@ object OcpiExceptionHandler extends BasicDirectives with SprayJsonSupport {
 
   protected val logger = Logger(getClass)
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
   val Default = ExceptionHandler {
     case exception => extractRequest { request =>

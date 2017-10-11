@@ -11,7 +11,7 @@ import msgs.ErrorResp
 import msgs.Versions.VersionNumber
 
 object VersionRejections {
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
   case class UnsupportedVersionRejection(version: VersionNumber) extends Rejection
   case class NoVersionsRejection() extends Rejection

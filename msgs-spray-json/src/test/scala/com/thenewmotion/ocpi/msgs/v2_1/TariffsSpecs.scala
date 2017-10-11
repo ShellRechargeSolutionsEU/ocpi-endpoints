@@ -10,8 +10,7 @@ import spray.json._
 
 class TariffsSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
-
+  import TariffsJsonProtocol._
 
   "Tariff" should {
     "deserialize" in new Scope {

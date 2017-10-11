@@ -245,37 +245,6 @@ object Locations {
     )
   }
 
-  case class Operator(
-    identifier: Option[String], // unique identifier of the operator
-    phone: Option[String],
-    url: Option[String]
-    )
-
-  case class Power(
-    current: Option[PowerType],
-    amperage: Int,
-    voltage: Int
-    )
-
-  sealed trait PricingUnit extends Nameable
-
-  object PricingUnit extends Enumerable[PricingUnit] {
-    case object Session extends PricingUnit {val name = "session"}
-    case object KWhToEV extends PricingUnit {val name = "kwhtoev"}
-    case object OccupancyHours extends PricingUnit {val name = "occupancyhours"}
-    case object ChargingHours extends PricingUnit {val name = "charginghours"}
-    case object IdleHours extends PricingUnit {val name = "idlehours"}
-    val values = Iterable(Session, KWhToEV, OccupancyHours, ChargingHours, IdleHours)
-  }
-
-  sealed trait PeriodType extends Nameable
-
-  object PeriodType extends Enumerable[PeriodType] {
-    case object Charging extends PeriodType {val name = "Charging"}
-    case object Parking extends PeriodType {val name = "Parking"}
-    val values = Iterable(Charging, Parking)
-  }
-
   trait ConnectorId extends Any { def value: String }
   object ConnectorId {
     private case class ConnectorIdImpl(value: String) extends AnyVal with ConnectorId {

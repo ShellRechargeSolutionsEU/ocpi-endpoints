@@ -26,7 +26,7 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
 
 class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.CommandsJsonProtocol._
 
   "MSP Command client" should {
 
@@ -95,7 +95,7 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
 object GenericRespTypes {
   case class TestData(id: String)
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
   implicit val testDataFormat = jsonFormat1(TestData)
 }
 

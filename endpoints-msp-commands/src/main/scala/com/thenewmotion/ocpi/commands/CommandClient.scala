@@ -16,8 +16,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CommandClient(implicit http: HttpExt) extends OcpiClient {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.CommandsJsonProtocol._
 
   def sendCommand[C <: Command : RootJsonWriter](
     commandsUri: Uri,

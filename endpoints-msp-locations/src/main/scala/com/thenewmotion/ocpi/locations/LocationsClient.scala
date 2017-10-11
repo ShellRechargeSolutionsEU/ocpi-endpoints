@@ -16,8 +16,11 @@ import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.AuthToken
 
 class LocationsClient(implicit http: HttpExt) extends OcpiClient {
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.LocationsJsonProtocol._
 
   def getLocations(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Iterable[Location]]] =

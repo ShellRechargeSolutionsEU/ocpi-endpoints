@@ -21,7 +21,8 @@ class MspTokensRoute(
   val MaxLimit: Int = 1000
 ) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.TokensJsonProtocol._
 
   implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)],
     statusMarshaller: ToResponseMarshaller[StatusCode]): ToResponseMarshaller[AuthorizeError] =

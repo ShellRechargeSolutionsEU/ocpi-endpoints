@@ -17,7 +17,10 @@ import cats.syntax.either._
 
 class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.VersionsJsonProtocol._
+  import msgs.v2_1.CredentialsJsonProtocol._
 
   def getTheirVersions(
     uri: Uri,

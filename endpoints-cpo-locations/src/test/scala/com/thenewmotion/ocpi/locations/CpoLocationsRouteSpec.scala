@@ -12,7 +12,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location, LocationId, EvseUid, ConnectorId}
-import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
 import scala.concurrent.Future
 import spray.json._
 

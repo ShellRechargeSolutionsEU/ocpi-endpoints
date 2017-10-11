@@ -9,8 +9,9 @@ import msgs.Ownership.Theirs
 import msgs.{GlobalPartyId, SuccessResp}
 
 class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMaterializer) extends JsonApi {
-  import msgs.v2_1.OcpiJsonProtocol._
   import msgs.v2_1.Credentials._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.CredentialsJsonProtocol._
 
   def route(accessedVersion: Version, user: GlobalPartyId)(implicit ec: ExecutionContext) = {
     post {

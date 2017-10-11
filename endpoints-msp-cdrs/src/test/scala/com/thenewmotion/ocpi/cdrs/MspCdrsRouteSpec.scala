@@ -14,7 +14,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
-import msgs.v2_1.OcpiJsonProtocol._
+import msgs.v2_1.DefaultJsonProtocol._
+import msgs.v2_1.CdrsJsonProtocol._
 
 import scala.concurrent.Future
 

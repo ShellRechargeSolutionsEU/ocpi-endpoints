@@ -7,7 +7,8 @@ import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.PathMatcher1
 import msgs._
-import msgs.v2_1.OcpiJsonProtocol._
+import msgs.v2_1.DefaultJsonProtocol._
+import msgs.v2_1.TokensJsonProtocol._
 import msgs.OcpiStatusCode.GenericClientFailure
 import msgs.OcpiStatusCode.GenericSuccess
 import msgs.v2_1.Tokens._

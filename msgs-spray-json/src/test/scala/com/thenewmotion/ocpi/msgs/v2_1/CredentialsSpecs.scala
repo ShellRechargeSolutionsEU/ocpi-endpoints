@@ -10,7 +10,8 @@ import spray.json._
 
 class CredentialsSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
+  import DefaultJsonProtocol._
+  import CredentialsJsonProtocol._
 
   "CredentialsResp" should {
     "deserialize" in new CredentialsTestScope {

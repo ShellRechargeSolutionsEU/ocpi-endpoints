@@ -1,6 +1,5 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import Locations.PowerType.AC3Phase
 import Locations._
 import CommonTypes._
 import com.thenewmotion.ocpi.msgs.{CountryCode, OcpiStatusCode, SuccessResp}
@@ -14,7 +13,8 @@ import com.thenewmotion.ocpi.OcpiDateTimeParser._
 
 class LocationsSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
+  import DefaultJsonProtocol._
+  import LocationsJsonProtocol._
 
   "Evses" should {
     "deserialize" in new LocationsTestScope {
@@ -91,35 +91,6 @@ class LocationsSpecs extends SpecificationWithJUnit {
     }
   }
 
-  "Operator" should {
-    "deserialize" in new LocationsTestScope {
-      operatorJsonWithNulls1.parseJson.convertTo[Operator] mustEqual operator1
-    }
-    "serialize" in new LocationsTestScope {
-      operator1.toJson mustEqual operatorJsonNoNulls1.parseJson
-    }
-  }
-
-  "Power" should {
-    "deserialize" in new LocationsTestScope {
-      powerJson1.parseJson.convertTo[Power] mustEqual power1
-    }
-    "serialize" in new LocationsTestScope {
-      power1.toJson mustEqual powerJson1.parseJson
-    }
-  }
-
-  "PeriodTypeJsonFormat" should {
-    val periodType: PeriodType = PeriodType.Charging
-    val str = "Charging"
-    "serialize" in {
-      periodType.toJson mustEqual JsString(str)
-    }
-    "extract" in {
-      JsonParser("\"" + str + "\"").convertTo[PeriodType] mustEqual periodType
-    }
-  }
-
   "Hours" should {
     "serialize/deserialize" in new Scope {
       val hoursJson =
@@ -145,7 +116,6 @@ class LocationsSpecs extends SpecificationWithJUnit {
       hours.exceptionalClosings mustEqual Nil
     }
   }
-
 
   private trait LocationsTestScope extends Scope {
 
@@ -287,8 +257,6 @@ class LocationsSpecs extends SpecificationWithJUnit {
       timestamp = date1,
       data = List(location1,location2)
     )
-
-    val power1 = Power(Some(PowerType.AC3Phase), 16, 230)
 
     val geoLocationJson1 =
       s"""
@@ -535,19 +503,5 @@ class LocationsSpecs extends SpecificationWithJUnit {
        |  "phone": "+31253621489"
        |}
     """.stripMargin
-
-  val operator1 = Operator(None, Some("+31253621489"), None)
-
-  val powerJson1 =
-    s"""
-       |{
-       |  "current": "AC_3_PHASE",
-       |  "amperage": 16,
-       |  "voltage": 230
-       |}
-     """.stripMargin
-
-  val power1 = Power(Some(AC3Phase), 16, 230)
-
 
 }

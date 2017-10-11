@@ -12,8 +12,8 @@ import spray.json._
 
 class CdrsSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
-
+  import DefaultJsonProtocol._
+  import CdrsJsonProtocol._
 
   "Cdrs" should {
     "deserialize" in new Scope {

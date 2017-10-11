@@ -20,8 +20,10 @@ object VersionsRoute {
 }
 
 class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) extends JsonApi {
+
   import VersionsRoute._
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.VersionsJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
 
   def currentTime = ZonedDateTime.now
 

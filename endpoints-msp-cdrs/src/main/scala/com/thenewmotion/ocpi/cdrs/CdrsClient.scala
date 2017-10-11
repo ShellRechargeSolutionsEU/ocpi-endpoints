@@ -16,8 +16,10 @@ import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.Cdr
 import msgs.AuthToken
 
 class CdrsClient(implicit http: HttpExt) extends OcpiClient {
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.CdrsJsonProtocol._
 
   def getCdrs(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
     (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Iterable[Cdr]]] =

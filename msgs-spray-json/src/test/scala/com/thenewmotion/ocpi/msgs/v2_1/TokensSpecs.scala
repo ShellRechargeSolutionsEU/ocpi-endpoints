@@ -7,8 +7,7 @@ import spray.json._
 
 class TokensSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
-
+  import TokensJsonProtocol._
 
   "LocationReferences" should {
     "deserialize missing fields of cardinality '*' to empty lists" in new Scope {

@@ -15,7 +15,8 @@ class CommandResponseRoute(
   callback: (GlobalPartyId, CommandName, UUID, CommandResponseType) => Future[Unit]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.OcpiJsonProtocol._
+  import msgs.v2_1.DefaultJsonProtocol._
+  import msgs.v2_1.CommandsJsonProtocol._
 
   def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))

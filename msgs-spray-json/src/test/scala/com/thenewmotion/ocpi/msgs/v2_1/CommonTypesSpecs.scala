@@ -10,7 +10,7 @@ import com.thenewmotion.ocpi.OcpiDateTimeParser
 
 class CommonTypesSpecs extends SpecificationWithJUnit {
 
-  import OcpiJsonProtocol._
+  import DefaultJsonProtocol._
 
   "DateTimeJsonFormat" should {
     val obj = ZonedDateTime.of(2014, 1, 28, 17, 30, 0, 0, ZoneOffset.UTC)

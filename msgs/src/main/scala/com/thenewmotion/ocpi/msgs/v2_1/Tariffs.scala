@@ -2,8 +2,8 @@ package com.thenewmotion.ocpi.msgs.v2_1
 
 import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
 
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.EnergyMix
+import CommonTypes.DisplayText
+import Locations.EnergyMix
 import com.thenewmotion.ocpi.msgs.{CurrencyCode, Url}
 import com.thenewmotion.ocpi.{Enumerable, Nameable}
 
