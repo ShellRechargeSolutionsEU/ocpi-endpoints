@@ -26,9 +26,8 @@ object Commands {
 
   private[ocpi] def callbackUrl(
     baseUrl: Url,
-    cmdName: CommandName,
     cmdId: UUID
-  ): Url = baseUrl / cmdName.name / cmdId.toString
+  ): Url = baseUrl / cmdId.toString
 
   object Command {
     case class ReserveNow(
@@ -51,7 +50,7 @@ object Commands {
         evseUid: Option[EvseUid]
       ): ReserveNow =
         ReserveNow(
-          callbackUrl(baseUrl, CommandName.ReserveNow, commandId),
+          callbackUrl(baseUrl, commandId),
           token,
           expiryDate,
           reservationId,
@@ -76,7 +75,7 @@ object Commands {
         evseUid: Option[EvseUid]
       ): StartSession =
         StartSession(
-          callbackUrl(baseUrl, CommandName.StartSession, commandId),
+          callbackUrl(baseUrl, commandId),
           token,
           locationId,
           evseUid
@@ -95,7 +94,7 @@ object Commands {
         sessionId: SessionId
       ): StopSession =
         StopSession(
-        callbackUrl(baseUrl, CommandName.StopSession, commandId),
+        callbackUrl(baseUrl, commandId),
         sessionId
       )
     }
@@ -116,7 +115,7 @@ object Commands {
         connectorId: ConnectorId
       ): UnlockConnector =
         UnlockConnector(
-          callbackUrl(baseUrl, CommandName.UnlockConnector, commandId),
+          callbackUrl(baseUrl, commandId),
           locationId, evseUid, connectorId
         )
     }

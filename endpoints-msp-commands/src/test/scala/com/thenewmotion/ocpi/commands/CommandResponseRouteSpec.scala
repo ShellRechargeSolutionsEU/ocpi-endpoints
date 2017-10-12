@@ -23,7 +23,7 @@ class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
 
       val body = CommandResponse(CommandResponseType.Accepted)
 
-      Post(s"/START_SESSION/$uuid", body) ~> route.routeWithoutRh(apiUser) ~> check {
+      Post(s"/$uuid", body) ~> route.routeWithoutRh(apiUser) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
       }
@@ -34,7 +34,7 @@ class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
-    val route = new CommandResponseRoute( (gpi, cn, uuid, crt) =>
+    val route = new CommandResponseRoute( (gpi, uuid, crt) =>
         Future.successful(())
     )
   }
