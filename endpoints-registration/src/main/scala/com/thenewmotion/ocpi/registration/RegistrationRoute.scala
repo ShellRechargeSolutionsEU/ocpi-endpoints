@@ -2,13 +2,14 @@ package com.thenewmotion.ocpi
 package registration
 
 import msgs.OcpiStatusCode.GenericSuccess
+
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import msgs.Ownership.Theirs
 import msgs.{GlobalPartyId, SuccessResp}
 
-class RegistrationRoute(service: RegistrationService)(implicit mat: ActorMaterializer) extends JsonApi {
+class RegistrationRoute(service: RegistrationService)(implicit mat: Materializer) extends JsonApi {
   import msgs.v2_1.Credentials._
   import msgs.v2_1.DefaultJsonProtocol._
   import msgs.v2_1.CredentialsJsonProtocol._

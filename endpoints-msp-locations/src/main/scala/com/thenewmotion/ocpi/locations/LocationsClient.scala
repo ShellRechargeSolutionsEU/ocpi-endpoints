@@ -8,7 +8,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import common.{OcpiClient, PaginatedSource}
 import msgs.v2_1.Locations.Location
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,11 +23,11 @@ class LocationsClient(implicit http: HttpExt) extends OcpiClient {
   import msgs.v2_1.LocationsJsonProtocol._
 
   def getLocations(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Future[ErrorRespOr[Iterable[Location]]] =
+    (implicit ec: ExecutionContext, mat: Materializer): Future[ErrorRespOr[Iterable[Location]]] =
     traversePaginatedResource[Location](uri, auth, dateFrom, dateTo)
 
   def locationsSource(uri: Uri, auth: AuthToken[Ours], dateFrom: Option[ZonedDateTime] = None, dateTo: Option[ZonedDateTime] = None)
-    (implicit ec: ExecutionContext, mat: ActorMaterializer): Source[Location, NotUsed] =
+    (implicit ec: ExecutionContext, mat: Materializer): Source[Location, NotUsed] =
     PaginatedSource[Location](http, uri, auth, dateFrom, dateTo)
 
 }

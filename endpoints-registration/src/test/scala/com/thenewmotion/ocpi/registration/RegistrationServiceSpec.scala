@@ -11,7 +11,7 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
 import com.thenewmotion.ocpi.msgs.Versions._
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Versions
 import org.specs2.matcher.{EitherMatchers, FutureMatchers}
@@ -286,10 +286,10 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
         Endpoint(EndpointIdentifier.Tariffs, theirVersionDetailsUrl / "tariffs")))))
 
     _client.sendCredentials(Url(any[String]), any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext],
-      any[ActorMaterializer]) returns Future.successful(Right(credsToConnectToThem))
+      any[Materializer]) returns Future.successful(Right(credsToConnectToThem))
 
     _client.updateCredentials(Url(any[String]), any[AuthToken[Ours]], any[Creds[Ours]])(any[ExecutionContext],
-      any[ActorMaterializer]) returns Future.successful(Right(credsToConnectToThem))
+      any[Materializer]) returns Future.successful(Right(credsToConnectToThem))
 
     val repo = mock[RegistrationRepo]
 

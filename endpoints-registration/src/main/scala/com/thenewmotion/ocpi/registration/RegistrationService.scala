@@ -3,7 +3,7 @@ package registration
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 
 import scala.concurrent.{ExecutionContext, Future}
 import msgs.Versions.EndpointIdentifier.Credentials
@@ -71,7 +71,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Registration initiated by {}, for {} creds: {}", globalPartyId, version, creds)
 
     (for {
@@ -99,7 +99,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Update credentials request sent by {}, for {}, creds {}", creds.globalPartyId, version, creds)
 
     def errIfGlobalPartyIdChangedAndTaken: Result[RegistrationError, Unit] =
@@ -129,7 +129,7 @@ class RegistrationService(
     version: VersionNumber,
     token: AuthToken[Ours],
     versionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Result[RegistrationError, VersionDetails] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Result[RegistrationError, VersionDetails] = {
     def selectedVersionInfo(versionResp: List[Version]): Either[RegistrationError, Version] = {
       logger.debug(s"looking for $version, versionResp: $versionResp")
       versionResp
@@ -163,7 +163,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer) = {
+  )(implicit ec: ExecutionContext, mat: Materializer) = {
     // see https://github.com/typesafehub/scalalogging/issues/16
     logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.sendCredentials, errIfRegistered)
@@ -173,7 +173,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer)= {
+  )(implicit ec: ExecutionContext, mat: Materializer)= {
     logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.updateCredentials, errIfNotRegistered(_, WaitingForRegistrationRequest))
   }
@@ -184,7 +184,7 @@ class RegistrationService(
     theirVersionsUrl: Uri,
     credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => Future[Either[RegistrationError, Creds[Theirs]]],
     registrationCheck: GlobalPartyId => Result[RegistrationError, Unit]
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Future[Either[RegistrationError, Creds[Theirs]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Theirs]]] = {
 
     def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
       verDet.endpoints.find(_.identifier == Credentials) toRight {
@@ -219,7 +219,7 @@ class RegistrationService(
   private def getLatestCommonVersionDetails(
     token: AuthToken[Ours],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: ActorMaterializer): Result[RegistrationError, VersionDetails] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): Result[RegistrationError, VersionDetails] = {
     def findLatestCommon(response: Iterable[Version]): Either[RegistrationError, Version] = {
       logger.debug(s"looking for the latest common version, versionResp: $response")
 

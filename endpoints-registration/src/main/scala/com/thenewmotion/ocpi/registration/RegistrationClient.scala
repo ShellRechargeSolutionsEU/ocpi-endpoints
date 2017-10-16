@@ -2,11 +2,10 @@ package com.thenewmotion.ocpi
 package registration
 
 import scala.concurrent.{ExecutionContext, Future}
-
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.Uri
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import common.OcpiClient
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions._
@@ -27,7 +26,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     token: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    mat: ActorMaterializer
+    mat: Materializer
   ): Future[Either[RegistrationError, List[Version]]] = {
     def errorMsg = s"Could not retrieve the versions information from $uri with token $token."
     val regError = VersionsRetrievalFailed
@@ -43,7 +42,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     uri: Uri,
     token: AuthToken[Ours]
   )(
-    implicit ec: ExecutionContext, mat: ActorMaterializer
+    implicit ec: ExecutionContext, mat: Materializer
   ): Future[Either[RegistrationError, VersionDetails]] = {
     def errorMsg = s"Could not retrieve the version details from $uri with token $token."
     val regError = VersionDetailsRetrievalFailed
@@ -60,7 +59,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
   )(
-    implicit ec: ExecutionContext, mat: ActorMaterializer
+    implicit ec: ExecutionContext, mat: Materializer
   ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token " +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
@@ -80,7 +79,7 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
   )(
-    implicit ec: ExecutionContext, mat: ActorMaterializer
+    implicit ec: ExecutionContext, mat: Materializer
   ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token" +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
