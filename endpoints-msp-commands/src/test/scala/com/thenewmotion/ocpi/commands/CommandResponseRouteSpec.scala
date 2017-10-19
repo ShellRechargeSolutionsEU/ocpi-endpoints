@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.commands
 
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.msgs.GlobalPartyId
+import com.thenewmotion.ocpi.msgs.{GlobalPartyId, SuccessResp}
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import java.util.UUID
@@ -35,7 +35,7 @@ class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val route = new CommandResponseRoute( (gpi, uuid, crt) =>
-        Future.successful(())
+        Future.successful(Some(SuccessResp(GenericSuccess)))
     )
   }
 }
