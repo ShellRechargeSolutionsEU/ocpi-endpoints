@@ -3,14 +3,15 @@ package com.thenewmotion.ocpi
 import java.time.ZonedDateTime
 
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{PathMatcher1, Route}
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
+import com.thenewmotion.ocpi
 import common.OcpiExceptionHandler
-import msgs.{GlobalPartyId, SuccessResp, Url}
+import msgs.{ErrorResp, GlobalPartyId, SuccessResp, Url, Versions}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
-
 import scala.concurrent.Future
 
 object VersionsRoute {
@@ -19,24 +20,30 @@ object VersionsRoute {
   )
 }
 
-class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) extends JsonApi {
+class VersionsRoute(
+  versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
+)(
+  implicit successRespListVerM: ToEntityMarshaller[SuccessResp[List[Versions.Version]]],
+  successVerDetM: ToEntityMarshaller[SuccessResp[VersionDetails]],
+  errorM: ToEntityMarshaller[ErrorResp]
+) extends JsonApi {
 
   import VersionsRoute._
-  import msgs.v2_1.VersionsJsonProtocol._
-  import msgs.v2_1.DefaultJsonProtocol._
 
-  def currentTime = ZonedDateTime.now
+  protected def currentTime = ZonedDateTime.now
 
-  val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
+  private val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 
-  def appendPath(uri: Uri, segments: String*) = {
+  private def appendPath(uri: Uri, segments: String*) = {
     uri.withPath(segments.foldLeft(uri.path) {
       case (path, add) if path.toString.endsWith("/") => path + add
       case (path, add) => path / add
     })
   }
 
-  def versionsRoute(uri: Uri): Route = onSuccess(versions) {
+  def versionsRoute(
+    uri: Uri
+  ): Route = onSuccess(versions) {
     case v if v.nonEmpty =>
       complete(SuccessResp(
         GenericSuccess,
@@ -47,7 +54,12 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
     case _ => reject(NoVersionsRejection())
   }
 
-  def versionDetailsRoute(version: VersionNumber, versionInfo: OcpiVersionConfig, uri: Uri, apiUser: GlobalPartyId): Route =
+  def versionDetailsRoute(
+    version: VersionNumber,
+    versionInfo: OcpiVersionConfig,
+    uri: Uri,
+    apiUser: GlobalPartyId
+  ): Route =
     pathEndOrSingleSlash {
       complete(
         SuccessResp(
@@ -71,10 +83,12 @@ class VersionsRoute(versions: => Future[Map[VersionNumber, OcpiVersionConfig]]) 
       }
     }
 
-  val VersionMatcher = Segment.flatMap(s => VersionNumber.opt(s))
+  private val VersionMatcher: PathMatcher1[ocpi.Version] = Segment.flatMap(s => VersionNumber.opt(s))
 
-
-  def route(apiUser: GlobalPartyId, securedConnection: Boolean = true) = {
+  def route(
+    apiUser: GlobalPartyId,
+    securedConnection: Boolean = true
+  ): Route = {
     (handleRejections(VersionRejections.Handler) & handleExceptions(OcpiExceptionHandler.Default)) {
       extractUri { reqUri =>
         val uri = reqUri.withScheme(Uri.httpScheme(securedConnection))

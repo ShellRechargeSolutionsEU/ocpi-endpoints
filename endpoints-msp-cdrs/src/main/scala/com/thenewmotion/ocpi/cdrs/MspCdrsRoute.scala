@@ -1,9 +1,11 @@
 package com.thenewmotion.ocpi
 package cdrs
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
 import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
 import cdrs.CdrsError._
@@ -15,10 +17,12 @@ import scala.concurrent.ExecutionContext
 
 class MspCdrsRoute(
   service: MspCdrsService
+)(
+  implicit errorM: ToEntityMarshaller[ErrorResp],
+  successUnit: ToEntityMarshaller[SuccessResp[Unit]],
+  successCdr: ToEntityMarshaller[SuccessResp[Cdr]],
+  cdrU: FromEntityUnmarshaller[Cdr]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
-
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.CdrsJsonProtocol._
 
   implicit def cdrsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
@@ -33,12 +37,20 @@ class MspCdrsRoute(
     }
   }
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
+  def route(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val CdrIdSegment = Segment.map(CdrId(_))
 
-  private[cdrs] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
+  private[cdrs] def routeWithoutRh(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ) = {
     authPathPrefixGlobalPartyIdEquality(apiUser) {
       (post & pathEndOrSingleSlash) {
         entity(as[Cdr]) { cdr =>

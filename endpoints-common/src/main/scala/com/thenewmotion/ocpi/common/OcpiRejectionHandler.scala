@@ -2,6 +2,7 @@ package com.thenewmotion.ocpi
 package common
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
@@ -11,54 +12,54 @@ import msgs.OcpiStatusCode._
 
 object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  def Default(
+    implicit m: ToEntityMarshaller[ErrorResp]
+  ): RejectionHandler =
+    RejectionHandler.newBuilder().handle {
+      case MalformedRequestContentRejection(msg, _) => complete {
+        ( BadRequest,
+          ErrorResp(
+            GenericClientFailure,
+            Some(msg)))
+      }
 
-  val Default = RejectionHandler.newBuilder().handle {
+      case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, _) =>
+        complete {
+          ( Unauthorized,
+            ErrorResp(
+              MissingHeader,
+              Some("Authorization Token not supplied")))
+        }
 
-    case MalformedRequestContentRejection(msg, _) => complete {
-      ( BadRequest,
-        ErrorResp(
-          GenericClientFailure,
-          Some(msg)))
-    }
+      case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, _) =>
+        complete {
+          ( Unauthorized,
+            ErrorResp(
+              AuthenticationFailed,
+              Some("Invalid Authorization Token")))
+        }
 
-    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, _) =>
-      complete {
-        ( Unauthorized,
+      case AuthorizationFailedRejection => extractUri { uri =>
+        complete {
+          Forbidden -> ErrorResp(
+            GenericClientFailure,
+            Some(s"The client is not authorized to access ${uri.toRelative}")
+          )
+        }
+      }
+
+      case MissingHeaderRejection(header) => complete {
+        ( BadRequest,
           ErrorResp(
             MissingHeader,
-            Some("Authorization Token not supplied")))
+            Some(s"Header not found: '$header'")))
       }
-
-    case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, _) =>
+    }.handleAll[Rejection] { rejections =>
       complete {
-        ( Unauthorized,
+        ( BadRequest,
           ErrorResp(
-            AuthenticationFailed,
-            Some("Invalid Authorization Token")))
+            GenericClientFailure,
+            Some(rejections.mkString(", "))))
       }
-
-    case AuthorizationFailedRejection => extractUri { uri =>
-      complete {
-        Forbidden -> ErrorResp(
-          GenericClientFailure,
-          Some(s"The client is not authorized to access ${uri.toRelative}")
-        )
-      }
-    }
-
-    case MissingHeaderRejection(header) => complete {
-      ( BadRequest,
-        ErrorResp(
-          MissingHeader,
-          Some(s"Header not found: '$header'")))
-    }
-  }.handleAll[Rejection] { rejections =>
-    complete {
-      ( BadRequest,
-        ErrorResp(
-          GenericClientFailure,
-          Some(rejections.mkString(", "))))
-    }
-  }.result()
+    }.result()
 }

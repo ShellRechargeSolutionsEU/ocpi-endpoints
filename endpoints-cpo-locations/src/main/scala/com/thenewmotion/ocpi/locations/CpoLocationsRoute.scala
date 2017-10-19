@@ -3,10 +3,11 @@ package locations
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
+import akka.http.scaladsl.server.Route
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import common._
 import locations.LocationsError._
@@ -20,12 +21,15 @@ class CpoLocationsRoute(
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000,
   currentTime: => ZonedDateTime = ZonedDateTime.now
+)(
+  implicit errorM: ToEntityMarshaller[ErrorResp],
+  successIterableLocM: ToEntityMarshaller[SuccessResp[Iterable[Location]]],
+  successLocM: ToEntityMarshaller[SuccessResp[Location]],
+  successEvseM: ToEntityMarshaller[SuccessResp[Evse]],
+  successConnM: ToEntityMarshaller[SuccessResp[Connector]]
 ) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
-
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.LocationsJsonProtocol._
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
@@ -39,14 +43,22 @@ class CpoLocationsRoute(
     }
   }
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
+  def route(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
     handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
 
   private val LocationIdSegment = Segment.map(LocationId(_))
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
-  private [locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
+  private [locations] def routeWithoutRh(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ) = {
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>

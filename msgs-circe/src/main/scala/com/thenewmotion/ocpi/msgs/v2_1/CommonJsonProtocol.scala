@@ -44,9 +44,7 @@ trait CommonJsonProtocol {
   implicit val urlD: Decoder[Url] = Decoder.decodeString.emap(Url(_).asRight)
 
   implicit val countryCodeE: Encoder[CountryCode] = stringEncoder(_.value)
-  implicit val countryCodeD: Decoder[CountryCode] = Decoder.decodeString.emap { x =>
-    Try(CountryCode(x)).toEither.leftMap(_.getMessage)
-  }
+  implicit val countryCodeD: Decoder[CountryCode] = tryStringDecoder(CountryCode.apply)
 
   implicit val languageE: Encoder[Language] = Encoder.encodeString.contramap[Language](_.value)
   implicit val languageD: Decoder[Language] = tryStringDecoder(Language.apply)

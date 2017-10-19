@@ -12,17 +12,17 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location, LocationId, EvseUid, ConnectorId}
-import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
 import scala.concurrent.Future
 import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
+  import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+
   "locations endpoint" should {
 
-
     "return paginated list of locations with headers as per OCPI specs" in new LocationsTestScope {
-
 
       val InitialClientOffset = 0
       val ClientPageLimit = 100

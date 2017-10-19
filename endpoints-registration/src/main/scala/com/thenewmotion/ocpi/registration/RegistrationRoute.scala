@@ -5,16 +5,31 @@ import msgs.OcpiStatusCode.GenericSuccess
 
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
-import msgs.Ownership.Theirs
-import msgs.{GlobalPartyId, SuccessResp}
+import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import msgs.Ownership.{Ours, Theirs}
+import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 
-class RegistrationRoute(service: RegistrationService)(implicit mat: Materializer) extends JsonApi {
-  import msgs.v2_1.Credentials._
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.CredentialsJsonProtocol._
+class RegistrationRoute(
+  service: RegistrationService
+)(
+  implicit mat: Materializer,
+  errorM: ToEntityMarshaller[ErrorResp],
+  succOurCredsM: ToEntityMarshaller[SuccessResp[Creds[Ours]]],
+  succUnitM: ToEntityMarshaller[SuccessResp[Unit]],
+  theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
+) extends JsonApi {
 
-  def route(accessedVersion: Version, user: GlobalPartyId)(implicit ec: ExecutionContext) = {
+  def route(
+    accessedVersion: VersionNumber,
+    user: GlobalPartyId
+  )(
+    implicit ec: ExecutionContext
+  ): Route = {
     post {
       entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {

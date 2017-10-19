@@ -12,8 +12,11 @@ import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier._
 import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
 import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.registration.{RegistrationRepo, RegistrationRoute, RegistrationService}
-
+import com.thenewmotion.ocpi.registration.{RegistrationClient, RegistrationRepo, RegistrationRoute, RegistrationService}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.VersionsJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.CredentialsJsonProtocol._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ExampleRegistrationRepo extends RegistrationRepo {
@@ -47,7 +50,11 @@ object ExampleApp extends App {
 
   val repo = new ExampleRegistrationRepo()
 
-  val service = new RegistrationService(repo,
+  val client = new RegistrationClient()
+
+  val service = new RegistrationService(
+    client,
+    repo,
     ourGlobalPartyId = GlobalPartyId("nl", "exp"),
     ourPartyName = "Example",
     ourVersions = Set(VersionNumber.`2.1`),

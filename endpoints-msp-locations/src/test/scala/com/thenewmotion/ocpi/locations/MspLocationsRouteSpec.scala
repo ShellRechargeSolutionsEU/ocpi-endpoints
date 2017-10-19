@@ -16,6 +16,10 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, Location
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
+
   "locations endpoint" should {
 
     "accept a new location object without authorizing the operator ID" in new LocationsTestScope {

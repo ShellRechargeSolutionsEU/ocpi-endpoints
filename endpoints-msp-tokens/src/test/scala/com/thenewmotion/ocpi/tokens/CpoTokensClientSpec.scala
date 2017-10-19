@@ -24,6 +24,9 @@ import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.ZonedDateTimeParser._
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.thenewmotion.ocpi.msgs.v2_1.TokensJsonProtocol._
+import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
 class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 

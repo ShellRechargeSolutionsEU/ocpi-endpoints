@@ -2,21 +2,27 @@ package com.thenewmotion.ocpi
 package tokens
 
 import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
+import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.PathMatcher1
+import akka.http.scaladsl.server.{PathMatcher1, Route}
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs._
-import msgs.v2_1.DefaultJsonProtocol._
-import msgs.v2_1.TokensJsonProtocol._
 import msgs.OcpiStatusCode.GenericClientFailure
 import msgs.OcpiStatusCode.GenericSuccess
 import msgs.v2_1.Tokens._
 import tokens.TokenError._
+
 import scala.concurrent.ExecutionContext
 
 class CpoTokensRoute(
   service: CpoTokensService
+)(
+  implicit successTokenM: ToEntityMarshaller[SuccessResp[Token]],
+  successUnitM: ToEntityMarshaller[SuccessResp[Unit]],
+  errorM: ToEntityMarshaller[ErrorResp],
+  tokenU: FromEntityUnmarshaller[Token],
+  tokenPU: FromEntityUnmarshaller[TokenPatch]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
   implicit def tokenErrorResp(
@@ -34,7 +40,11 @@ class CpoTokensRoute(
 
   private val TokenUidSegment: PathMatcher1[TokenUid] = Segment.map(TokenUid(_))
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
+  def route(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
     handleRejections(OcpiRejectionHandler.Default) {
       (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(TokenUidSegment)) { tokenUid =>
         pathEndOrSingleSlash {

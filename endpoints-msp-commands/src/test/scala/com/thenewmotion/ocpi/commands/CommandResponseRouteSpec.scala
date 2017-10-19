@@ -15,6 +15,7 @@ class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.v2_1.CommandsJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
   "command response endpoint" should {
 

@@ -19,7 +19,7 @@ val `circe` = {
 }
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.0.10" else "2.5.4"
+  val v = if (name.startsWith("http")) "10.0.10" else "2.5.6"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -34,7 +34,7 @@ val akka =
 val cats = Seq("org.typelevel" %% "cats-core" % "0.9.0")
 
 val specs2 = {
-  def module(name: String) = "org.specs2" %% s"specs2-$name" % "3.9.5" % "test"
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.0.1" % "test"
   Seq(
     module("core"), module("junit"), module("mock")
   )
@@ -98,7 +98,7 @@ val `msgs-circe` = project
 
 val `endpoints-common` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`msgs-spray-json`)
+  .dependsOn(`msgs`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-common",
@@ -108,7 +108,7 @@ val `endpoints-common` = project
 
 val `endpoints-msp-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-msp-locations",
@@ -118,7 +118,7 @@ val `endpoints-msp-locations` = project
 
 val `endpoints-msp-tokens` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-msp-tokens",
@@ -128,7 +128,7 @@ val `endpoints-msp-tokens` = project
 
 val `endpoints-msp-cdrs` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-msp-cdrs",
@@ -138,7 +138,7 @@ val `endpoints-msp-cdrs` = project
 
 val `endpoints-msp-commands` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-msp-commands",
@@ -148,7 +148,7 @@ val `endpoints-msp-commands` = project
 
 val `endpoints-cpo-locations` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-cpo-locations",
@@ -158,7 +158,7 @@ val `endpoints-cpo-locations` = project
 
 val `endpoints-cpo-tokens` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-cpo-tokens",
@@ -168,7 +168,7 @@ val `endpoints-cpo-tokens` = project
 
 val `endpoints-versions` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-versions",
@@ -178,7 +178,7 @@ val `endpoints-versions` = project
 
 val `endpoints-registration` = project
   .enablePlugins(OssLibPlugin)
-  .dependsOn(`endpoints-common`)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-endpoints-registration",
@@ -188,8 +188,7 @@ val `endpoints-registration` = project
 
 val `example` = project
   .enablePlugins(AppPlugin)
-  .dependsOn(`endpoints-registration`)
-  .dependsOn(`endpoints-versions`)
+  .dependsOn(`endpoints-registration`, `endpoints-versions`, `msgs-spray-json`)
   .settings(
     commonSettings,
     publish := { },
@@ -201,6 +200,7 @@ val `ocpi-endpoints-root` = (project in file("."))
     `prelude`,
     `msgs`,
     `msgs-spray-json`,
+    `msgs-circe`,
     `endpoints-common`,
     `endpoints-versions`,
     `endpoints-registration`,

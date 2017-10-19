@@ -4,22 +4,26 @@ package registration
 import scala.concurrent.{ExecutionContext, Future}
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
+import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller
 import akka.stream.Materializer
-import common.OcpiClient
+import common.{ErrUnMar, OcpiClient}
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions._
 import msgs.v2_1.Credentials.Creds
-import msgs.{AuthToken, Url}
+import msgs.{AuthToken, SuccessResp, Url}
 import registration.RegistrationError._
 import cats.syntax.either._
 
-class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
-  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.VersionsJsonProtocol._
-  import msgs.v2_1.CredentialsJsonProtocol._
+class RegistrationClient(
+  implicit http: HttpExt,
+  errorU: ErrUnMar,
+  sucListVerU: FromByteStringUnmarshaller[SuccessResp[List[Version]]],
+  sucVerDetU: FromByteStringUnmarshaller[SuccessResp[VersionDetails]],
+  sucCredsU: FromByteStringUnmarshaller[SuccessResp[Creds[Theirs]]],
+  credsM: ToEntityMarshaller[Creds[Ours]]
+) extends OcpiClient {
 
   def getTheirVersions(
     uri: Uri,
@@ -42,7 +46,8 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     uri: Uri,
     token: AuthToken[Ours]
   )(
-    implicit ec: ExecutionContext, mat: Materializer
+    implicit ec: ExecutionContext,
+    mat: Materializer
   ): Future[Either[RegistrationError, VersionDetails]] = {
     def errorMsg = s"Could not retrieve the version details from $uri with token $token."
     val regError = VersionDetailsRetrievalFailed
@@ -59,7 +64,8 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
   )(
-    implicit ec: ExecutionContext, mat: Materializer
+    implicit ec: ExecutionContext,
+    mat: Materializer
   ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token " +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
@@ -79,7 +85,8 @@ class RegistrationClient(implicit http: HttpExt) extends OcpiClient {
     tokenToConnectToThem: AuthToken[Ours],
     credToConnectToUs: Creds[Ours]
   )(
-    implicit ec: ExecutionContext, mat: Materializer
+    implicit ec: ExecutionContext,
+    mat: Materializer
   ): Future[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token" +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
