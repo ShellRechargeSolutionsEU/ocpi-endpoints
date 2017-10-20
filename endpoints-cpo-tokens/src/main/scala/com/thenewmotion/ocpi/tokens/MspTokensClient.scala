@@ -4,12 +4,11 @@ package tokens
 import akka.http.scaladsl._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
 import client.RequestBuilding._
-import com.thenewmotion.ocpi.msgs.{AuthToken, SuccessResp}
+import com.thenewmotion.ocpi.msgs.AuthToken
 import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}
-import com.thenewmotion.ocpi.common.{ErrUnMar, OcpiClient}
+import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import cats.syntax.either._
 
@@ -17,8 +16,8 @@ import scala.concurrent._
 
 class MspTokensClient(
   implicit http: HttpExt,
-  successU: FromEntityUnmarshaller[SuccessResp[AuthorizationInfo]],
-  errorU: ErrUnMar,
+  successU: SuccessRespUnMar[AuthorizationInfo],
+  errorU: ErrRespUnMar,
   locRefM: ToEntityMarshaller[LocationReferences]
 ) extends OcpiClient {
 

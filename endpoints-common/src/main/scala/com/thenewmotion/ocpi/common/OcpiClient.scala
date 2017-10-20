@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,7 +53,10 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     req: HttpRequest,
     auth: AuthToken[Ours]
   )(
-    implicit ec: ExecutionContext, mat: Materializer, errorU: ErrUnMar, sucU: FromEntityUnmarshaller[SuccessResp[T]]
+    implicit ec: ExecutionContext,
+    mat: Materializer,
+    errorU: ErrRespUnMar,
+    sucU: SuccessRespUnMar[T]
   ): Future[ErrorRespOr[SuccessResp[T]]] =
     requestWithAuth(http, req, auth).flatMap { response =>
       Unmarshal(response).to[ErrorRespOr[SuccessResp[T]]].recover {
@@ -68,7 +71,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     dateTo: Option[ZonedDateTime] = None,
     limit: Int = MaxNumItems
   )(
-    implicit ec: ExecutionContext, mat: Materializer, successU: SucUnMar[T], errorU: ErrUnMar
+    implicit ec: ExecutionContext, mat: Materializer, successU: PagedRespUnMar[T], errorU: ErrRespUnMar
   ): Future[ErrorRespOr[Iterable[T]]] =
     PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
       _.asRight

@@ -1,8 +1,8 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
+import common._
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.{PathMatcher1, Route}
@@ -18,9 +18,9 @@ import scala.concurrent.ExecutionContext
 class CpoTokensRoute(
   service: CpoTokensService
 )(
-  implicit successTokenM: ToEntityMarshaller[SuccessResp[Token]],
-  successUnitM: ToEntityMarshaller[SuccessResp[Unit]],
-  errorM: ToEntityMarshaller[ErrorResp],
+  implicit successTokenM: SuccessRespMar[Token],
+  successUnitM: SuccessRespMar[Unit],
+  errorM: ErrRespMar,
   tokenU: FromEntityUnmarshaller[Token],
   tokenPU: FromEntityUnmarshaller[TokenPatch]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {

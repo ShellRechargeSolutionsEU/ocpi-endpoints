@@ -6,12 +6,12 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.server.{PathMatcher1, Route}
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import com.thenewmotion.ocpi
-import common.OcpiExceptionHandler
-import msgs.{ErrorResp, GlobalPartyId, SuccessResp, Url, Versions}
+import common.{ErrRespMar, OcpiExceptionHandler, SuccessRespMar}
+import msgs.{GlobalPartyId, SuccessResp, Url, Versions}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
+
 import scala.concurrent.Future
 
 object VersionsRoute {
@@ -23,9 +23,9 @@ object VersionsRoute {
 class VersionsRoute(
   versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
 )(
-  implicit successRespListVerM: ToEntityMarshaller[SuccessResp[List[Versions.Version]]],
-  successVerDetM: ToEntityMarshaller[SuccessResp[VersionDetails]],
-  errorM: ToEntityMarshaller[ErrorResp]
+  implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
+  successVerDetM: SuccessRespMar[VersionDetails],
+  errorM: ErrRespMar
 ) extends JsonApi {
 
   import VersionsRoute._

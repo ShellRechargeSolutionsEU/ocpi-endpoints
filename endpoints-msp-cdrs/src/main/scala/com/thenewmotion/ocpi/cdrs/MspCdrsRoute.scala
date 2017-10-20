@@ -1,13 +1,13 @@
 package com.thenewmotion.ocpi
 package cdrs
 
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common._
 import cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{Cdr, CdrId}
 import msgs._
@@ -18,9 +18,9 @@ import scala.concurrent.ExecutionContext
 class MspCdrsRoute(
   service: MspCdrsService
 )(
-  implicit errorM: ToEntityMarshaller[ErrorResp],
-  successUnit: ToEntityMarshaller[SuccessResp[Unit]],
-  successCdr: ToEntityMarshaller[SuccessResp[Cdr]],
+  implicit errorM: ErrRespMar,
+  successUnit: SuccessRespMar[Unit],
+  successCdr: SuccessRespMar[Cdr],
   cdrU: FromEntityUnmarshaller[Cdr]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 

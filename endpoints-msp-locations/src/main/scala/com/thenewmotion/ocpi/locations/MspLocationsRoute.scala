@@ -1,13 +1,13 @@
 package com.thenewmotion.ocpi
 package locations
 
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common._
 import locations.LocationsError._
 import msgs.v2_1.Locations._
 import msgs._
@@ -24,11 +24,11 @@ class MspLocationsRoute(
   evsePU: FromEntityUnmarshaller[EvsePatch],
   connectorU: FromEntityUnmarshaller[Connector],
   connectorPU: FromEntityUnmarshaller[ConnectorPatch],
-  errorM: ToEntityMarshaller[ErrorResp],
-  successUnitM: ToEntityMarshaller[SuccessResp[Unit]],
-  successLocM: ToEntityMarshaller[SuccessResp[Location]],
-  successEvseM: ToEntityMarshaller[SuccessResp[Evse]],
-  successConnectorM: ToEntityMarshaller[SuccessResp[Connector]]
+  errorM: ErrRespMar,
+  successUnitM: SuccessRespMar[Unit],
+  successLocM: SuccessRespMar[Location],
+  successEvseM: SuccessRespMar[Evse],
+  successConnectorM: SuccessRespMar[Connector]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 
   implicit def locationsErrorResp(

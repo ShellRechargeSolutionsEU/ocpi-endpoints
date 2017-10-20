@@ -3,9 +3,8 @@ package com.thenewmotion.ocpi
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.{Rejection, RejectionHandler}
-import common.OcpiRejectionHandler
+import common.{ErrRespMar, OcpiRejectionHandler}
 import msgs.OcpiStatusCode.UnsupportedVersion
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import msgs.ErrorResp
 import msgs.Versions.VersionNumber
 
@@ -14,7 +13,7 @@ object VersionRejections {
   case class NoVersionsRejection() extends Rejection
 
   def Handler(
-    implicit errorRespM: ToEntityMarshaller[ErrorResp]
+    implicit errorRespM: ErrRespMar
   ): RejectionHandler = RejectionHandler.newBuilder().handle {
     case UnsupportedVersionRejection(version: VersionNumber) => complete {
       ( OK,

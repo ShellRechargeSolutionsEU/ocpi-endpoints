@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
-import common.{ErrUnMar, OcpiClient, PaginatedSource, SucUnMar}
+import common.{ErrRespUnMar, OcpiClient, PaginatedSource, PagedRespUnMar}
 import msgs.v2_1.Locations.Location
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
@@ -17,8 +17,8 @@ import msgs.AuthToken
 
 class LocationsClient(
   implicit http: HttpExt,
-  successU: SucUnMar[Location],
-  errorU: ErrUnMar
+  successU: PagedRespUnMar[Location],
+  errorU: ErrRespUnMar
 ) extends OcpiClient {
 
   def getLocations(

@@ -3,12 +3,12 @@ package tokens
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller, ToResponseMarshaller}
+import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.{Directive1, Route}
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller}
-import common.{EitherUnmarshalling, Pager, PaginatedRoute}
+import common._
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import msgs.OcpiStatusCode._
 import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, Token, TokenUid}
@@ -21,9 +21,9 @@ class MspTokensRoute(
   val DefaultLimit: Int = 1000,
   val MaxLimit: Int = 1000
 )(
-  implicit pagTokensM: ToEntityMarshaller[SuccessResp[Iterable[Token]]],
-  authM: ToEntityMarshaller[SuccessResp[AuthorizationInfo]],
-  errorM: ToEntityMarshaller[ErrorResp],
+  implicit pagTokensM: SuccessRespMar[Iterable[Token]],
+  authM: SuccessRespMar[AuthorizationInfo],
+  errorM: ErrRespMar,
   locationReferencesU: FromEntityUnmarshaller[LocationReferences]
 ) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
 

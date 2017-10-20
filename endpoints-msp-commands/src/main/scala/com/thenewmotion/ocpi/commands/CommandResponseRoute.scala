@@ -2,21 +2,18 @@ package com.thenewmotion.ocpi
 package commands
 
 import java.util.UUID
-
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common._
 import msgs._
-
 import scala.concurrent.Future
 
 class CommandResponseRoute(
   callback: (GlobalPartyId, UUID, CommandResponseType) => Future[Option[SuccessResp[Unit]]]
 )(
-  implicit errorM: ToEntityMarshaller[ErrorResp],
-  succM: ToEntityMarshaller[SuccessResp[Unit]],
+  implicit errorM: ErrRespMar,
+  succM: SuccessRespMar[Unit],
   reqUm: FromEntityUnmarshaller[CommandResponse]
 ) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
 

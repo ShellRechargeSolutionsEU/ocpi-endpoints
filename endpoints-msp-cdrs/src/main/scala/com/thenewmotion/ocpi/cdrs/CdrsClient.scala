@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
-import common.{ErrUnMar, OcpiClient, PaginatedSource, SucUnMar}
+import common.{ErrRespUnMar, OcpiClient, PaginatedSource, PagedRespUnMar}
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 
@@ -17,8 +17,8 @@ import msgs.AuthToken
 
 class CdrsClient(
   implicit http: HttpExt,
-  successU: SucUnMar[Cdr],
-  errorU: ErrUnMar
+  successU: PagedRespUnMar[Cdr],
+  errorU: ErrRespUnMar
 ) extends OcpiClient {
 
   def getCdrs(

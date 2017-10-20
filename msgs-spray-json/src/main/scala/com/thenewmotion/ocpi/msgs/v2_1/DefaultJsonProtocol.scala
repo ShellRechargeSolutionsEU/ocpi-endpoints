@@ -2,9 +2,6 @@ package com.thenewmotion.ocpi
 package msgs.v2_1
 
 import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
-import java.time.temporal.ChronoField._
-
 import msgs.OcpiStatusCode.SuccessCode
 import msgs._
 import msgs.v2_1.CommonTypes.{BusinessDetails, DisplayText, Image, ImageCategory}

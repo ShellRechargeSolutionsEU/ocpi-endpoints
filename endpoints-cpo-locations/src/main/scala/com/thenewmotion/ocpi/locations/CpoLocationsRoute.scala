@@ -3,7 +3,7 @@ package locations
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.marshalling.{ToEntityMarshaller, ToResponseMarshaller}
+import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Route
@@ -22,11 +22,11 @@ class CpoLocationsRoute(
   val MaxLimit: Int = 1000,
   currentTime: => ZonedDateTime = ZonedDateTime.now
 )(
-  implicit errorM: ToEntityMarshaller[ErrorResp],
-  successIterableLocM: ToEntityMarshaller[SuccessResp[Iterable[Location]]],
-  successLocM: ToEntityMarshaller[SuccessResp[Location]],
-  successEvseM: ToEntityMarshaller[SuccessResp[Evse]],
-  successConnM: ToEntityMarshaller[SuccessResp[Connector]]
+  implicit errorM: ErrRespMar,
+  successIterableLocM: SuccessRespMar[Iterable[Location]],
+  successLocM: SuccessRespMar[Location],
+  successEvseM: SuccessRespMar[Evse],
+  successConnM: SuccessRespMar[Connector]
 ) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")

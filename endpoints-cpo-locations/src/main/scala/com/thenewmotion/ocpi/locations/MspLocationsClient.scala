@@ -4,21 +4,20 @@ import scala.concurrent.{ExecutionContext, Future}
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
-import com.thenewmotion.ocpi.common.{ClientObjectUri, ErrUnMar, OcpiClient}
-import com.thenewmotion.ocpi.msgs.{AuthToken, SuccessResp}
+import com.thenewmotion.ocpi.common.{ClientObjectUri, ErrRespUnMar, OcpiClient, SuccessRespUnMar}
+import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import cats.syntax.either._
 
 class MspLocationsClient(
   implicit http: HttpExt,
-  successUnitU: FromEntityUnmarshaller[SuccessResp[Unit]],
-  errorU: ErrUnMar,
-  successLocU: FromEntityUnmarshaller[SuccessResp[Location]],
-  successEvseU: FromEntityUnmarshaller[SuccessResp[Evse]],
-  successConnU: FromEntityUnmarshaller[SuccessResp[Connector]],
+  successUnitU: SuccessRespUnMar[Unit],
+  errorU: ErrRespUnMar,
+  successLocU: SuccessRespUnMar[Location],
+  successEvseU: SuccessRespUnMar[Evse],
+  successConnU: SuccessRespUnMar[Connector],
   locationM: ToEntityMarshaller[Location],
   evseM: ToEntityMarshaller[Evse],
   connectorM: ToEntityMarshaller[Connector],
@@ -33,7 +32,7 @@ class MspLocationsClient(
   )(
     implicit ec: ExecutionContext,
     mat: Materializer,
-    successU: FromEntityUnmarshaller[SuccessResp[T]]
+    successU: SuccessRespUnMar[T]
   ): Future[ErrorRespOr[T]] =
     singleRequest[T](Get(uri.value), authToken).map {
       _.bimap(err => {

@@ -28,8 +28,8 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
   )(
     implicit ec: ExecutionContext,
     mat: Materializer,
-    successU: SucUnMar[T],
-    errorU: ErrUnMar
+    successU: PagedRespUnMar[T],
+    errorU: ErrRespUnMar
   ): Future[Either[ErrorResp, (PagedResp[T], Option[Uri])]] =
     (for {
       response <- result(requestWithAuth(http, req, auth).map(_.asRight))
@@ -44,7 +44,7 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
     dateTo: Option[ZonedDateTime] = None,
     limit: Int = 100
   )(implicit ec: ExecutionContext, mat: Materializer,
-      successU: SucUnMar[T], errorU: ErrUnMar): Source[T, NotUsed] = {
+    successU: PagedRespUnMar[T], errorU: ErrRespUnMar): Source[T, NotUsed] = {
     val query = Query(Map(
       "offset" -> "0",
       "limit" -> limit.toString) ++
