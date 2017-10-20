@@ -6,7 +6,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
 import common.{ErrUnMar, OcpiClient}
 import msgs.Ownership.{Ours, Theirs}
@@ -19,9 +19,9 @@ import cats.syntax.either._
 class RegistrationClient(
   implicit http: HttpExt,
   errorU: ErrUnMar,
-  sucListVerU: FromByteStringUnmarshaller[SuccessResp[List[Version]]],
-  sucVerDetU: FromByteStringUnmarshaller[SuccessResp[VersionDetails]],
-  sucCredsU: FromByteStringUnmarshaller[SuccessResp[Creds[Theirs]]],
+  sucListVerU: FromEntityUnmarshaller[SuccessResp[List[Version]]],
+  sucVerDetU: FromEntityUnmarshaller[SuccessResp[VersionDetails]],
+  sucCredsU: FromEntityUnmarshaller[SuccessResp[Creds[Theirs]]],
   credsM: ToEntityMarshaller[Creds[Ours]]
 ) extends OcpiClient {
 

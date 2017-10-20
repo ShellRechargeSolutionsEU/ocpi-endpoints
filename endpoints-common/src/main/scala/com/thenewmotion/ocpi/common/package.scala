@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi
 
-import akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import cats.data.EitherT
 import common.PaginatedSource.PagedResp
 import msgs.ErrorResp
@@ -8,8 +8,8 @@ import msgs.ErrorResp
 import scala.concurrent.Future
 
 package object common {
-  type ErrUnMar = FromByteStringUnmarshaller[ErrorResp]
-  type SucUnMar[T] = FromByteStringUnmarshaller[PagedResp[T]]
+  type ErrUnMar = FromEntityUnmarshaller[ErrorResp]
+  type SucUnMar[T] = FromEntityUnmarshaller[PagedResp[T]]
 
   type Result[E, T] = EitherT[Future, E, T]
 

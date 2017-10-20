@@ -5,7 +5,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.{HttpRequest, Uri}
-import akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import common.{ClientObjectUri, ErrUnMar, OcpiClient}
@@ -18,8 +18,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class CpoTokensClient(
   implicit http: HttpExt,
   errorU: ErrUnMar,
-  successTokenU: FromByteStringUnmarshaller[SuccessResp[Token]],
-  successUnitU: FromByteStringUnmarshaller[SuccessResp[Unit]],
+  successTokenU: FromEntityUnmarshaller[SuccessResp[Token]],
+  successUnitU: FromEntityUnmarshaller[SuccessResp[Unit]],
   tokenM: ToEntityMarshaller[Token],
   tokenPM: ToEntityMarshaller[TokenPatch]
 ) extends OcpiClient {

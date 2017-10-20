@@ -4,24 +4,24 @@ package common
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.unmarshalling.Unmarshaller.EitherUnmarshallingException
 import akka.http.scaladsl.unmarshalling._
-import akka.util.ByteString
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 trait EitherUnmarshalling {
 
   implicit def eitherUnmarshaller[L, R](
-    implicit ua: FromByteStringUnmarshaller[L], rightTag: ClassTag[R],
-             ub: FromByteStringUnmarshaller[R], leftTag: ClassTag[L]): FromEntityUnmarshaller[Either[L, R]] =
+    implicit ua: FromEntityUnmarshaller[L], rightTag: ClassTag[R],
+             ub: FromEntityUnmarshaller[R], leftTag: ClassTag[L]): FromEntityUnmarshaller[Either[L, R]] =
 
     Unmarshaller.withMaterializer[HttpEntity, Either[L, R]] { implicit ex ⇒ implicit mat ⇒ value ⇒
       import akka.http.scaladsl.util.FastFuture._
 
-      @inline def right(s: ByteString) = ub(s).fast.map(Right(_))
+      @inline def right(e: HttpEntity) = ub(e).fast.map(Right(_))
 
-      @inline def fallbackLeft(s: ByteString): PartialFunction[Throwable, Future[Either[L, R]]] = { case rightFirstEx ⇒
-        val left = ua(s).fast.map(Left(_))
+      @inline def fallbackLeft(e: HttpEntity): PartialFunction[Throwable, Future[Either[L, R]]] = { case rightFirstEx ⇒
+        val left = ua(e).fast.map(Left(_))
 
         left.transform(
           s = x => x,
@@ -31,9 +31,10 @@ trait EitherUnmarshalling {
         )
       }
 
-      Unmarshal(value).to[ByteString].flatMap { s =>
-        right(s).recoverWith(fallbackLeft(s))
-      }
+      for {
+        e <- value.httpEntity.toStrict(10.seconds)
+        res <- right(e).recoverWith(fallbackLeft(e))
+      } yield res
     }
 
 }

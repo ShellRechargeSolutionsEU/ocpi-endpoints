@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.{DateTime => _, _}
-import akka.http.scaladsl.unmarshalling.{FromByteStringUnmarshaller, Unmarshal}
+import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import akka.stream.Materializer
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,7 +53,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     req: HttpRequest,
     auth: AuthToken[Ours]
   )(
-    implicit ec: ExecutionContext, mat: Materializer, errorU: ErrUnMar, sucU: FromByteStringUnmarshaller[SuccessResp[T]]
+    implicit ec: ExecutionContext, mat: Materializer, errorU: ErrUnMar, sucU: FromEntityUnmarshaller[SuccessResp[T]]
   ): Future[ErrorRespOr[SuccessResp[T]]] =
     requestWithAuth(http, req, auth).flatMap { response =>
       Unmarshal(response).to[ErrorRespOr[SuccessResp[T]]].recover {

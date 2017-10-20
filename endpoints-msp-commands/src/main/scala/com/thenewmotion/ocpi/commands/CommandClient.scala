@@ -5,7 +5,7 @@ import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.unmarshalling.FromByteStringUnmarshaller
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
 import common.{ErrUnMar, OcpiClient}
 import msgs.{AuthToken, SuccessResp}
@@ -18,7 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class CommandClient(
   implicit http: HttpExt,
   errorU: ErrUnMar,
-  sucU: FromByteStringUnmarshaller[SuccessResp[CommandResponse]]
+  sucU: FromEntityUnmarshaller[SuccessResp[CommandResponse]]
 ) extends OcpiClient {
 
   def sendCommand[C <: Command : ToEntityMarshaller](
