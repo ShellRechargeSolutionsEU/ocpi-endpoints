@@ -13,7 +13,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp}
-import com.thenewmotion.ocpi.OcpiDateTimeParser._
+import com.thenewmotion.ocpi.ZonedDateTimeParser._
 import cats.syntax.either._
 import cats.instances.future._
 

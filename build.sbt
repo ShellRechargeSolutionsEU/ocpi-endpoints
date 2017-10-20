@@ -6,6 +6,18 @@ val logging = Seq(
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
 
+
+
+val `circe` = {
+  val version = "0.8.0"
+
+  Seq(
+    "io.circe" %% "circe-core" % version,
+    "io.circe" %% "circe-generic-extras" % version,
+    "io.circe" %% "circe-parser" % version % "test"
+  )
+}
+
 def akkaModule(name: String) = {
   val v = if (name.startsWith("http")) "10.0.10" else "2.5.4"
   "com.typesafe.akka" %% s"akka-$name" % v
@@ -54,14 +66,34 @@ val `msgs` = project
     description := "OCPI messages",
     libraryDependencies := specs2)
 
-val `msgs-spray-json` = project
+val `msgs-json-test` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`msgs`)
+  .settings(
+    commonSettings,
+    name := "ocpi-msgs-json-test",
+    description := "OCPI serialization tests",
+    libraryDependencies := specs2
+  )
+
+val `msgs-spray-json` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`msgs`, `msgs-json-test` % "test->test")
   .settings(
     commonSettings,
     name := "ocpi-msgs-spray-json",
     description := "OCPI serialization library Spray Json",
     libraryDependencies := `spray-json` ++ specs2
+  )
+
+val `msgs-circe` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`msgs`, `msgs-json-test` % "test->test")
+  .settings(
+    commonSettings,
+    name := "ocpi-msgs-circe",
+    description := "OCPI serialization library Circe",
+    libraryDependencies := `circe` ++ specs2
   )
 
 val `endpoints-common` = project

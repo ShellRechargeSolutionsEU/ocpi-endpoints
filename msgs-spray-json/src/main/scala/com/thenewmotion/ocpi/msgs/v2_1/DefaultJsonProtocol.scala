@@ -29,9 +29,9 @@ trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
 
 
   implicit val ZonedDateTimeOptionalMillisFormat = new JsonFormat[ZonedDateTime] {
-    def write (x: ZonedDateTime) = JsString(OcpiDateTimeParser.format(x))
+    def write (x: ZonedDateTime) = JsString(ZonedDateTimeParser.format(x))
     def read (value: JsValue) = value match {
-      case JsString (x) => OcpiDateTimeParser.parseOpt(x) match {
+      case JsString (x) => ZonedDateTimeParser.parseOpt(x) match {
         case Some(parsed) => parsed
         case None => deserializationError ("Expected DateTime conforming to pattern " +
           "specified in OCPI 2.1 section 14.2, but got " + x)
@@ -41,33 +41,17 @@ trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
   }
 
   implicit object localTimeJsonFormat extends JsonFormat[LocalTime] {
-    private val fmt: DateTimeFormatter =
-      new DateTimeFormatterBuilder()
-        .appendValue(HOUR_OF_DAY, 2)
-        .appendLiteral(':')
-        .appendValue(MINUTE_OF_HOUR, 2)
-        .toFormatter
-
-    def write(c: LocalTime) = JsString(fmt.format(c))
+    def write(c: LocalTime) = JsString(LocalTimeParser.format(c))
     def read(value: JsValue) = value match {
-      case JsString(str) => LocalTime.parse(str, fmt)
+      case JsString(str) => LocalTimeParser.parse(str)
       case x => deserializationError("Expected Time as String, but got " + x)
     }
   }
 
   implicit object localDateJsonFormat extends JsonFormat[LocalDate] {
-    private val fmt: DateTimeFormatter =
-      new DateTimeFormatterBuilder()
-        .appendValue(YEAR, 4)
-        .appendLiteral('-')
-        .appendValue(MONTH_OF_YEAR, 2)
-        .appendLiteral('-')
-        .appendValue(DAY_OF_MONTH, 2)
-        .toFormatter
-
-    def write(c: LocalDate) = JsString(fmt.format(c))
+    def write(c: LocalDate) = JsString(LocalDateParser.format(c))
     def read(value: JsValue) = value match {
-      case JsString(str) => LocalDate.parse(str, fmt)
+      case JsString(str) => LocalDateParser.parse(str)
       case x => deserializationError("Expected Date as String, but got " + x)
     }
   }
