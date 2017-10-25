@@ -34,9 +34,9 @@ object Sessions {
   }
 
   case class Session(
-    sessionId: SessionId,
-    startDateTime: ZonedDateTime,
-    endDateTime: ZonedDateTime,
+    id: SessionId,
+    startDatetime: ZonedDateTime,
+    endDatetime: ZonedDateTime,
     kwh: Int,
     authId: AuthId,
     authMethod: AuthMethod,
