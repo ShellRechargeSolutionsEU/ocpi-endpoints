@@ -18,8 +18,7 @@ import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 
 import scala.concurrent.Future
-import msgs.v2_1.DefaultJsonProtocol._
-import msgs.v2_1.TokensJsonProtocol._
+import msgs.sprayjson.v2_1.protocol._
 import tokens.AuthorizeError._
 
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {

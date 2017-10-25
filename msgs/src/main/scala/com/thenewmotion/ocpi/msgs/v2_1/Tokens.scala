@@ -85,7 +85,7 @@ object Tokens {
   )
 
   object LocationReferences {
-    private[v2_1] def deserialize(
+    private[msgs] def deserialize(
       locationId: LocationId,
       evseUids: Option[Iterable[EvseUid]],
       connectorIds: Option[Iterable[ConnectorId]]

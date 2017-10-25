@@ -47,7 +47,7 @@ object Locations {
     energyMix: Option[EnergyMix] = None)
 
   object Location {
-    private[v2_1] def deserialize(
+    private[msgs] def deserialize(
       id: LocationId,
       lastUpdated: ZonedDateTime,
       `type`:	LocationType,
@@ -188,7 +188,7 @@ object Locations {
   )
 
   object EnergyMix {
-    private[v2_1] def deserialize(
+    private[msgs] def deserialize(
       isGreenEnergy: Boolean,
       energySources: Option[Iterable[EnergySource]],
       environImpact: Option[Iterable[EnvironmentalImpact]],
@@ -232,7 +232,7 @@ object Locations {
   )
 
   object Hours {
-    private[v2_1] def deserialize(
+    private[msgs] def deserialize(
       twentyfourseven: Option[Boolean],
       regularHours: Option[Iterable[RegularHours]],
       exceptionalOpenings: Option[Iterable[ExceptionalPeriod]],
@@ -328,7 +328,7 @@ object Locations {
   }
 
   object Evse {
-    private[v2_1] def deserialize(
+    private[msgs] def deserialize(
       uid: EvseUid,
       lastUpdated: ZonedDateTime,
       status: ConnectorStatus,

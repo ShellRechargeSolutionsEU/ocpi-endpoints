@@ -18,8 +18,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import akka.http.scaladsl.model.StatusCodes
   import msgs.v2_1.Tokens._
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.TokensJsonProtocol._
+  import msgs.sprayjson.v2_1.protocol._
 
   "tokens endpoint" should {
     "reject unauthorized access" in new TokensTestScope {

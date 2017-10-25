@@ -6,7 +6,6 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.Link
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.msgs
 import com.thenewmotion.ocpi.cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
@@ -16,8 +15,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
 import com.thenewmotion.ocpi.common.OcpiDirectives
-import msgs.v2_1.DefaultJsonProtocol._
-import msgs.v2_1.CdrsJsonProtocol._
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 import scala.concurrent.Future
 

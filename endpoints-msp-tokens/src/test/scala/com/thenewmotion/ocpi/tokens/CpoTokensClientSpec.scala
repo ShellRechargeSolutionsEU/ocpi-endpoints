@@ -25,8 +25,7 @@ import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.ZonedDateTimeParser._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import com.thenewmotion.ocpi.msgs.v2_1.TokensJsonProtocol._
-import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -126,7 +125,6 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 object GenericRespTypes {
   case class TestData(id: String)
 
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
   implicit val testDataFormat = jsonFormat1(TestData)
 }
 

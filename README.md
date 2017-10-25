@@ -21,3 +21,35 @@ Once running you can make version requests with
 ```
 curl -X GET -H "Authorization: Token abc" "http://localhost:8080/example/versions"
 ```
+
+# Serialization support
+
+You can use either Circe (recommended) or Spray-Json for (de)serialization of JSON
+
+## Circe
+
+In build.sbt
+
+```
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-circe" % "0.7.6"
+```
+
+Then in the route or client you want to use
+
+```
+import com.thenewmotion.ocpi.msgs.circe.v2_1.protocol._
+```
+
+## Spray Json
+
+In build.sbt
+
+```
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-spray-json" % "0.7.6"
+```
+
+Then in the route or client you want to use
+
+```
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+```

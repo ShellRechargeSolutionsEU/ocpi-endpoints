@@ -18,8 +18,7 @@ import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   "locations endpoint" should {
 

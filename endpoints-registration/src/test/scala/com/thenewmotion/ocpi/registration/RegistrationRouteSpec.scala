@@ -22,8 +22,7 @@ import cats.syntax.either._
 class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.CredentialsJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {

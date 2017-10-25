@@ -19,10 +19,9 @@ import lenses.JsonLenses._
 
 import scala.concurrent.Future
 
-class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
+class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
-  import com.thenewmotion.ocpi.msgs.v2_1.VersionsJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   "Versions Route" should {
     "authenticate api calls with valid token info" in new VersionsScope {
@@ -134,8 +133,6 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
     val versionsRoute = new VersionsRoute(Future.successful(versions)) {
       override val currentTime = ZonedDateTime.parse("2010-01-01T00:00:00Z")
     }
-
-    import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
 
     val testRoute =
       (pathPrefix("cpo") & pathPrefix("versions")) {

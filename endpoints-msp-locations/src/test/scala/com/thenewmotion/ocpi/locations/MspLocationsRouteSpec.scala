@@ -10,23 +10,19 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
-import com.thenewmotion.ocpi.msgs
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
-  import com.thenewmotion.ocpi.msgs.v2_1.LocationsJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   "locations endpoint" should {
 
     "accept a new location object without authorizing the operator ID" in new LocationsTestScope {
 
       import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
-      import msgs.v2_1.DefaultJsonProtocol._
-      import msgs.v2_1.LocationsJsonProtocol._
       import spray.json._
 
       loc2String.parseJson.convertTo[Location]
