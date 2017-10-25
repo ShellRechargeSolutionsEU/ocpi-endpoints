@@ -6,7 +6,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import VersionsRoute.OcpiVersionConfig
-import common.{OcpiRejectionHandler, TokenAuthenticator}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import common.{OcpiDirectives, OcpiRejectionHandler, TokenAuthenticator}
 import msgs.Ownership.Theirs
 import msgs.{AuthToken, GlobalPartyId}
 import msgs.Versions.{EndpointIdentifier, VersionNumber}
@@ -15,6 +16,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.json._
 import lenses.JsonLenses._
+
 import scala.concurrent.Future
 
 class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
@@ -103,7 +105,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
     }
   }
 
-  trait VersionsScope extends Scope with JsonApi {
+  trait VersionsScope extends Scope with OcpiDirectives with SprayJsonSupport {
     val validToken = Authorization(GenericHttpCredentials("Token", Map("" -> "12345")))
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
     val invalidToken = Authorization(GenericHttpCredentials("Token", Map("" -> "letmein")))

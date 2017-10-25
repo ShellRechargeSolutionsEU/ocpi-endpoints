@@ -27,7 +27,7 @@ class CpoLocationsRoute(
   successLocM: SuccessRespMar[Location],
   successEvseM: SuccessRespMar[Evse],
   successConnM: SuccessRespMar[Connector]
-) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
+) extends OcpiDirectives with PaginatedRoute with EitherUnmarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
 

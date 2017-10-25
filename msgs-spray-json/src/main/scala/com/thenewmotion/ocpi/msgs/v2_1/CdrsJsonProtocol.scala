@@ -16,7 +16,7 @@ trait CdrsJsonProtocol {
     override def write(obj: CdrId) = JsString(obj.value)
   }
 
-  private implicit val authMethodFormat =
+  implicit val authMethodFormat =
     new SimpleStringEnumSerializer[AuthMethod](AuthMethod).enumFormat
 
   private implicit val cdrDimensionTypeFormat =
@@ -24,7 +24,7 @@ trait CdrsJsonProtocol {
 
   private implicit val cdrDimensionFormat = jsonFormat2(CdrDimension)
 
-  private implicit val chargingPeriodFormat = jsonFormat2(ChargingPeriod)
+  implicit val chargingPeriodFormat = jsonFormat2(ChargingPeriod)
 
   implicit val cdrFormat = jsonFormat16(Cdr)
 }

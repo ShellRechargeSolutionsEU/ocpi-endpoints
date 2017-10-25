@@ -23,7 +23,7 @@ class CpoTokensRoute(
   errorM: ErrRespMar,
   tokenU: FromEntityUnmarshaller[Token],
   tokenPU: FromEntityUnmarshaller[TokenPatch]
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling with OcpiDirectives {
 
   implicit def tokenErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

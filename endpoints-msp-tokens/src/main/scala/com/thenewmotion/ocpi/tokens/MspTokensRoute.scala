@@ -25,7 +25,7 @@ class MspTokensRoute(
   authM: SuccessRespMar[AuthorizationInfo],
   errorM: ErrRespMar,
   locationReferencesU: FromEntityUnmarshaller[LocationReferences]
-) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
+) extends OcpiDirectives with PaginatedRoute with EitherUnmarshalling {
 
   implicit def locationsErrorResp(implicit errorMarshaller: ToResponseMarshaller[(StatusCode, ErrorResp)],
     statusMarshaller: ToResponseMarshaller[StatusCode]): ToResponseMarshaller[AuthorizeError] =

@@ -12,10 +12,10 @@ trait CdrsJsonProtocol {
   implicit val CcdrIdE: Encoder[CdrId] = stringEncoder(_.value)
   implicit val cdrIdD: Decoder[CdrId] = tryStringDecoder(CdrId.apply)
 
-  private implicit val authMethodE: Encoder[AuthMethod] =
+  implicit val authMethodE: Encoder[AuthMethod] =
     SimpleStringEnumSerializer.encoder(AuthMethod)
 
-  private implicit val authMethodD: Decoder[AuthMethod] =
+  implicit val authMethodD: Decoder[AuthMethod] =
     SimpleStringEnumSerializer.decoder(AuthMethod)
 
   private implicit val cdrDimensionTypeE: Encoder[CdrDimensionType] =

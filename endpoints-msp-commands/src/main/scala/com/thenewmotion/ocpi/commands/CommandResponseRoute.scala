@@ -15,7 +15,7 @@ class CommandResponseRoute(
   implicit errorM: ErrRespMar,
   succM: SuccessRespMar[Unit],
   reqUm: FromEntityUnmarshaller[CommandResponse]
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling with OcpiDirectives {
 
   def route(
     apiUser: GlobalPartyId

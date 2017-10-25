@@ -22,7 +22,7 @@ class MspCdrsRoute(
   successUnit: SuccessRespMar[Unit],
   successCdr: SuccessRespMar[Cdr],
   cdrU: FromEntityUnmarshaller[Cdr]
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling with OcpiDirectives {
 
   implicit def cdrsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

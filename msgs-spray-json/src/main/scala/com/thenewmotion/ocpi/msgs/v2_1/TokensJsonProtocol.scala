@@ -21,7 +21,7 @@ trait TokensJsonProtocol {
     override def write(obj: TokenUid) = JsString(obj.value)
   }
 
-  private implicit val authIdFmt = new JsonFormat[AuthId] {
+  implicit val authIdFmt = new JsonFormat[AuthId] {
     override def read(json: JsValue) = json match {
       case JsString(s) => AuthId(s)
       case _ => deserializationError("AuthId must be a string")

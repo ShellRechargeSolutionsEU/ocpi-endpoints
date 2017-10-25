@@ -29,7 +29,7 @@ class MspLocationsRoute(
   successLocM: SuccessRespMar[Location],
   successEvseM: SuccessRespMar[Evse],
   successConnectorM: SuccessRespMar[Connector]
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling with OcpiDirectives {
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]

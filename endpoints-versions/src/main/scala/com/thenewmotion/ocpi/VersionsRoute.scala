@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.{PathMatcher1, Route}
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import com.thenewmotion.ocpi
-import common.{ErrRespMar, OcpiExceptionHandler, SuccessRespMar}
+import common.{ErrRespMar, OcpiDirectives, OcpiExceptionHandler, SuccessRespMar}
 import msgs.{GlobalPartyId, SuccessResp, Url, Versions}
 import msgs.OcpiStatusCode._
 import msgs.Versions._
@@ -26,7 +26,7 @@ class VersionsRoute(
   implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
   successVerDetM: SuccessRespMar[VersionDetails],
   errorM: ErrRespMar
-) extends JsonApi {
+) extends OcpiDirectives {
 
   import VersionsRoute._
 

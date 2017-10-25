@@ -4,9 +4,7 @@ val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.2.3",
   "org.slf4j"                    % "slf4j-api"                %   "1.7.25")
 
-val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.3")
-
-
+val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.4")
 
 val `circe` = {
   val version = "0.8.0"
@@ -146,6 +144,16 @@ val `endpoints-msp-commands` = project
     libraryDependencies := specs2 ++ akkaHttpTestKit
   )
 
+val `endpoints-msp-sessions` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
+  .settings(
+    commonSettings,
+    name := "ocpi-endpoints-msp-sessions",
+    description := "OCPI endpoints MSP Sessions",
+    libraryDependencies := specs2 ++ akkaHttpTestKit
+  )
+
 val `endpoints-cpo-locations` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
@@ -208,6 +216,7 @@ val `ocpi-endpoints-root` = (project in file("."))
     `endpoints-msp-tokens`,
     `endpoints-msp-cdrs`,
     `endpoints-msp-commands`,
+    `endpoints-msp-sessions`,
     `endpoints-cpo-locations`,
     `endpoints-cpo-tokens`,
     `example`)

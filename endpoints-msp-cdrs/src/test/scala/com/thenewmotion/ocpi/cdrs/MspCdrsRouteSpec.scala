@@ -2,10 +2,11 @@ package com.thenewmotion.ocpi.cdrs
 
 import java.time.ZonedDateTime
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.Link
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.{JsonApi, msgs}
+import com.thenewmotion.ocpi.msgs
 import com.thenewmotion.ocpi.cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
@@ -14,6 +15,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
+import com.thenewmotion.ocpi.common.OcpiDirectives
 import msgs.v2_1.DefaultJsonProtocol._
 import msgs.v2_1.CdrsJsonProtocol._
 
@@ -60,7 +62,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     }
   }
 
-  trait TestScope extends Scope with JsonApi {
+  trait TestScope extends Scope with SprayJsonSupport with OcpiDirectives {
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val cdr = Cdr(

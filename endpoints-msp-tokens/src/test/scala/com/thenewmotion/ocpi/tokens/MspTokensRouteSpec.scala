@@ -3,10 +3,11 @@ package tokens
 
 import java.time.ZonedDateTime
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import common.{Pager, PaginatedResult}
+import common.{OcpiDirectives, Pager, PaginatedResult}
 import msgs.v2_1.Tokens._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -15,6 +16,7 @@ import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
+
 import scala.concurrent.Future
 import msgs.v2_1.DefaultJsonProtocol._
 import msgs.v2_1.TokensJsonProtocol._
@@ -79,7 +81,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
   }
 
-  trait TestScope extends Scope with JsonApi {
+  trait TestScope extends Scope with OcpiDirectives with SprayJsonSupport {
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val token = Token(

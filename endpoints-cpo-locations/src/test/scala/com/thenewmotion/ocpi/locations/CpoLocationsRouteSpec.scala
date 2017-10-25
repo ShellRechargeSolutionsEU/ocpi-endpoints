@@ -2,16 +2,17 @@ package com.thenewmotion.ocpi.locations
 
 import java.time.ZonedDateTime
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.JsonApi
-import com.thenewmotion.ocpi.common.{Pager, PaginatedResult}
+import com.thenewmotion.ocpi.common.{OcpiDirectives, Pager, PaginatedResult}
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, Evse, Location, LocationId, EvseUid, ConnectorId}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, ConnectorId, Evse, EvseUid, Location, LocationId}
+
 import scala.concurrent.Future
 import spray.json._
 
@@ -90,7 +91,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     }
   }
 
-  trait LocationsTestScope extends Scope with JsonApi {
+  trait LocationsTestScope extends Scope with SprayJsonSupport with OcpiDirectives {
 
     val ZonedDateTime1 = ZonedDateTime.parse("2010-01-01T00:00:00Z")
 
