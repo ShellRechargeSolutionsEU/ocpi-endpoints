@@ -15,6 +15,7 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
     implicit evseR: GenericJsonReader[Evse],
     evseW: GenericJsonWriter[Evse],
     locationR: GenericJsonReader[Location],
+    locationW: GenericJsonWriter[Location],
     energyMixR: GenericJsonReader[EnergyMix],
     energyMixW: GenericJsonWriter[EnergyMix],
     hoursR: GenericJsonReader[Hours],
@@ -41,6 +42,8 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
     }
 
     "Location" should {
+      testPair(location1, parse(locationJson1))
+
       "deserialize missing fields of cardinality '*' to empty lists" in {
         val loc = parseAs[Location](locationJson1
           .replaceAll(""""related_locations": \[\],""", "")

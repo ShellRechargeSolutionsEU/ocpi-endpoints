@@ -69,7 +69,9 @@ object Locations {
     chargingWhenClosed: Option[Boolean] = None,
     images: Iterable[Image] = Nil,
     energyMix: Option[EnergyMix] = None
-  ) extends BaseLocation[Id]
+  ) extends BaseLocation[Id] {
+    require(evses.nonEmpty, "Location must have at least one Evse")
+  }
 
   case class LocationPatch(
     id: Option[LocationId] = None,
@@ -296,7 +298,7 @@ object Locations {
     parkingRestrictions: Iterable[ParkingRestriction] = Nil,
     images: Iterable[Image] = Nil
   ) {
-    require(connectors.nonEmpty, "Iterable of connector can't be empty!")
+    require(connectors.nonEmpty, "Evse must have at least one connector")
   }
 
   case class EvsePatch(

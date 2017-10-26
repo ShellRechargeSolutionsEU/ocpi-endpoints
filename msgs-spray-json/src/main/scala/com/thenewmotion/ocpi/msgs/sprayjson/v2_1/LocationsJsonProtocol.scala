@@ -34,7 +34,7 @@ trait LocationsJsonProtocol {
     images: Option[Iterable[Image]],
     energyMix: Option[EnergyMix]
   ) =
-    new Location(
+    Location(
       id,
       lastUpdated,
       `type`,

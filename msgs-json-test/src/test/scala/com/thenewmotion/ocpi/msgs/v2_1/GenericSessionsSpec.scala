@@ -4,10 +4,10 @@ import java.time.format.DateTimeFormatter
 import java.time.{ZoneOffset, ZonedDateTime}
 
 import com.thenewmotion.ocpi.msgs.{CountryCode, CurrencyCode}
-import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.AuthMethod
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{Session, SessionId, SessionPatch, SessionStatus}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.AuthId
+import Cdrs.AuthMethod
+import Locations._
+import Sessions.{Session, SessionId, SessionPatch, SessionStatus}
+import Tokens.AuthId
 import org.specs2.specification.core.Fragments
 
 import scala.language.higherKinds
@@ -93,7 +93,7 @@ trait GenericSessionsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
     location = location1,
     meterId = None,
     currency = CurrencyCode("EUR"),
-    chargingPeriods = Seq.empty,
+    chargingPeriods = Nil,
     totalCost = Some(10.24),
     status = SessionStatus.Completed,
     lastUpdated = dateOfUpdate
@@ -109,6 +109,7 @@ trait GenericSessionsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       |    "id": "abc",
       |    "kwh": 1000,
       |    "last_updated": "2016-12-31T23:59:59Z",
+      |	   "charging_periods": [],
       |    "location": {
       |        "address": "F.Rooseveltlaan 3A",
       |        "charging_when_closed": true,
