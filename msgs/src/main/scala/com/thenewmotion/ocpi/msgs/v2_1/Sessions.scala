@@ -5,11 +5,9 @@ import java.time.ZonedDateTime
 import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
 import com.thenewmotion.ocpi.{Enumerable, Nameable}
 import com.thenewmotion.ocpi.msgs.{CurrencyCode, Resource, ResourceType}
-import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{AuthMethod, ChargingPeriod}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens.AuthId
-
-import scala.language.higherKinds
+import Cdrs.{AuthMethod, ChargingPeriod}
+import Locations.Location
+import Tokens.AuthId
 
 object Sessions {
 
