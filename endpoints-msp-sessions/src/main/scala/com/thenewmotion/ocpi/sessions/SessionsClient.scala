@@ -27,7 +27,7 @@ class SessionsClient(
     dateTo: Option[ZonedDateTime] = None
   )(
     implicit ec: ExecutionContext,
-    mat: Materializer,
+    mat: Materializer
   ): Future[ErrorRespOr[Iterable[Session]]] =
     traversePaginatedResource[Session](uri, auth, dateFrom, dateTo)
 

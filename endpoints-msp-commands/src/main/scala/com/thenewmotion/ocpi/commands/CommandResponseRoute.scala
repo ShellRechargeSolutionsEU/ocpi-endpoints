@@ -9,15 +9,26 @@ import common._
 import msgs._
 import scala.concurrent.Future
 
-class CommandResponseRoute(
+object CommandResponseRoute {
+  def apply(
+    callback: (GlobalPartyId, UUID, CommandResponseType) => Future[Option[SuccessResp[Unit]]]
+  )(
+    implicit errorM: ErrRespMar,
+    succM: SuccessRespMar[Unit],
+    reqUm: FromEntityUnmarshaller[CommandResponse]
+  ) = new CommandResponseRoute(callback)
+}
+
+class CommandResponseRoute private[ocpi](
   callback: (GlobalPartyId, UUID, CommandResponseType) => Future[Option[SuccessResp[Unit]]]
 )(
   implicit errorM: ErrRespMar,
   succM: SuccessRespMar[Unit],
   reqUm: FromEntityUnmarshaller[CommandResponse]
-) extends EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling
+    with OcpiDirectives {
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))

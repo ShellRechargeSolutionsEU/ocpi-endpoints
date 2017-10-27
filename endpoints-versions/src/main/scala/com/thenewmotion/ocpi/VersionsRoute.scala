@@ -15,12 +15,21 @@ import msgs.Versions._
 import scala.concurrent.Future
 
 object VersionsRoute {
+
+  def apply(
+    versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
+  )(
+    implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
+    successVerDetM: SuccessRespMar[VersionDetails],
+    errorM: ErrRespMar
+  ): VersionsRoute = new VersionsRoute(versions)
+
   case class OcpiVersionConfig(
     endPoints: Map[EndpointIdentifier, Either[Url, GuardedRoute]]
   )
 }
 
-class VersionsRoute(
+class VersionsRoute private[ocpi](
   versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
 )(
   implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
@@ -30,14 +39,12 @@ class VersionsRoute(
 
   import VersionsRoute._
 
-  protected def currentTime = ZonedDateTime.now
-
   private val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 
   private def appendPath(uri: Uri, segments: String*) = {
     uri.withPath(segments.foldLeft(uri.path) {
       case (path, add) if path.toString.endsWith("/") => path + add
-      case (path, add) => path / add
+      case (path, add)                                => path / add
     })
   }
 
@@ -45,11 +52,13 @@ class VersionsRoute(
     uri: Uri
   ): Route = onSuccess(versions) {
     case v if v.nonEmpty =>
-      complete(SuccessResp(
-        GenericSuccess,
-        None,
-        currentTime,
-        v.keys.map(x => Version(x, Url(appendPath(uri, x.toString).toString))).toList)
+      complete(
+        SuccessResp(
+          GenericSuccess,
+          None,
+          ZonedDateTime.now,
+          v.keys.map(x => Version(x, Url(appendPath(uri, x.toString).toString))).toList
+        )
       )
     case _ => reject(NoVersionsRejection())
   }
@@ -65,27 +74,28 @@ class VersionsRoute(
         SuccessResp(
           GenericSuccess,
           None,
-          currentTime,
+          ZonedDateTime.now,
           VersionDetails(
-            version, versionInfo.endPoints.map {
-              case (k, Right(v)) => Endpoint(k, Url(appendPath(uri, k.value).toString))
+            version,
+            versionInfo.endPoints.map {
+              case (k, Right(v))     => Endpoint(k, Url(appendPath(uri, k.value).toString))
               case (k, Left(extUri)) => Endpoint(k, extUri)
             }
           )
         )
       )
     } ~
-    pathPrefix(EndPointPathMatcher) { path =>
-      versionInfo.endPoints.get(path) match {
-        case None => reject
-        case Some(Left(_)) => reject // implemented externally
-        case Some(Right(route)) => route(version, apiUser)
+      pathPrefix(EndPointPathMatcher) { path =>
+        versionInfo.endPoints.get(path) match {
+          case None               => reject
+          case Some(Left(_))      => reject // implemented externally
+          case Some(Right(route)) => route(version, apiUser)
+        }
       }
-    }
 
   private val VersionMatcher: PathMatcher1[ocpi.Version] = Segment.flatMap(s => VersionNumber.opt(s))
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId,
     securedConnection: Boolean = true
   ): Route = {
@@ -96,11 +106,11 @@ class VersionsRoute(
           versionsRoute(uri)
         } ~
         pathPrefix(VersionMatcher) { version =>
-          onSuccess(versions){ vers =>
+          onSuccess(versions) { vers =>
             val route = for {
               supportedVersion <- vers.get(version)
             } yield versionDetailsRoute(version, supportedVersion, uri, apiUser)
-            route getOrElse reject(UnsupportedVersionRejection(version))
+            route.getOrElse(reject(UnsupportedVersionRejection(version)))
           }
         }
       }

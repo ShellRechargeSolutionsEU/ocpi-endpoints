@@ -14,7 +14,19 @@ import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import msgs.Ownership.{Ours, Theirs}
 import msgs.{GlobalPartyId, SuccessResp}
 
-class RegistrationRoute(
+object RegistrationRoute {
+  def apply(
+    service: RegistrationService
+  )(
+    implicit mat: Materializer,
+    errorM: ErrRespMar,
+    succOurCredsM: SuccessRespMar[Creds[Ours]],
+    succUnitM: SuccessRespMar[Unit],
+    theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
+  ): RegistrationRoute = new RegistrationRoute(service)
+}
+
+class RegistrationRoute private[ocpi](
   service: RegistrationService
 )(
   implicit mat: Materializer,
@@ -24,7 +36,7 @@ class RegistrationRoute(
   theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
 ) extends OcpiDirectives {
 
-  def route(
+  def apply(
     accessedVersion: VersionNumber,
     user: GlobalPartyId
   )(

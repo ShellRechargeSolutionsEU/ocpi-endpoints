@@ -12,7 +12,6 @@ import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
 
 import scala.reflect.{ClassTag, classTag}
-import scala.util.Try
 
 trait CommonJsonProtocol {
 

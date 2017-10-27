@@ -58,12 +58,12 @@ object ExampleApp extends App {
     ourVersions = Set(VersionNumber.`2.1`),
     ourVersionsUrl = Url("www.ocpi-example.com/ocpi/versions"))
 
-  val registrationRoute = new RegistrationRoute(service)
+  val registrationRoute = RegistrationRoute(service)
 
-  val versionRoute = new VersionsRoute(
+  val versionRoute = VersionsRoute(
     Future(Map(VersionNumber.`2.1` -> OcpiVersionConfig(
       Map(
-        Credentials -> Right(registrationRoute.route),
+        Credentials -> Right(registrationRoute.apply),
         Locations -> Left(Url("http://locations.ocpi-example.com"))
       )
     )))
@@ -75,7 +75,7 @@ object ExampleApp extends App {
     path("example") {
       authenticateOrRejectWithChallenge(auth) { user =>
         path("versions") {
-          versionRoute.route(user)
+          versionRoute(user)
         }
       }
     }

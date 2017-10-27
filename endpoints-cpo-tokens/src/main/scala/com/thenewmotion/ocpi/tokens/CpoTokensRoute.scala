@@ -15,7 +15,19 @@ import tokens.TokenError._
 
 import scala.concurrent.ExecutionContext
 
-class CpoTokensRoute(
+object CpoTokensRoute {
+  def apply(
+    service: CpoTokensService
+  )(
+    implicit successTokenM: SuccessRespMar[Token],
+    successUnitM: SuccessRespMar[Unit],
+    errorM: ErrRespMar,
+    tokenU: FromEntityUnmarshaller[Token],
+    tokenPU: FromEntityUnmarshaller[TokenPatch]
+  ): CpoTokensRoute = new CpoTokensRoute(service)
+}
+
+class CpoTokensRoute private[ocpi](
   service: CpoTokensService
 )(
   implicit successTokenM: SuccessRespMar[Token],
@@ -30,9 +42,9 @@ class CpoTokensRoute(
   ): ToResponseMarshaller[TokenError] = {
     em.compose[TokenError] { tokenError =>
       val statusCode = tokenError match {
-        case _: TokenNotFound => NotFound
+        case _: TokenNotFound                                => NotFound
         case (_: TokenCreationFailed | _: TokenUpdateFailed) => OK
-        case _ => InternalServerError
+        case _                                               => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, tokenError.reason)
     }
@@ -40,7 +52,7 @@ class CpoTokensRoute(
 
   private val TokenUidSegment: PathMatcher1[TokenUid] = Segment.map(TokenUid(_))
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext

@@ -16,18 +16,35 @@ import msgs.OcpiStatusCode.GenericSuccess
 
 import scala.concurrent.ExecutionContext
 
-class CpoLocationsRoute(
+object CpoLocationsRoute {
+  def apply(
+    service: CpoLocationsService,
+    DefaultLimit: Int = 1000,
+    MaxLimit: Int = 1000,
+    currentTime: => ZonedDateTime = ZonedDateTime.now
+  )(
+    implicit errorM: ErrRespMar,
+    successIterableLocM: SuccessRespMar[Iterable[Location]],
+    successLocM: SuccessRespMar[Location],
+    successEvseM: SuccessRespMar[Evse],
+    successConnM: SuccessRespMar[Connector]
+  ) = new CpoLocationsRoute(service, DefaultLimit, MaxLimit, currentTime)
+}
+
+class CpoLocationsRoute private[ocpi](
   service: CpoLocationsService,
-  val DefaultLimit: Int = 1000,
-  val MaxLimit: Int = 1000,
-  currentTime: => ZonedDateTime = ZonedDateTime.now
+  val DefaultLimit: Int,
+  val MaxLimit: Int,
+  currentTime: => ZonedDateTime
 )(
   implicit errorM: ErrRespMar,
   successIterableLocM: SuccessRespMar[Iterable[Location]],
   successLocM: SuccessRespMar[Location],
   successEvseM: SuccessRespMar[Evse],
   successConnM: SuccessRespMar[Connector]
-) extends OcpiDirectives with PaginatedRoute with EitherUnmarshalling {
+) extends OcpiDirectives
+    with PaginatedRoute
+    with EitherUnmarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
 
@@ -37,24 +54,24 @@ class CpoLocationsRoute(
     em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
         case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
-        case _ => InternalServerError
+        case _                                                              => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason.orElse(DefaultErrorMsg))
     }
   }
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
   ): Route =
-    handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
+    handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val LocationIdSegment = Segment.map(LocationId(_))
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
-  private [locations] def routeWithoutRh(
+  private[locations] def routeWithoutRh(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
@@ -62,9 +79,8 @@ class CpoLocationsRoute(
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
-          onSuccess(service.locations(pager, dateFrom, dateTo
-          )) {
-             _.fold(complete(_), pagLocations => {
+          onSuccess(service.locations(pager, dateFrom, dateTo)) {
+            _.fold(complete(_), pagLocations => {
               respondWithPaginationHeaders(pager, pagLocations) {
                 complete {
                   SuccessResp(GenericSuccess, data = pagLocations.result)

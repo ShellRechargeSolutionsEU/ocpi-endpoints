@@ -25,7 +25,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       val unAuthorizedUser = GlobalPartyId("NL", "SBM")
 
       Put(s"$tokenPath/$tokenUid") ~> akka.http.scaladsl.server.Route.seal(
-        cpoTokensRoute.route(unAuthorizedUser)) ~> check {
+        cpoTokensRoute(unAuthorizedUser)) ~> check {
         responseAs[ErrorResp]
         status mustEqual StatusCodes.Forbidden
       }
@@ -54,7 +54,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneOffset.UTC)))
 
       Put(s"$tokenPath/$tokenUid", token) ~>
-        cpoTokensRoute.route(apiUser) ~> check {
+        cpoTokensRoute(apiUser) ~> check {
         there was one(cpoTokensService).createOrUpdateToken(
           ===(apiUser),
           ===(tokenUid),
@@ -77,7 +77,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       ) returns Future(().asRight)
 
       Patch(s"$tokenPath/$tokenUid", tokenPatch) ~>
-        cpoTokensRoute.route(apiUser) ~> check {
+        cpoTokensRoute(apiUser) ~> check {
         there was one(cpoTokensService).updateToken(
           apiUser,
           tokenUid,
@@ -94,7 +94,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       ) returns Future(TokenNotFound().asLeft)
 
       Get(s"$tokenPath/$tokenUid") ~>
-        cpoTokensRoute.route(apiUser) ~> check {
+        cpoTokensRoute(apiUser) ~> check {
         there was one(cpoTokensService).token(
           apiUser,
           tokenUid
@@ -111,6 +111,6 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     val apiUser = GlobalPartyId(countryCodeString, operatorIdString)
     val tokenPath = s"/$countryCodeString/$operatorIdString"
     val cpoTokensService = mock[CpoTokensService]
-    val cpoTokensRoute = new CpoTokensRoute(cpoTokensService)
+    val cpoTokensRoute = CpoTokensRoute(cpoTokensService)
   }
 }

@@ -1,7 +1,5 @@
 package com.thenewmotion.ocpi
 
-import java.time.ZonedDateTime
-
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
@@ -130,15 +128,13 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
       }
     )
 
-    val versionsRoute = new VersionsRoute(Future.successful(versions)) {
-      override val currentTime = ZonedDateTime.parse("2010-01-01T00:00:00Z")
-    }
+    val versionsRoute = VersionsRoute(Future.successful(versions))
 
     val testRoute =
       (pathPrefix("cpo") & pathPrefix("versions")) {
         handleRejections(OcpiRejectionHandler.Default) {
           authenticateOrRejectWithChallenge(auth) { apiUser =>
-            versionsRoute.route(apiUser, securedConnection = false)
+            versionsRoute(apiUser, securedConnection = false)
           }
         }
       }

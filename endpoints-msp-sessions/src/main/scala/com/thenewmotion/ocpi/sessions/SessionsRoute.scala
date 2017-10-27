@@ -13,14 +13,26 @@ import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 
 import scala.concurrent.ExecutionContext
 
-class SessionsRoute(
+object SessionsRoute {
+  def apply(
+    service: SessionsService
+  )(
+    implicit locationU: FromEntityUnmarshaller[Session],
+    locationPU: FromEntityUnmarshaller[SessionPatch],
+    errorM: ErrRespMar,
+    successUnitM: SuccessRespMar[Unit],
+    successLocM: SuccessRespMar[Session]
+  ): SessionsRoute = new SessionsRoute(service)
+}
+
+class SessionsRoute private[ocpi](
   service: SessionsService
 )(
   implicit locationU: FromEntityUnmarshaller[Session],
   locationPU: FromEntityUnmarshaller[SessionPatch],
   errorM: ErrRespMar,
   successUnitM: SuccessRespMar[Unit],
-  successLocM: SuccessRespMar[Session],
+  successLocM: SuccessRespMar[Session]
 ) extends EitherUnmarshalling
     with OcpiDirectives {
 
@@ -35,7 +47,7 @@ class SessionsRoute(
     }
   }
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext

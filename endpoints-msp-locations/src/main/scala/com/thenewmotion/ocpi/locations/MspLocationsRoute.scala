@@ -15,7 +15,25 @@ import msgs.OcpiStatusCode._
 
 import scala.concurrent.ExecutionContext
 
-class MspLocationsRoute(
+object MspLocationsRoute {
+  def apply(
+    service: MspLocationsService
+  )(
+    implicit locationU: FromEntityUnmarshaller[Location],
+    locationPU: FromEntityUnmarshaller[LocationPatch],
+    evseU: FromEntityUnmarshaller[Evse],
+    evsePU: FromEntityUnmarshaller[EvsePatch],
+    connectorU: FromEntityUnmarshaller[Connector],
+    connectorPU: FromEntityUnmarshaller[ConnectorPatch],
+    errorM: ErrRespMar,
+    successUnitM: SuccessRespMar[Unit],
+    successLocM: SuccessRespMar[Location],
+    successEvseM: SuccessRespMar[Evse],
+    successConnectorM: SuccessRespMar[Connector]
+  ): MspLocationsRoute = new MspLocationsRoute(service)
+}
+
+class MspLocationsRoute private[ocpi](
   service: MspLocationsService
 )(
   implicit locationU: FromEntityUnmarshaller[Location],
@@ -29,22 +47,23 @@ class MspLocationsRoute(
   successLocM: SuccessRespMar[Location],
   successEvseM: SuccessRespMar[Evse],
   successConnectorM: SuccessRespMar[Connector]
-) extends EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling
+    with OcpiDirectives {
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
   ): ToResponseMarshaller[LocationsError] = {
-      em.compose[LocationsError] { locationsError =>
+    em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
-        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
+        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound)                   => NotFound
         case (_: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed) => OK
-        case _ => InternalServerError
+        case _                                                                                => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason)
     }
   }
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
@@ -137,9 +156,8 @@ class MspLocationsRoute(
           } ~
           get {
             complete {
-              service.connector(apiUser, locId, evseId, connId).mapRight {
-                connector =>
-                  SuccessResp(GenericSuccess, data = connector)
+              service.connector(apiUser, locId, evseId, connId).mapRight { connector =>
+                SuccessResp(GenericSuccess, data = connector)
               }
             }
           }

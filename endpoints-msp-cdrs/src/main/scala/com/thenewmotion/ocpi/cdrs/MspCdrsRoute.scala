@@ -15,29 +15,41 @@ import msgs.OcpiStatusCode._
 
 import scala.concurrent.ExecutionContext
 
-class MspCdrsRoute(
+object MspCdrsRoute {
+  def apply(
+    service: MspCdrsService
+  )(
+    implicit errorM: ErrRespMar,
+    successUnit: SuccessRespMar[Unit],
+    successCdr: SuccessRespMar[Cdr],
+    cdrU: FromEntityUnmarshaller[Cdr]
+  ): MspCdrsRoute = new MspCdrsRoute(service)
+}
+
+class MspCdrsRoute private[ocpi](
   service: MspCdrsService
 )(
   implicit errorM: ErrRespMar,
   successUnit: SuccessRespMar[Unit],
   successCdr: SuccessRespMar[Cdr],
   cdrU: FromEntityUnmarshaller[Cdr]
-) extends EitherUnmarshalling with OcpiDirectives {
+) extends EitherUnmarshalling
+    with OcpiDirectives {
 
   implicit def cdrsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
   ): ToResponseMarshaller[CdrsError] = {
-      em.compose[CdrsError] { cdrsError =>
+    em.compose[CdrsError] { cdrsError =>
       val statusCode = cdrsError match {
-        case _: CdrNotFound => NotFound
+        case _: CdrNotFound       => NotFound
         case _: CdrCreationFailed => OK
-        case _ => InternalServerError
+        case _                    => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, cdrsError.reason)
     }
   }
 
-  def route(
+  def apply(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
