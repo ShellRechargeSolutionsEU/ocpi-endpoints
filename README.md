@@ -53,3 +53,12 @@ Then in the route or client you want to use
 ```
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 ```
+
+# Changelog
+
+## 0.7.6
+
+* Added Sessions module
+* When using a route or a client, you will need to import the Circe or Spray Json modules, as above
+* You no longer need to use `new` to create a route, each one has a companion object, and then the route can be
+used directly instead of having to use the `.route` method.  See the ExampleApp.
