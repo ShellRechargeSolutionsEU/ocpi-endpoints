@@ -6,6 +6,8 @@ val logging = Seq(
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.4")
 
+val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
+
 val `circe` = {
   val version = "0.8.0"
 
@@ -62,7 +64,18 @@ val `msgs` = project
     commonSettings,
     name := "ocpi-msgs",
     description := "OCPI messages",
-    libraryDependencies := specs2)
+    libraryDependencies := specs2
+  )
+
+val `msgs-shapeless` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`msgs`)
+  .settings(
+    commonSettings,
+    name := "ocpi-msgs-shapeless",
+    description := "OCPI messages shapeless module",
+    libraryDependencies := specs2 ++ shapeless
+  )
 
 val `msgs-json-test` = project
   .enablePlugins(OssLibPlugin)
@@ -207,6 +220,7 @@ val `ocpi-endpoints-root` = (project in file("."))
   .aggregate(
     `prelude`,
     `msgs`,
+    `msgs-shapeless`,
     `msgs-spray-json`,
     `msgs-circe`,
     `endpoints-common`,
