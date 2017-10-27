@@ -3,8 +3,8 @@ package msgs
 package v2_1
 
 import java.time.{LocalTime, ZonedDateTime}
-import scala.language.higherKinds
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
+import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
 
 object Locations {
 
@@ -23,27 +23,27 @@ object Locations {
       Some(locId.value)
   }
 
-  private[msgs] trait BaseLocation[F[_]] {
-    def id: F[LocationId]
-    def lastUpdated: F[ZonedDateTime]
-    def `type`: F[LocationType]
+  trait BaseLocation[RT <: ResourceType] extends Resource[RT] {
+    def id: RT#F[LocationId]
+    def lastUpdated: RT#F[ZonedDateTime]
+    def `type`: RT#F[LocationType]
     def name: Option[String]
-    def address: F[String]
-    def city: F[String]
-    def postalCode: F[String]
-    def country: F[CountryCode]
-    def coordinates: F[GeoLocation]
-    def relatedLocations: F[Iterable[AdditionalGeoLocation]]
-    def evses: F[Iterable[Evse]]
-    def directions: F[Iterable[DisplayText]]
+    def address: RT#F[String]
+    def city: RT#F[String]
+    def postalCode: RT#F[String]
+    def country: RT#F[CountryCode]
+    def coordinates: RT#F[GeoLocation]
+    def relatedLocations: RT#F[Iterable[AdditionalGeoLocation]]
+    def evses: RT#F[Iterable[Evse]]
+    def directions: RT#F[Iterable[DisplayText]]
     def operator: Option[BusinessDetails]
     def suboperator: Option[BusinessDetails]
     def owner: Option[BusinessDetails]
-    def facilities: F[Iterable[Facility]]
+    def facilities: RT#F[Iterable[Facility]]
     def timeZone: Option[String]
     def openingTimes: Option[Hours]
     def chargingWhenClosed: Option[Boolean]
-    def images: F[Iterable[Image]]
+    def images: RT#F[Iterable[Image]]
     def energyMix: Option[EnergyMix]
   }
 
@@ -69,7 +69,7 @@ object Locations {
     chargingWhenClosed: Option[Boolean] = None,
     images: Iterable[Image] = Nil,
     energyMix: Option[EnergyMix] = None
-  ) extends BaseLocation[Id] {
+  ) extends BaseLocation[Full] {
     require(evses.nonEmpty, "Location must have at least one Evse")
   }
 
@@ -95,7 +95,7 @@ object Locations {
     chargingWhenClosed: Option[Boolean] = None,
     images: Option[Iterable[Image]] = None,
     energyMix: Option[EnergyMix] = None
-  ) extends BaseLocation[Option]
+  ) extends BaseLocation[Patch]
 
   sealed trait LocationType extends Nameable
   object LocationType extends Enumerable[LocationType] {
@@ -227,6 +227,18 @@ object Locations {
       Some(conId.value)
   }
 
+  trait BaseConnector[RT <: ResourceType] extends Resource[RT] {
+    def id: RT#F[ConnectorId]
+    def lastUpdated: RT#F[ZonedDateTime]
+    def standard: RT#F[ConnectorType]
+    def format: RT#F[ConnectorFormat]
+    def powerType: RT#F[PowerType]
+    def voltage: RT#F[Int]
+    def amperage: RT#F[Int]
+    def tariffId: Option[String]
+    def termsAndConditions: Option[Url]
+  }
+
   case class Connector(
     id: ConnectorId,
     lastUpdated: ZonedDateTime,
@@ -237,10 +249,11 @@ object Locations {
     amperage: Int,
     tariffId: Option[String],
     termsAndConditions: Option[Url] = None
-  )
+  ) extends BaseConnector[Full]
 
   case class ConnectorPatch(
     id: Option[ConnectorId] = None,
+    lastUpdated: Option[ZonedDateTime] = None,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
     powerType: Option[PowerType] = None,
@@ -248,7 +261,7 @@ object Locations {
     amperage: Option[Int] = None,
     tariffId: Option[String] = None,
     termsAndConditions: Option[Url] = None
-  )
+  ) extends BaseConnector[Patch]
 
   sealed trait Capability extends Nameable
   object Capability extends Enumerable[Capability] {
@@ -283,6 +296,22 @@ object Locations {
       Some(evseUid.value)
   }
 
+  trait BaseEvse[RT <: ResourceType] extends Resource[RT] {
+    def uid: RT#F[EvseUid]
+    def lastUpdated: RT#F[ZonedDateTime]
+    def status: RT#F[ConnectorStatus]
+    def connectors: RT#F[Iterable[Connector]]
+    def statusSchedule: RT#F[Iterable[StatusSchedule]]
+    def capabilities: RT#F[Iterable[Capability]]
+    def evseId: Option[String]
+    def floorLevel: Option[String]
+    def coordinates: Option[GeoLocation]
+    def physicalReference: Option[String]
+    def directions: RT#F[Iterable[DisplayText]]
+    def parkingRestrictions: RT#F[Iterable[ParkingRestriction]]
+    def images: RT#F[Iterable[Image]]
+  }
+
   case class Evse(
     uid: EvseUid,
     lastUpdated: ZonedDateTime,
@@ -297,15 +326,17 @@ object Locations {
     directions: Iterable[DisplayText] = Nil,
     parkingRestrictions: Iterable[ParkingRestriction] = Nil,
     images: Iterable[Image] = Nil
-  ) {
+  ) extends BaseEvse[Full] {
+    type C = Connector
     require(connectors.nonEmpty, "Evse must have at least one connector")
   }
 
   case class EvsePatch(
     uid: Option[EvseUid] = None,
+    lastUpdated: Option[ZonedDateTime] = None,
     status: Option[ConnectorStatus] = None,
     connectors: Option[Iterable[Connector]] = None,
-    status_schedule: Option[Iterable[StatusSchedule]] = None,
+    statusSchedule: Option[Iterable[StatusSchedule]] = None,
     capabilities: Option[Iterable[Capability]] = None,
     evseId: Option[String] = None,
     floorLevel: Option[String] = None,
@@ -314,7 +345,9 @@ object Locations {
     directions: Option[Iterable[DisplayText]] = None,
     parkingRestrictions: Option[Iterable[ParkingRestriction]] = None,
     images: Option[Iterable[Image]] = None
-  )
+  ) extends BaseEvse[Patch] {
+    type C = ConnectorPatch
+  }
 
   val LatRegex = """-?[0-9]{1,2}\.[0-9]{1,6}"""
   val LonRegex = """-?[0-9]{1,3}\.[0-9]{1,6}"""

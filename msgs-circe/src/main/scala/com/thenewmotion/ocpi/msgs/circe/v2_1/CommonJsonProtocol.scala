@@ -6,7 +6,7 @@ import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.SuccessCode
 import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.circe.SimpleStringEnumSerializer
-import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, DisplayText, Image, ImageCategory}
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}

@@ -3,7 +3,8 @@ package msgs.v2_1
 
 import java.time.ZonedDateTime
 
-import com.thenewmotion.ocpi.msgs.Language
+import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
+import com.thenewmotion.ocpi.msgs.{Language, Resource, ResourceType}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.DisplayText
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
 
@@ -54,6 +55,18 @@ object Tokens {
       Some(id.value)
   }
 
+  trait BaseToken[RT <: ResourceType] extends Resource[RT] {
+    def uid: RT#F[TokenUid]
+    def `type`: RT#F[TokenType]
+    def authId: RT#F[AuthId]
+    def visualNumber: Option[String]
+    def issuer: RT#F[String]
+    def valid: RT#F[Boolean]
+    def whitelist: RT#F[WhitelistType]
+    def language: Option[Language]
+    def lastUpdated: RT#F[ZonedDateTime]
+  }
+
   case class Token(
     uid: TokenUid,
     `type`: TokenType,
@@ -64,7 +77,7 @@ object Tokens {
     whitelist: WhitelistType,
     language: Option[Language] = None,
     lastUpdated: ZonedDateTime
-  )
+  ) extends BaseToken[Full]
 
   case class TokenPatch(
     uid: Option[TokenUid] = None,
@@ -76,7 +89,7 @@ object Tokens {
     whitelist: Option[WhitelistType] = None,
     language: Option[Language] = None,
     lastUpdated: Option[ZonedDateTime] = None
-  )
+  ) extends BaseToken[Patch]
 
   case class LocationReferences(
     locationId: LocationId,

@@ -2,9 +2,10 @@ package com.thenewmotion.ocpi.msgs
 package sprayjson.v2_1
 
 import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
+
 import OcpiStatusCode.SuccessCode
 import sprayjson.SimpleStringEnumSerializer
-import v2_1.CommonTypes.{BusinessDetails, DisplayText, Image, ImageCategory}
+import v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
 import spray.json.{JsNumber, JsString, JsValue, JsonFormat, deserializationError}
 

@@ -23,7 +23,7 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
 
       Put("/NL/TNM/SESS1", body) ~> sessionsRoute.routeWithoutRh(apiUser) ~> check {
         handled must beTrue
-        there was one(sessionService).createOrUpdateSession(===(apiUser), ===(SessionId("SESS1")), any())
+        there was one(sessionService).createOrUpdateSession(===(apiUser), ===(SessionId("SESS1")), any())(any())
       }
     }
 
@@ -40,14 +40,14 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
 
       Patch("/NL/TNM/SESS1", body) ~> sessionsRoute.routeWithoutRh(apiUser) ~> check {
         handled must beTrue
-        there was one(sessionService).updateSession(===(apiUser), ===(SessionId("SESS1")), ===(patch))
+        there was one(sessionService).updateSession(===(apiUser), ===(SessionId("SESS1")), ===(patch))(any())
       }
     }
 
     "retrieve a session object" in new SessionsTestScope {
       Get("/NL/TNM/SESS1") ~> sessionsRoute.routeWithoutRh(apiUser) ~> check {
         handled must beTrue
-        there was one(sessionService).session(===(apiUser), ===(SessionId("SESS1")))
+        there was one(sessionService).session(===(apiUser), ===(SessionId("SESS1")))(any())
       }
     }
 
@@ -64,9 +64,9 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
   trait SessionsTestScope extends Scope {
     val sessionService = mock[SessionsService]
 
-    sessionService.createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any()) returns Future(Right(true))
-    sessionService.updateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any()) returns Future(Right(()))
-    sessionService.session(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1"))) returns Future(Left(SessionNotFound()))
+    sessionService.createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any()) returns Future(Right(true))
+    sessionService.updateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any()) returns Future(Right(()))
+    sessionService.session(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")))(any()) returns Future(Left(SessionNotFound()))
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
