@@ -5,16 +5,43 @@ import msgs.OcpiStatusCode.GenericSuccess
 
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import akka.stream.Materializer
-import msgs.Ownership.Theirs
+import com.thenewmotion.ocpi.common.{ErrRespMar, OcpiDirectives, SuccessRespMar}
+import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import msgs.Ownership.{Ours, Theirs}
 import msgs.{GlobalPartyId, SuccessResp}
 
-class RegistrationRoute(service: RegistrationService)(implicit mat: Materializer) extends JsonApi {
-  import msgs.v2_1.Credentials._
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.CredentialsJsonProtocol._
+object RegistrationRoute {
+  def apply(
+    service: RegistrationService
+  )(
+    implicit mat: Materializer,
+    errorM: ErrRespMar,
+    succOurCredsM: SuccessRespMar[Creds[Ours]],
+    succUnitM: SuccessRespMar[Unit],
+    theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
+  ): RegistrationRoute = new RegistrationRoute(service)
+}
 
-  def route(accessedVersion: Version, user: GlobalPartyId)(implicit ec: ExecutionContext) = {
+class RegistrationRoute private[ocpi](
+  service: RegistrationService
+)(
+  implicit mat: Materializer,
+  errorM: ErrRespMar,
+  succOurCredsM: SuccessRespMar[Creds[Ours]],
+  succUnitM: SuccessRespMar[Unit],
+  theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
+) extends OcpiDirectives {
+
+  def apply(
+    accessedVersion: VersionNumber,
+    user: GlobalPartyId
+  )(
+    implicit ec: ExecutionContext
+  ): Route = {
     post {
       entity(as[Creds[Theirs]]) { credsToConnectToThem =>
         complete {

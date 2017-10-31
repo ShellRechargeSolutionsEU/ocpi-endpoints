@@ -1,8 +1,10 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import msgs.GlobalPartyId
 import msgs.v2_1.Tokens._
+
 import scala.concurrent.Future
 
 /**
@@ -15,13 +17,20 @@ trait CpoTokensService {
   def token(globalPartyId: GlobalPartyId, tokenUid: TokenUid): Future[Either[TokenError, Token]]
 
   /**
-    * @return true if the token has been created and false if it has been updated.
     * returns TokenCreationFailed if an error occurred.
     */
-  def createOrUpdateToken(globalPartyId: GlobalPartyId, tokenUid: TokenUid, token: Token): Future[Either[TokenError, Boolean]]
+  def createOrUpdateToken(
+    globalPartyId: GlobalPartyId,
+    tokenUid: TokenUid,
+    token: Token
+  ): Future[Either[TokenError, CreateOrUpdateResult]]
 
   /**
     * returns TokenUpdateFailed if an error occurred.
     */
-  def updateToken(globalPartyId: GlobalPartyId, tokenUid: TokenUid, tokenPatch: TokenPatch): Future[Either[TokenError, Unit]]
+  def updateToken(
+    globalPartyId: GlobalPartyId,
+    tokenUid: TokenUid,
+    tokenPatch: TokenPatch
+  ): Future[Either[TokenError, Unit]]
 }

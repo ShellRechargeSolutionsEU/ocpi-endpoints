@@ -12,8 +12,9 @@ import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier._
 import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
 import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.registration.{RegistrationRepo, RegistrationRoute, RegistrationService}
-
+import com.thenewmotion.ocpi.registration.{RegistrationClient, RegistrationRepo, RegistrationRoute, RegistrationService}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 import scala.concurrent.{ExecutionContext, Future}
 
 class ExampleRegistrationRepo extends RegistrationRepo {
@@ -47,18 +48,22 @@ object ExampleApp extends App {
 
   val repo = new ExampleRegistrationRepo()
 
-  val service = new RegistrationService(repo,
+  val client = new RegistrationClient()
+
+  val service = new RegistrationService(
+    client,
+    repo,
     ourGlobalPartyId = GlobalPartyId("nl", "exp"),
     ourPartyName = "Example",
     ourVersions = Set(VersionNumber.`2.1`),
     ourVersionsUrl = Url("www.ocpi-example.com/ocpi/versions"))
 
-  val registrationRoute = new RegistrationRoute(service)
+  val registrationRoute = RegistrationRoute(service)
 
-  val versionRoute = new VersionsRoute(
+  val versionRoute = VersionsRoute(
     Future(Map(VersionNumber.`2.1` -> OcpiVersionConfig(
       Map(
-        Credentials -> Right(registrationRoute.route),
+        Credentials -> Right(registrationRoute.apply),
         Locations -> Left(Url("http://locations.ocpi-example.com"))
       )
     )))
@@ -70,7 +75,7 @@ object ExampleApp extends App {
     path("example") {
       authenticateOrRejectWithChallenge(auth) { user =>
         path("versions") {
-          versionRoute.route(user)
+          versionRoute(user)
         }
       }
     }

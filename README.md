@@ -21,3 +21,47 @@ Once running you can make version requests with
 ```
 curl -X GET -H "Authorization: Token abc" "http://localhost:8080/example/versions"
 ```
+
+# Serialization support
+
+You can use either Circe (recommended) or Spray-Json for (de)serialization of JSON
+
+## Circe
+
+In build.sbt
+
+```
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-circe" % "0.7.6"
+```
+
+Then in the route or client you want to use
+
+```
+import com.thenewmotion.ocpi.msgs.circe.v2_1.protocol._
+```
+
+## Spray Json
+
+In build.sbt
+
+```
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-spray-json" % "0.7.6"
+```
+
+Then in the route or client you want to use
+
+```
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+```
+
+# Changelog
+
+## 0.7.6
+
+* Added Sessions module
+* When using a route or a client, you will need to import the Circe or Spray Json modules, as above
+* You no longer need to use `new` to create a route, each one has a companion object, and then the route can be
+used directly instead of having to use the `.route` method.  See the ExampleApp.
+* Many of the services previously had methods returning `Future[Either[SessionError, Boolean]]` where
+a `Right(true)` meant the record has been updated and a `Right(false)` meant it was updated.  This has
+been replaced by `Right(Created)` and `Right(Updated)` 

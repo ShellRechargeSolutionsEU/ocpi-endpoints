@@ -295,12 +295,11 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
 
     // registrationServices
     val registrationService = new RegistrationService(
+      _client,
       repo,
       ourVersions = Set(`2.1`),
       ourVersionsUrl = ourBaseUrlStr / "cpo" / Versions.value,
       ourGlobalPartyId = ourGlobalPartyId,
-      ourPartyName = ourCpoName) {
-      override val client = _client
-    }
+      ourPartyName = ourCpoName)
   }
 }

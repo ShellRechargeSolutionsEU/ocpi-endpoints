@@ -23,10 +23,10 @@ import org.specs2.concurrent.ExecutionEnv
 import com.thenewmotion.ocpi.msgs.v2_1.Commands
 import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandName, CommandResponse, CommandResponseType}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
-
-  import com.thenewmotion.ocpi.msgs.v2_1.CommandsJsonProtocol._
 
   "MSP Command client" should {
 
@@ -95,7 +95,6 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
 object GenericRespTypes {
   case class TestData(id: String)
 
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
   implicit val testDataFormat = jsonFormat1(TestData)
 }
 

@@ -2,7 +2,8 @@ package com.thenewmotion.ocpi.msgs.v2_1
 
 import java.time.ZonedDateTime
 
-import com.thenewmotion.ocpi.msgs.CurrencyCode
+import com.thenewmotion.ocpi.msgs.ResourceType.Full
+import com.thenewmotion.ocpi.msgs.{CurrencyCode, Resource}
 import com.thenewmotion.ocpi.{Enumerable, Nameable}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
 import com.thenewmotion.ocpi.msgs.v2_1.Tariffs.Tariff
@@ -75,5 +76,5 @@ object Cdrs {
     totalParkingTime: Option[BigDecimal] = None,
     remark: Option[String] = None,
     lastUpdated: ZonedDateTime
-  )
+  ) extends Resource[Full]
 }

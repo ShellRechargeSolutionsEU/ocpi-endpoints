@@ -1,8 +1,10 @@
 package com.thenewmotion.ocpi
 package locations
 
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import msgs.GlobalPartyId
 import msgs.v2_1.Locations._
+
 import scala.concurrent.Future
 
 /**
@@ -10,35 +12,26 @@ import scala.concurrent.Future
   */
 trait MspLocationsService {
 
-  /**
-    * @return true if the location has been created and false if it has been updated
-    */
   def createOrUpdateLocation(
     globalPartyId: GlobalPartyId,
     locId: LocationId,
     loc: Location
-  ): Future[Either[LocationsError, Boolean]]
+  ): Future[Either[LocationsError, CreateOrUpdateResult]]
 
-  /**
-    * @return true if the EVSE has been added and false if it has been updated
-    */
   def addOrUpdateEvse(
     globalPartyId: GlobalPartyId,
     locId: LocationId,
     evseUid: EvseUid,
     evse: Evse
-  ): Future[Either[LocationsError, Boolean]]
+  ): Future[Either[LocationsError, CreateOrUpdateResult]]
 
-  /**
-    * @return true if the Connector has been added and false if it has been updated
-    */
   def addOrUpdateConnector(
     globalPartyId: GlobalPartyId,
     locId: LocationId,
     evseUid: EvseUid,
     connId: ConnectorId,
     connector: Connector
-  ): Future[Either[LocationsError, Boolean]]
+  ): Future[Either[LocationsError, CreateOrUpdateResult]]
 
   def updateLocation(
     globalPartyId: GlobalPartyId,

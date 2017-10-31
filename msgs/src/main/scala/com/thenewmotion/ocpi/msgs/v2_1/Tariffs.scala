@@ -4,7 +4,8 @@ import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
 
 import CommonTypes.DisplayText
 import Locations.EnergyMix
-import com.thenewmotion.ocpi.msgs.{CurrencyCode, Url}
+import com.thenewmotion.ocpi.msgs.ResourceType.Full
+import com.thenewmotion.ocpi.msgs.{CurrencyCode, Resource, Url}
 import com.thenewmotion.ocpi.{Enumerable, Nameable}
 
 object Tariffs {
@@ -77,5 +78,5 @@ object Tariffs {
     elements: Iterable[TariffElement],
     energyMix: Option[EnergyMix] = None,
     lastUpdated: ZonedDateTime
-  )
+  ) extends Resource[Full]
 }

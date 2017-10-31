@@ -34,5 +34,6 @@ object CommonTypes {
     name: String,
     logo: Option[Image],
     website: Option[Url]
-    )
+  )
+
 }

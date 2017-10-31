@@ -53,6 +53,10 @@ class RegistrationClientSpec(environment: Env)
   trait TestScope extends Scope {
     implicit val httpExt = mock[HttpExt]
     httpExt.singleRequest(any(), any(), any(), any())(any()) returns Future.failed(new RuntimeException)
+
+    import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+    import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+
     val client = new RegistrationClient()
   }
 }

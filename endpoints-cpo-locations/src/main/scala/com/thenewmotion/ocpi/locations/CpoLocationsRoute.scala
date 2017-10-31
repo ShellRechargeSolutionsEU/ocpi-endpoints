@@ -6,7 +6,8 @@ import java.time.ZonedDateTime
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
+import akka.http.scaladsl.server.Route
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import common._
 import locations.LocationsError._
@@ -15,17 +16,37 @@ import msgs.OcpiStatusCode.GenericSuccess
 
 import scala.concurrent.ExecutionContext
 
-class CpoLocationsRoute(
+object CpoLocationsRoute {
+  def apply(
+    service: CpoLocationsService,
+    DefaultLimit: Int = 1000,
+    MaxLimit: Int = 1000,
+    currentTime: => ZonedDateTime = ZonedDateTime.now
+  )(
+    implicit errorM: ErrRespMar,
+    successIterableLocM: SuccessRespMar[Iterable[Location]],
+    successLocM: SuccessRespMar[Location],
+    successEvseM: SuccessRespMar[Evse],
+    successConnM: SuccessRespMar[Connector]
+  ) = new CpoLocationsRoute(service, DefaultLimit, MaxLimit, currentTime)
+}
+
+class CpoLocationsRoute private[ocpi](
   service: CpoLocationsService,
-  val DefaultLimit: Int = 1000,
-  val MaxLimit: Int = 1000,
-  currentTime: => ZonedDateTime = ZonedDateTime.now
-) extends JsonApi with PaginatedRoute with EitherUnmarshalling {
+  val DefaultLimit: Int,
+  val MaxLimit: Int,
+  currentTime: => ZonedDateTime
+)(
+  implicit errorM: ErrRespMar,
+  successIterableLocM: SuccessRespMar[Iterable[Location]],
+  successLocM: SuccessRespMar[Location],
+  successEvseM: SuccessRespMar[Evse],
+  successConnM: SuccessRespMar[Connector]
+) extends OcpiDirectives
+    with PaginatedRoute
+    with EitherUnmarshalling {
 
   private val DefaultErrorMsg = Some("An error occurred.")
-
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.LocationsJsonProtocol._
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
@@ -33,26 +54,33 @@ class CpoLocationsRoute(
     em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
         case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
-        case _ => InternalServerError
+        case _                                                              => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason.orElse(DefaultErrorMsg))
     }
   }
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
-    handleRejections(OcpiRejectionHandler.Default) (routeWithoutRh(apiUser))
+  def apply(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
+    handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val LocationIdSegment = Segment.map(LocationId(_))
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
-  private [locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
+  private[locations] def routeWithoutRh(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ) = {
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
-          onSuccess(service.locations(pager, dateFrom, dateTo
-          )) {
-             _.fold(complete(_), pagLocations => {
+          onSuccess(service.locations(pager, dateFrom, dateTo)) {
+            _.fold(complete(_), pagLocations => {
               respondWithPaginationHeaders(pager, pagLocations) {
                 complete {
                   SuccessResp(GenericSuccess, data = pagLocations.result)

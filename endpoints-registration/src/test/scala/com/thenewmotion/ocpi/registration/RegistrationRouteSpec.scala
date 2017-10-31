@@ -21,6 +21,9 @@ import cats.syntax.either._
 
 class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
+  import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+
   "credentials endpoint" should {
     "accept the credentials they sent us to connect to them" in new CredentialsTestScope {
       val theirLog = credsToConnectToThem.businessDetails.logo.get
@@ -45,7 +48,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
 
       val body = HttpEntity(contentType = `application/json`, string = theirCredsData)
 
-      Post("/credentials", body) ~> credentialsRoute.route(selectedVersion, theirGlobalId) ~> check {
+      Post("/credentials", body) ~> credentialsRoute(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(credsToConnectToUs.token.value)
@@ -55,7 +58,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
       registrationService.credsToConnectToUs(any())(any()) returns Future.successful(credsToConnectToUs.asRight)
 
-      Get("/credentials") ~> credentialsRoute.route(selectedVersion, theirGlobalId) ~> check {
+      Get("/credentials") ~> credentialsRoute(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(credsToConnectToUs.token.value)
@@ -64,7 +67,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
 
     "return error if no credentials to connect to us stored for that token" in new CredentialsTestScope {
       Get("/credentials") ~>
-      credentialsRoute.route(selectedVersion, theirGlobalId) ~>
+      credentialsRoute(selectedVersion, theirGlobalId) ~>
       check {
         status === BadRequest
       }
@@ -97,7 +100,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
 
       val body = HttpEntity(contentType = `application/json`, string = theirNewCredsData)
 
-      Put("/credentials", body) ~> credentialsRoute.route(selectedVersion, theirGlobalId) ~> check {
+      Put("/credentials", body) ~> credentialsRoute(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
         responseAs[String] must contain(GenericSuccess.code.toString)
         responseAs[String] must contain(newCredsToConnectToUs.token.value)
@@ -131,7 +134,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string = theirNewCredsData)
 
       Put("/credentials", body) ~>
-      credentialsRoute.route(selectedVersion, theirGlobalId) ~>
+      credentialsRoute(selectedVersion, theirGlobalId) ~>
       check {
         status === MethodNotAllowed
       }
@@ -176,6 +179,6 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
       credsToConnectToThem.url) returns Future.successful(credsToConnectToThem.asRight)
     registrationService.credsToConnectToUs(any())(any()) returns Future.successful(UnknownParty(theirGlobalId).asLeft)
 
-    val credentialsRoute = new RegistrationRoute(registrationService)
+    val credentialsRoute = RegistrationRoute(registrationService)
   }
 }

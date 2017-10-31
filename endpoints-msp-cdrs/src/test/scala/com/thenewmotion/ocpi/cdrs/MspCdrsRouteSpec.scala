@@ -2,10 +2,10 @@ package com.thenewmotion.ocpi.cdrs
 
 import java.time.ZonedDateTime
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.Link
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import com.thenewmotion.ocpi.{JsonApi, msgs}
 import com.thenewmotion.ocpi.cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
@@ -14,8 +14,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
-import msgs.v2_1.DefaultJsonProtocol._
-import msgs.v2_1.CdrsJsonProtocol._
+import com.thenewmotion.ocpi.common.OcpiDirectives
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 import scala.concurrent.Future
 
@@ -24,7 +24,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
   "MspCdrsRoute" should {
     "return an existing Cdr" in new TestScope {
       service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
-      Get("/NL/TNM/12345") ~> route.route(apiUser) ~> check {
+      Get("/NL/TNM/12345") ~> route(apiUser) ~> check {
         header[Link] must beNone
         there was one(service).cdr(apiUser, cdr.id)
         val res = entityAs[SuccessResp[Cdr]]
@@ -35,7 +35,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "handle NotFound failure" in new TestScope {
       service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
 
-      Get("/NL/TNM/does-not-exist") ~> route.route(apiUser) ~> check {
+      Get("/NL/TNM/does-not-exist") ~> route(apiUser) ~> check {
         there was one(service).cdr(apiUser, CdrId("does-not-exist"))
         status mustEqual StatusCodes.NotFound
       }
@@ -44,7 +44,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "allow posting new cdr" in new TestScope {
       service.createCdr(apiUser, cdr) returns Future(().asRight)
 
-      Post("/NL/TNM", cdr) ~> route.route(apiUser) ~> check {
+      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
         status mustEqual StatusCodes.Created
       }
@@ -53,14 +53,14 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "not allow updating cdr" in new TestScope {
       service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
 
-      Post("/NL/TNM", cdr) ~> route.route(apiUser) ~> check {
+      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
         status mustEqual StatusCodes.OK
       }
     }
   }
 
-  trait TestScope extends Scope with JsonApi {
+  trait TestScope extends Scope with SprayJsonSupport with OcpiDirectives {
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val cdr = Cdr(
@@ -112,6 +112,6 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
     val service = mock[MspCdrsService]
 
-    val route = new MspCdrsRoute(service)
+    val route = MspCdrsRoute(service)
   }
 }

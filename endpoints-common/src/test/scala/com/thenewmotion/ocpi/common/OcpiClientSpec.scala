@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   case class TestData(id: String)
   implicit val testDataFormat = jsonFormat1(TestData)

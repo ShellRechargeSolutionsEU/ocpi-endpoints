@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi
 package registration
 
-import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 
@@ -18,6 +17,7 @@ import cats.syntax.either._
 import cats.instances.future._
 
 class RegistrationService(
+  client: RegistrationClient,
   repo: RegistrationRepo,
   ourGlobalPartyId: GlobalPartyId,
   ourPartyName: String,
@@ -25,11 +25,9 @@ class RegistrationService(
   ourVersionsUrl: Url,
   ourWebsite: Option[Url] = None,
   ourLogo: Option[Image] = None
-)(implicit http: HttpExt) extends FutureEitherUtils {
+) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
-
-  private[registration] val client: RegistrationClient = new RegistrationClient
 
   private def errIfRegistered(
     globalPartyId: GlobalPartyId

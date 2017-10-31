@@ -13,9 +13,9 @@ object OcpiExceptionHandler extends BasicDirectives with SprayJsonSupport {
 
   protected val logger = Logger(getClass)
 
-  import com.thenewmotion.ocpi.msgs.v2_1.DefaultJsonProtocol._
-
-  val Default = ExceptionHandler {
+  def Default(
+    implicit m: ErrRespMar
+  ) = ExceptionHandler {
     case exception => extractRequest { request =>
       logger.error(s"An error occurred processing: $request", exception)
       complete {

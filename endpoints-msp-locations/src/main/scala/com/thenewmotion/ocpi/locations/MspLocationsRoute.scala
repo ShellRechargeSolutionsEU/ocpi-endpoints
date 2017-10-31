@@ -4,49 +4,88 @@ package locations
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common._
 import locations.LocationsError._
 import msgs.v2_1.Locations._
 import msgs._
 import msgs.OcpiStatusCode._
+
 import scala.concurrent.ExecutionContext
 
-class MspLocationsRoute(
-  service: MspLocationsService
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+object MspLocationsRoute {
+  def apply(
+    service: MspLocationsService
+  )(
+    implicit locationU: FromEntityUnmarshaller[Location],
+    locationPU: FromEntityUnmarshaller[LocationPatch],
+    evseU: FromEntityUnmarshaller[Evse],
+    evsePU: FromEntityUnmarshaller[EvsePatch],
+    connectorU: FromEntityUnmarshaller[Connector],
+    connectorPU: FromEntityUnmarshaller[ConnectorPatch],
+    errorM: ErrRespMar,
+    successUnitM: SuccessRespMar[Unit],
+    successLocM: SuccessRespMar[Location],
+    successEvseM: SuccessRespMar[Evse],
+    successConnectorM: SuccessRespMar[Connector]
+  ): MspLocationsRoute = new MspLocationsRoute(service)
+}
 
-  import msgs.v2_1.DefaultJsonProtocol._
-  import msgs.v2_1.LocationsJsonProtocol._
+class MspLocationsRoute private[ocpi](
+  service: MspLocationsService
+)(
+  implicit locationU: FromEntityUnmarshaller[Location],
+  locationPU: FromEntityUnmarshaller[LocationPatch],
+  evseU: FromEntityUnmarshaller[Evse],
+  evsePU: FromEntityUnmarshaller[EvsePatch],
+  connectorU: FromEntityUnmarshaller[Connector],
+  connectorPU: FromEntityUnmarshaller[ConnectorPatch],
+  errorM: ErrRespMar,
+  successUnitM: SuccessRespMar[Unit],
+  successLocM: SuccessRespMar[Location],
+  successEvseM: SuccessRespMar[Evse],
+  successConnectorM: SuccessRespMar[Connector]
+) extends EitherUnmarshalling
+    with OcpiDirectives {
 
   implicit def locationsErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
   ): ToResponseMarshaller[LocationsError] = {
-      em.compose[LocationsError] { locationsError =>
+    em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
-        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
+        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound)                   => NotFound
         case (_: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed) => OK
-        case _ => InternalServerError
+        case _                                                                                => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason)
     }
   }
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
+  def apply(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val LocationIdSegment = Segment.map(LocationId(_))
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
-  private[locations] def routeWithoutRh(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
+  private[locations] def routeWithoutRh(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ) = {
     (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(LocationIdSegment)) { locId =>
       pathEndOrSingleSlash {
         put {
           entity(as[Location]) { location =>
             complete {
-              service.createOrUpdateLocation(apiUser, locId, location).mapRight { created =>
-                (if (created) Created else OK, SuccessResp(GenericSuccess))
+              service.createOrUpdateLocation(apiUser, locId, location).mapRight { x =>
+                (x.httpStatusCode, SuccessResp(GenericSuccess))
               }
             }
           }
@@ -73,8 +112,8 @@ class MspLocationsRoute(
           put {
             entity(as[Evse]) { evse =>
               complete {
-                service.addOrUpdateEvse(apiUser, locId, evseId, evse).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.addOrUpdateEvse(apiUser, locId, evseId, evse).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }
@@ -100,8 +139,8 @@ class MspLocationsRoute(
           put {
             entity(as[Connector]) { conn =>
               complete {
-                service.addOrUpdateConnector(apiUser, locId, evseId, connId, conn).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.addOrUpdateConnector(apiUser, locId, evseId, connId, conn).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }
@@ -117,9 +156,8 @@ class MspLocationsRoute(
           } ~
           get {
             complete {
-              service.connector(apiUser, locId, evseId, connId).mapRight {
-                connector =>
-                  SuccessResp(GenericSuccess, data = connector)
+              service.connector(apiUser, locId, evseId, connId).mapRight { connector =>
+                SuccessResp(GenericSuccess, data = connector)
               }
             }
           }

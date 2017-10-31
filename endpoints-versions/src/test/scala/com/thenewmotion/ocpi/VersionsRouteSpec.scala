@@ -1,12 +1,11 @@
 package com.thenewmotion.ocpi
 
-import java.time.ZonedDateTime
-
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import VersionsRoute.OcpiVersionConfig
-import common.{OcpiRejectionHandler, TokenAuthenticator}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import common.{OcpiDirectives, OcpiRejectionHandler, TokenAuthenticator}
 import msgs.Ownership.Theirs
 import msgs.{AuthToken, GlobalPartyId}
 import msgs.Versions.{EndpointIdentifier, VersionNumber}
@@ -15,11 +14,12 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.json._
 import lenses.JsonLenses._
-import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future
 
-class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
+class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito {
+
+  import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
   "Versions Route" should {
     "authenticate api calls with valid token info" in new VersionsScope {
@@ -102,7 +102,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
     }
   }
 
-  trait VersionsScope extends Scope with JsonApi {
+  trait VersionsScope extends Scope with OcpiDirectives with SprayJsonSupport {
     val validToken = Authorization(GenericHttpCredentials("Token", Map("" -> "12345")))
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
     val invalidToken = Authorization(GenericHttpCredentials("Token", Map("" -> "letmein")))
@@ -128,15 +128,13 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito{
       }
     )
 
-    val versionsRoute = new VersionsRoute(Future.successful(versions)) {
-      override val currentTime = ZonedDateTime.parse("2010-01-01T00:00:00Z")
-    }
+    val versionsRoute = VersionsRoute(Future.successful(versions))
 
     val testRoute =
       (pathPrefix("cpo") & pathPrefix("versions")) {
         handleRejections(OcpiRejectionHandler.Default) {
           authenticateOrRejectWithChallenge(auth) { apiUser =>
-            versionsRoute.route(apiUser, securedConnection = false)
+            versionsRoute(apiUser, securedConnection = false)
           }
         }
       }

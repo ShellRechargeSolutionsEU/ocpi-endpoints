@@ -1,32 +1,50 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common.{EitherUnmarshalling, OcpiDirectives, OcpiRejectionHandler}
+import common._
 import akka.http.scaladsl.marshalling.ToResponseMarshaller
 import akka.http.scaladsl.model.StatusCode
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.PathMatcher1
+import akka.http.scaladsl.server.{PathMatcher1, Route}
+import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs._
-import msgs.v2_1.DefaultJsonProtocol._
-import msgs.v2_1.TokensJsonProtocol._
 import msgs.OcpiStatusCode.GenericClientFailure
 import msgs.OcpiStatusCode.GenericSuccess
 import msgs.v2_1.Tokens._
 import tokens.TokenError._
+
 import scala.concurrent.ExecutionContext
 
-class CpoTokensRoute(
+object CpoTokensRoute {
+  def apply(
+    service: CpoTokensService
+  )(
+    implicit successTokenM: SuccessRespMar[Token],
+    successUnitM: SuccessRespMar[Unit],
+    errorM: ErrRespMar,
+    tokenU: FromEntityUnmarshaller[Token],
+    tokenPU: FromEntityUnmarshaller[TokenPatch]
+  ): CpoTokensRoute = new CpoTokensRoute(service)
+}
+
+class CpoTokensRoute private[ocpi](
   service: CpoTokensService
-) extends JsonApi with EitherUnmarshalling with OcpiDirectives {
+)(
+  implicit successTokenM: SuccessRespMar[Token],
+  successUnitM: SuccessRespMar[Unit],
+  errorM: ErrRespMar,
+  tokenU: FromEntityUnmarshaller[Token],
+  tokenPU: FromEntityUnmarshaller[TokenPatch]
+) extends EitherUnmarshalling with OcpiDirectives {
 
   implicit def tokenErrorResp(
     implicit em: ToResponseMarshaller[(StatusCode, ErrorResp)]
   ): ToResponseMarshaller[TokenError] = {
     em.compose[TokenError] { tokenError =>
       val statusCode = tokenError match {
-        case _: TokenNotFound => NotFound
+        case _: TokenNotFound                                => NotFound
         case (_: TokenCreationFailed | _: TokenUpdateFailed) => OK
-        case _ => InternalServerError
+        case _                                               => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, tokenError.reason)
     }
@@ -34,15 +52,19 @@ class CpoTokensRoute(
 
   private val TokenUidSegment: PathMatcher1[TokenUid] = Segment.map(TokenUid(_))
 
-  def route(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) =
+  def apply(
+    apiUser: GlobalPartyId
+  )(
+    implicit executionContext: ExecutionContext
+  ): Route =
     handleRejections(OcpiRejectionHandler.Default) {
       (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(TokenUidSegment)) { tokenUid =>
         pathEndOrSingleSlash {
           put {
             entity(as[Token]) { token =>
               complete {
-                service.createOrUpdateToken(apiUser, tokenUid, token).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.createOrUpdateToken(apiUser, tokenUid, token).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }
