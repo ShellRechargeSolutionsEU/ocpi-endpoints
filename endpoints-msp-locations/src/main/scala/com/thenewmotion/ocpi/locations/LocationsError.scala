@@ -11,4 +11,5 @@ object LocationsError {
   case class EvseCreationFailed(reason: Option[String] = None) extends LocationsError
   case class ConnectorNotFound(reason: Option[String] = None) extends LocationsError
   case class ConnectorCreationFailed(reason: Option[String] = None) extends LocationsError
+  case class IncorrectLocationId(reason: Option[String] = None) extends LocationsError
 }

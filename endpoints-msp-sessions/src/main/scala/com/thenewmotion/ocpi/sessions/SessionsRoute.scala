@@ -8,7 +8,7 @@ import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import com.thenewmotion.ocpi.common._
 import com.thenewmotion.ocpi.msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{Session, SessionId, SessionPatch}
-import com.thenewmotion.ocpi.sessions.SessionError.SessionNotFound
+import com.thenewmotion.ocpi.sessions.SessionError.{IncorrectSessionId, SessionNotFound}
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 
 import scala.concurrent.ExecutionContext
@@ -42,6 +42,7 @@ class SessionsRoute private[ocpi] (
     em.compose[SessionError] { sessionError =>
       val statusCode = sessionError match {
         case (_: SessionNotFound)    => NotFound
+        case (_: IncorrectSessionId) => BadRequest
       }
       statusCode -> ErrorResp(GenericClientFailure, sessionError.reason)
     }
@@ -66,7 +67,7 @@ class SessionsRoute private[ocpi] (
         put {
           entity(as[Session]) { session =>
             complete {
-              service.createOrUpdateSession(apiUser, sessionId, session).mapRight { x =>
+             service.createOrUpdateSession(apiUser, sessionId, session).mapRight { x =>
                 (x.httpStatusCode, SuccessResp(GenericSuccess))
               }
             }
