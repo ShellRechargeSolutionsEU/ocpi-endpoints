@@ -63,8 +63,8 @@ class CpoTokensRoute private[ocpi](
           put {
             entity(as[Token]) { token =>
               complete {
-                service.createOrUpdateToken(apiUser, tokenUid, token).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.createOrUpdateToken(apiUser, tokenUid, token).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }

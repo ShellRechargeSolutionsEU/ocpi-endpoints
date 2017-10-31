@@ -14,7 +14,7 @@ trait TokensJsonProtocol {
     locationId: LocationId,
     evseUids: Option[Iterable[EvseUid]],
     connectorIds: Option[Iterable[ConnectorId]]
-  ) = new LocationReferences(
+  ) = LocationReferences(
     locationId,
     evseUids.getOrElse(Nil),
     connectorIds.getOrElse(Nil)

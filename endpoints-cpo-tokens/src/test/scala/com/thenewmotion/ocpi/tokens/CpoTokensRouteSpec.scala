@@ -9,6 +9,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import cats.syntax.either._
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 
 import scala.concurrent.Future
 
@@ -48,7 +49,7 @@ class CpoTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
         ===(apiUser),
         ===(tokenUid),
         any[Token]
-      ) returns Future(true.asRight)
+      ) returns Future(CreateOrUpdateResult.Created.asRight)
 
       def beMostlyEqualTo = (be_==(_: Token)) ^^^ ((_: Token).copy(lastUpdated =
         ZonedDateTime.ofInstant(Instant.ofEpochSecond(0), ZoneOffset.UTC)))

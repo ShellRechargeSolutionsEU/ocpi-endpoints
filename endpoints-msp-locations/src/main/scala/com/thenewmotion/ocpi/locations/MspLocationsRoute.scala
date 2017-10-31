@@ -84,8 +84,8 @@ class MspLocationsRoute private[ocpi](
         put {
           entity(as[Location]) { location =>
             complete {
-              service.createOrUpdateLocation(apiUser, locId, location).mapRight { created =>
-                (if (created) Created else OK, SuccessResp(GenericSuccess))
+              service.createOrUpdateLocation(apiUser, locId, location).mapRight { x =>
+                (x.httpStatusCode, SuccessResp(GenericSuccess))
               }
             }
           }
@@ -112,8 +112,8 @@ class MspLocationsRoute private[ocpi](
           put {
             entity(as[Evse]) { evse =>
               complete {
-                service.addOrUpdateEvse(apiUser, locId, evseId, evse).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.addOrUpdateEvse(apiUser, locId, evseId, evse).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }
@@ -139,8 +139,8 @@ class MspLocationsRoute private[ocpi](
           put {
             entity(as[Connector]) { conn =>
               complete {
-                service.addOrUpdateConnector(apiUser, locId, evseId, connId, conn).mapRight { created =>
-                  (if (created) Created else OK, SuccessResp(GenericSuccess))
+                service.addOrUpdateConnector(apiUser, locId, evseId, connId, conn).mapRight { x =>
+                  (x.httpStatusCode, SuccessResp(GenericSuccess))
                 }
               }
             }

@@ -25,7 +25,7 @@ object SessionsRoute {
   ): SessionsRoute = new SessionsRoute(service)
 }
 
-class SessionsRoute private[ocpi](
+class SessionsRoute private[ocpi] (
   service: SessionsService
 )(
   implicit locationU: FromEntityUnmarshaller[Session],
@@ -41,7 +41,7 @@ class SessionsRoute private[ocpi](
   ): ToResponseMarshaller[SessionError] = {
     em.compose[SessionError] { sessionError =>
       val statusCode = sessionError match {
-        case (_: SessionNotFound) => NotFound
+        case (_: SessionNotFound)    => NotFound
       }
       statusCode -> ErrorResp(GenericClientFailure, sessionError.reason)
     }
@@ -66,8 +66,8 @@ class SessionsRoute private[ocpi](
         put {
           entity(as[Session]) { session =>
             complete {
-              service.createOrUpdateSession(apiUser, sessionId, session).mapRight { created =>
-                (if (created) Created else OK, SuccessResp(GenericSuccess))
+              service.createOrUpdateSession(apiUser, sessionId, session).mapRight { x =>
+                (x.httpStatusCode, SuccessResp(GenericSuccess))
               }
             }
           }

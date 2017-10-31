@@ -1,5 +1,6 @@
 package com.thenewmotion.ocpi.sessions
 
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{Session, SessionId, SessionPatch}
 
@@ -10,14 +11,11 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 trait SessionsService {
 
-  /**
-    * @return true if the session has been created and false if it has been updated
-    */
   def createOrUpdateSession(
     globalPartyId: GlobalPartyId,
     sessionId: SessionId,
     session: Session
-  )(implicit ec: ExecutionContext): Future[Either[SessionError, Boolean]]
+  )(implicit ec: ExecutionContext): Future[Either[SessionError, CreateOrUpdateResult]]
 
   def updateSession(
     globalPartyId: GlobalPartyId,

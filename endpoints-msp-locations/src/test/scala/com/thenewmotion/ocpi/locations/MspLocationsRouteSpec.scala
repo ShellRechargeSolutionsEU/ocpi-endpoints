@@ -9,6 +9,7 @@ import scala.concurrent.Future
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
@@ -139,7 +140,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   trait LocationsTestScope extends Scope {
     val mspLocService = mock[MspLocationsService]
 
-    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any()) returns Future(Right(true))
+    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any()) returns Future(Right(CreateOrUpdateResult.Created))
     mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), any()) returns Future(Right(()))
     mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1"))) returns Future(Left(LocationNotFound()))
     mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000"))) returns Future(Left(LocationNotFound()))

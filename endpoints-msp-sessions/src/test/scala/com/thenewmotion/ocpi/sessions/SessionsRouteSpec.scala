@@ -13,6 +13,7 @@ import org.specs2.specification.Scope
 import scala.concurrent.Future
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 
 class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -64,7 +65,7 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
   trait SessionsTestScope extends Scope {
     val sessionService = mock[SessionsService]
 
-    sessionService.createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any()) returns Future(Right(true))
+    sessionService.createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any()) returns Future(Right(CreateOrUpdateResult.Created))
     sessionService.updateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any()) returns Future(Right(()))
     sessionService.session(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")))(any()) returns Future(Left(SessionNotFound()))
 
