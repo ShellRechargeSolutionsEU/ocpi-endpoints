@@ -4,6 +4,9 @@ package locations
 import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import msgs.GlobalPartyId
 import msgs.v2_1.Locations._
+import cats.syntax.either._
+import cats.syntax.option._
+import com.thenewmotion.ocpi.locations.LocationsError.IncorrectLocationId
 
 import scala.concurrent.Future
 
@@ -12,9 +15,21 @@ import scala.concurrent.Future
   */
 trait MspLocationsService {
 
+  protected[locations] def createOrUpdateLocation(
+    apiUser: GlobalPartyId,
+    locId: LocationId,
+    loc: Location
+  ): Future[Either[LocationsError, CreateOrUpdateResult]] = {
+    if (loc.id == locId) {
+      createOrUpdateLocation(apiUser, loc)
+    } else
+      Future.successful(
+        IncorrectLocationId(s"Token id from Url is $locId, but id in JSON body is ${loc.id}".some).asLeft
+      )
+  }
+
   def createOrUpdateLocation(
     globalPartyId: GlobalPartyId,
-    locId: LocationId,
     loc: Location
   ): Future[Either[LocationsError, CreateOrUpdateResult]]
 
@@ -70,6 +85,6 @@ trait MspLocationsService {
     locId: LocationId,
     evseUid: EvseUid,
     connectorId: ConnectorId
-   ): Future[Either[LocationsError, Connector]]
+  ): Future[Either[LocationsError, Connector]]
 
 }

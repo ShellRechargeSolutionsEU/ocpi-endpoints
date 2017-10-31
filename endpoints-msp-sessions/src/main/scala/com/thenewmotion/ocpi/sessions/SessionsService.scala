@@ -3,6 +3,9 @@ package com.thenewmotion.ocpi.sessions
 import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{Session, SessionId, SessionPatch}
+import com.thenewmotion.ocpi.sessions.SessionError.IncorrectSessionId
+import cats.syntax.either._
+import cats.syntax.option._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -11,9 +14,21 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 trait SessionsService {
 
+  protected[sessions] def createOrUpdateSession(
+    apiUser: GlobalPartyId,
+    sessionId: SessionId,
+    session: Session
+  )(implicit ec: ExecutionContext): Future[Either[SessionError, CreateOrUpdateResult]] = {
+    if (session.id == sessionId) {
+      createOrUpdateSession(apiUser, session)
+    } else
+      Future.successful(
+        IncorrectSessionId(s"Session id from Url is $sessionId, but id in JSON body is ${session.id}".some).asLeft
+      )
+  }
+
   def createOrUpdateSession(
     globalPartyId: GlobalPartyId,
-    sessionId: SessionId,
     session: Session
   )(implicit ec: ExecutionContext): Future[Either[SessionError, CreateOrUpdateResult]]
 
