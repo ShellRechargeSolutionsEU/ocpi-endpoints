@@ -44,7 +44,7 @@ trait TokensJsonProtocol {
 
   implicit val tokensFormat = jsonFormat9(Token)
 
-  implicit val tokenPatchFormat = jsonFormat9(TokenPatch)
+  implicit val tokenPatchFormat = jsonFormat8(TokenPatch)
 
   implicit val locationReferencesFormat = new RootJsonFormat[LocationReferences] {
     val readFormat = jsonFormat3(deserializeLocationReferences)

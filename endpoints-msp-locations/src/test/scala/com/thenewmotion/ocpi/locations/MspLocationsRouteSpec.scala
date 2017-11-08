@@ -54,7 +54,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string =
         s"""
            | {
-           |   "id": {
+           |   "city": {
            |     "rant": "Hoi dit is geen ID maar gewoon een lulverhaal over dat we vaak dingen implementeren waarvan
            |              we denken dat het de specificatie zijn maar die eigenlijk zeg maar ons eigen idee zijn van hoe
            |              we zouden hopen dat het zou moeten werken maar wat dus nooit zo is omdat specificaties worden
@@ -67,7 +67,8 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
       Patch("/NL/TNM/LOC1", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         handled must beFalse
-        rejection must beLike { case MalformedRequestContentRejection(msg, _) if msg.contains("LocationId must be a string") => ok }
+        rejection must beLike { case MalformedRequestContentRejection(msg, _)
+          if msg.contains("Expected String as JsString, but got") => ok }
       }
     }
 

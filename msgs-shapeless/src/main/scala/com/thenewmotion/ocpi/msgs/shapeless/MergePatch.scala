@@ -13,12 +13,16 @@ trait ResourceMerge[F, P] {
 
 object ResourceMerge {
   protected object tupleMerger extends Poly1 {
-    implicit def atTuple[A] = at[(A, Option[A])] {
+    implicit def atTuple[A] = at[(A, A)] {
+      case (b, _) => b
+    }
+
+    implicit def atOptRightTuple[A] = at[(A, Option[A])] {
       case (_, Some(a)) => a
       case (o, None)    => o
     }
 
-    implicit def atOptTuple[A] = at[(Option[A], Option[A])] {
+    implicit def atOptBothTuple[A] = at[(Option[A], Option[A])] {
       case (_, b @ Some(_)) => b
       case (o, None)        => o
     }
@@ -30,7 +34,7 @@ object ResourceMerge {
       val genPatch = Generic[TokenPatch]
 
       val reprFull = genFull.to(t)
-      val reprPatch = genPatch.to(p)
+      val reprPatch = reprFull.head :: genPatch.to(p)
 
       genFull.from(
         reprFull.zip(reprPatch).map(tupleMerger)
@@ -44,7 +48,7 @@ object ResourceMerge {
       val genPatch = Generic[ConnectorPatch]
 
       val reprFull = genFull.to(c)
-      val reprPatch = genPatch.to(p)
+      val reprPatch = reprFull.head :: genPatch.to(p)
 
       genFull.from(
         reprFull.zip(reprPatch).map(tupleMerger)
@@ -58,7 +62,7 @@ object ResourceMerge {
       val genPatch = Generic[EvsePatch]
 
       val reprFull = genFull.to(c)
-      val reprPatch = genPatch.to(p)
+      val reprPatch = reprFull.head :: genPatch.to(p)
 
       genFull.from(
         reprFull.zip(reprPatch).map(tupleMerger)
@@ -72,7 +76,7 @@ object ResourceMerge {
       val genPatch = Generic[LocationPatch]
 
       val reprFull = genFull.to(c)
-      val reprPatch = genPatch.to(p)
+      val reprPatch = reprFull.head :: genPatch.to(p)
 
       genFull.from(
         reprFull.zip(reprPatch).map(tupleMerger)
@@ -86,7 +90,7 @@ object ResourceMerge {
       val genPatch = Generic[SessionPatch]
 
       val reprFull = genFull.to(c)
-      val reprPatch = genPatch.to(p)
+      val reprPatch = reprFull.head :: genPatch.to(p)
 
       genFull.from(
         reprFull.zip(reprPatch).map(tupleMerger)
