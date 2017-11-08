@@ -26,5 +26,7 @@ package object v2_1 {
       with SessionJsonProtocol
       with TariffsJsonProtocol
       with TokensJsonProtocol
-      with VersionsJsonProtocol
+      with VersionsJsonProtocol {
+    override def strict: Boolean = true
+  }
 }

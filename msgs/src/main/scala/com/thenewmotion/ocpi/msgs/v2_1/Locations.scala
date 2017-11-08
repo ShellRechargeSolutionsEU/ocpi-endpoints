@@ -5,6 +5,7 @@ package v2_1
 import java.time.{LocalTime, ZonedDateTime}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
+import scala.util.{Failure, Success, Try}
 
 object Locations {
 
@@ -343,29 +344,76 @@ object Locations {
     type C = ConnectorPatch
   }
 
-  val LatRegex = """-?[0-9]{1,2}\.[0-9]{1,6}"""
-  val LonRegex = """-?[0-9]{1,3}\.[0-9]{1,6}"""
+  trait Coordinate extends Any {
+    def value: Double
+    override def toString: String = value.toString
+  }
+
+  trait CoordinateCompanion[T <: Coordinate] {
+    protected def create(value: Double): T
+    protected def lowerLimit: Double
+    protected def upperLimit: Double
+
+    private def internalApply(
+      value: Double,
+      strict: Boolean
+    ): T = {
+      val rounded = math.rint(value * 1000000) / 1000000
+      require(rounded >= lowerLimit && rounded <= upperLimit, s"must be between $lowerLimit and $upperLimit")
+      require(!strict || value == rounded, "must have a precision of 6 or less")
+      create(rounded)
+    }
+
+    private def internalApply(
+      value: String,
+      strict: Boolean
+    ): T =
+      Try(value.toDouble) match {
+        case Failure(ex: NumberFormatException) =>
+          throw new IllegalArgumentException(s"$value is not a valid number", ex)
+        case Failure(ex) => throw ex
+        case Success(x)  => internalApply(x, strict = strict)
+      }
+
+    def apply(value: Double): T = internalApply(value, strict = false)
+
+    def apply(value: String): T = internalApply(value, strict = false)
+
+    def strict(value: Double): T = internalApply(value, strict = true)
+
+    def strict(value: String): T = internalApply(value, strict = true)
+
+    def unapply(value: T): Option[Double] = Some(value.value)
+  }
+
+  trait Latitude extends Any with Coordinate
+
+  object Latitude extends CoordinateCompanion[Latitude] {
+    private case class LatitudeImpl(value: Double) extends AnyVal with Latitude
+    override protected def create(value: Double): Latitude = LatitudeImpl(value)
+    override protected val lowerLimit: Double = -90
+    override protected val upperLimit: Double = 90
+  }
+
+  trait Longitude extends Any with Coordinate
+
+  object Longitude extends CoordinateCompanion[Longitude] {
+    private case class LongitudeImpl(value: Double) extends AnyVal with Longitude
+    override def create(value: Double): Longitude = LongitudeImpl(value)
+    override protected val lowerLimit: Double = -180
+    override protected val upperLimit: Double = 180
+  }
 
   case class AdditionalGeoLocation(
-    latitude: String,
-    longitude: String,
+    latitude: Latitude,
+    longitude: Longitude,
     name: Option[DisplayText] = None
-  ) {
-    // we will suspend this hard validation until we have a way to continue parsing
-    // the Iterable even if individual locations cannot be deserialized
-//    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
-//    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
-  }
+  )
 
   case class GeoLocation(
-    latitude: String,
-    longitude: String
-  ) {
-    // we will suspend this hard validation until we have a way to continue parsing
-    // the Iterable even if individual locations cannot be deserialized
-//    require(latitude.matches(LatRegex), s"latitude needs to conform to $LatRegex but was $latitude")
-//    require(longitude.matches(LonRegex), s"longitude needs to conform to $LonRegex but was $longitude")
-  }
+    latitude: Latitude,
+    longitude: Longitude
+  )
 
   sealed trait ParkingRestriction extends Nameable
   object ParkingRestriction extends Enumerable[ParkingRestriction] {

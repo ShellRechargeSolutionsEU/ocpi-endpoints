@@ -65,7 +65,7 @@ trait GenericSessionsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
     city = "Gent",
     postalCode = "9000",
     country = CountryCode("BEL"),
-    coordinates = GeoLocation("3.729945", "51.047594"),
+    coordinates = GeoLocation(Latitude("3.729945"), Longitude("51.047594")),
     evses = List(evse1),
     directions = List.empty,
     operator = None,
