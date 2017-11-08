@@ -56,7 +56,6 @@ object Tokens {
   }
 
   trait BaseToken[RT <: ResourceType] extends Resource[RT] {
-    def uid: RT#F[TokenUid]
     def `type`: RT#F[TokenType]
     def authId: RT#F[AuthId]
     def visualNumber: Option[String]
@@ -80,7 +79,6 @@ object Tokens {
   ) extends BaseToken[Full]
 
   case class TokenPatch(
-    uid: Option[TokenUid] = None,
     `type`: Option[TokenType] = None,
     authId: Option[AuthId] = None,
     visualNumber: Option[String] = None,

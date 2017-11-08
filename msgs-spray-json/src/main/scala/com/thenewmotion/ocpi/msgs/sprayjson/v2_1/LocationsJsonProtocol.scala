@@ -191,7 +191,7 @@ trait LocationsJsonProtocol {
   }
 
   implicit val connectorFormat = jsonFormat9(Connector)
-  implicit val connectorPatchFormat = jsonFormat9(ConnectorPatch)
+  implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)
   private implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
   implicit val evseFormat = new RootJsonFormat[Evse] {
     val readFormat = jsonFormat13(deserializeEvse)
@@ -199,7 +199,7 @@ trait LocationsJsonProtocol {
     override def read(json: JsValue) = readFormat.read(json)
     override def write(obj: Evse): JsValue = writeFormat.write(obj)
   }
-  implicit val evsePatchFormat = jsonFormat13(EvsePatch)
+  implicit val evsePatchFormat = jsonFormat12(EvsePatch)
 
   implicit val locationFormat = new RootJsonFormat[Location] {
     val readFormat = jsonFormat21(deserializeLocation)
@@ -208,7 +208,7 @@ trait LocationsJsonProtocol {
     override def write(obj: Location): JsValue = writeFormat.write(obj)
   }
 
-  implicit val locationPatchFormat = jsonFormat21(LocationPatch.apply)
+  implicit val locationPatchFormat = jsonFormat20(LocationPatch.apply)
 }
 
 object LocationsJsonProtocol extends LocationsJsonProtocol

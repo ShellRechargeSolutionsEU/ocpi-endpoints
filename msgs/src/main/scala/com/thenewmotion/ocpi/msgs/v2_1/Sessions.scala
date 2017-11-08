@@ -35,7 +35,6 @@ object Sessions {
   }
 
   trait BaseSession[RT <: ResourceType] extends Resource[RT] {
-    def id: RT#F[SessionId]
     def startDatetime: RT#F[ZonedDateTime]
     def endDatetime: Option[ZonedDateTime]
     def kwh: RT#F[Int]
@@ -70,7 +69,6 @@ object Sessions {
   }
 
   case class SessionPatch(
-    id: Option[SessionId] = None,
     startDatetime: Option[ZonedDateTime] = None,
     endDatetime: Option[ZonedDateTime] = None,
     kwh: Option[Int] = None,

@@ -24,7 +24,6 @@ object Locations {
   }
 
   trait BaseLocation[RT <: ResourceType] extends Resource[RT] {
-    def id: RT#F[LocationId]
     def lastUpdated: RT#F[ZonedDateTime]
     def `type`: RT#F[LocationType]
     def name: Option[String]
@@ -74,7 +73,6 @@ object Locations {
   }
 
   case class LocationPatch(
-    id: Option[LocationId] = None,
     lastUpdated: Option[ZonedDateTime] = None,
     `type`: Option[LocationType] = None,
     name: Option[String] = None,
@@ -228,7 +226,6 @@ object Locations {
   }
 
   trait BaseConnector[RT <: ResourceType] extends Resource[RT] {
-    def id: RT#F[ConnectorId]
     def lastUpdated: RT#F[ZonedDateTime]
     def standard: RT#F[ConnectorType]
     def format: RT#F[ConnectorFormat]
@@ -252,7 +249,6 @@ object Locations {
   ) extends BaseConnector[Full]
 
   case class ConnectorPatch(
-    id: Option[ConnectorId] = None,
     lastUpdated: Option[ZonedDateTime] = None,
     standard: Option[ConnectorType] = None,
     format: Option[ConnectorFormat] = None,
@@ -297,7 +293,6 @@ object Locations {
   }
 
   trait BaseEvse[RT <: ResourceType] extends Resource[RT] {
-    def uid: RT#F[EvseUid]
     def lastUpdated: RT#F[ZonedDateTime]
     def status: RT#F[ConnectorStatus]
     def connectors: RT#F[Iterable[Connector]]
@@ -332,7 +327,6 @@ object Locations {
   }
 
   case class EvsePatch(
-    uid: Option[EvseUid] = None,
     lastUpdated: Option[ZonedDateTime] = None,
     status: Option[ConnectorStatus] = None,
     connectors: Option[Iterable[Connector]] = None,

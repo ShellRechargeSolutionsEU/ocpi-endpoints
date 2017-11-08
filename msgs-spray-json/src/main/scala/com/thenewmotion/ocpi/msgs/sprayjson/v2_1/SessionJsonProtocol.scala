@@ -64,7 +64,7 @@ trait SessionJsonProtocol {
     override def write(obj: Session): JsValue = writeFormat.write(obj)
   }
 
-  implicit val sessionPatchFmt = jsonFormat13(SessionPatch.apply)
+  implicit val sessionPatchFmt = jsonFormat12(SessionPatch.apply)
 }
 
 object SessionJsonProtocol extends SessionJsonProtocol
