@@ -56,6 +56,13 @@ import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 # Changelog
 
+## 0.7.7 
+
+* Many of the modules have a method such as createOrUpdate*, this method used to take both an id from the url
+and an object.Now, they only take an object, and the validation that the id of the url and and the id from
+the object are validated by the library
+* Remove the id fields from the Patch object, as the id cannot be changed  
+
 ## 0.7.6
 
 * Added Sessions module
