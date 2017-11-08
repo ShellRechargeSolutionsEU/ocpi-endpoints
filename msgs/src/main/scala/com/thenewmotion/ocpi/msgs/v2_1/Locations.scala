@@ -326,7 +326,6 @@ object Locations {
     parkingRestrictions: Iterable[ParkingRestriction] = Nil,
     images: Iterable[Image] = Nil
   ) extends BaseEvse[Full] {
-    type C = Connector
     require(connectors.nonEmpty, "Evse must have at least one connector")
   }
 
@@ -343,9 +342,7 @@ object Locations {
     directions: Option[Iterable[DisplayText]] = None,
     parkingRestrictions: Option[Iterable[ParkingRestriction]] = None,
     images: Option[Iterable[Image]] = None
-  ) extends BaseEvse[Patch] {
-    type C = ConnectorPatch
-  }
+  ) extends BaseEvse[Patch]
 
   trait Coordinate extends Any {
     def value: Double
