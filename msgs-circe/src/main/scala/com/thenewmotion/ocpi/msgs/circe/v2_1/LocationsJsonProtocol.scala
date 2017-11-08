@@ -20,73 +20,73 @@ trait LocationsJsonProtocol {
   implicit val evseUidE: Encoder[EvseUid] = stringEncoder(_.value)
   implicit val evseUidD: Decoder[EvseUid] = tryStringDecoder(EvseUid.apply)
 
-  private implicit val capabilityE: Encoder[Capability] = SimpleStringEnumSerializer.encoder(Capability)
-  private implicit val capabilityD: Decoder[Capability] = SimpleStringEnumSerializer.decoder(Capability)
+  implicit val capabilityE: Encoder[Capability] = SimpleStringEnumSerializer.encoder(Capability)
+  implicit val capabilityD: Decoder[Capability] = SimpleStringEnumSerializer.decoder(Capability)
 
-  private implicit val connectorStatusE: Encoder[ConnectorStatus] = SimpleStringEnumSerializer.encoder(ConnectorStatus)
-  private implicit val connectorStatusD: Decoder[ConnectorStatus] = SimpleStringEnumSerializer.decoder(ConnectorStatus)
+  implicit val connectorStatusE: Encoder[ConnectorStatus] = SimpleStringEnumSerializer.encoder(ConnectorStatus)
+  implicit val connectorStatusD: Decoder[ConnectorStatus] = SimpleStringEnumSerializer.decoder(ConnectorStatus)
 
-  private implicit val connectorTypeE: Encoder[ConnectorType] = SimpleStringEnumSerializer.encoder(ConnectorType)
-  private implicit val connectorTypeD: Decoder[ConnectorType] = SimpleStringEnumSerializer.decoder(ConnectorType)
+  implicit val connectorTypeE: Encoder[ConnectorType] = SimpleStringEnumSerializer.encoder(ConnectorType)
+  implicit val connectorTypeD: Decoder[ConnectorType] = SimpleStringEnumSerializer.decoder(ConnectorType)
 
-  private implicit val connectorFormatE: Encoder[ConnectorFormat] = SimpleStringEnumSerializer.encoder(ConnectorFormat)
-  private implicit val connectorFormatD: Decoder[ConnectorFormat] = SimpleStringEnumSerializer.decoder(ConnectorFormat)
+  implicit val connectorFormatE: Encoder[ConnectorFormat] = SimpleStringEnumSerializer.encoder(ConnectorFormat)
+  implicit val connectorFormatD: Decoder[ConnectorFormat] = SimpleStringEnumSerializer.decoder(ConnectorFormat)
 
-  private implicit val powerTypeE: Encoder[PowerType] = SimpleStringEnumSerializer.encoder(PowerType)
-  private implicit val powerTypeD: Decoder[PowerType] = SimpleStringEnumSerializer.decoder(PowerType)
+  implicit val powerTypeE: Encoder[PowerType] = SimpleStringEnumSerializer.encoder(PowerType)
+  implicit val powerTypeD: Decoder[PowerType] = SimpleStringEnumSerializer.decoder(PowerType)
 
-  private implicit val locationTypeE: Encoder[LocationType] = SimpleStringEnumSerializer.encoder(LocationType)
-  private implicit val locationTypeD: Decoder[LocationType] = SimpleStringEnumSerializer.decoder(LocationType)
+  implicit val locationTypeE: Encoder[LocationType] = SimpleStringEnumSerializer.encoder(LocationType)
+  implicit val locationTypeD: Decoder[LocationType] = SimpleStringEnumSerializer.decoder(LocationType)
 
-  private implicit val parkingRestrictionE: Encoder[ParkingRestriction] =
+  implicit val parkingRestrictionE: Encoder[ParkingRestriction] =
     SimpleStringEnumSerializer.encoder(ParkingRestriction)
-  private implicit val parkingRestrictionD: Decoder[ParkingRestriction] =
+  implicit val parkingRestrictionD: Decoder[ParkingRestriction] =
     SimpleStringEnumSerializer.decoder(ParkingRestriction)
 
-  private implicit val facilityE: Encoder[Facility] = SimpleStringEnumSerializer.encoder(Facility)
-  private implicit val facilityD: Decoder[Facility] = SimpleStringEnumSerializer.decoder(Facility)
+  implicit val facilityE: Encoder[Facility] = SimpleStringEnumSerializer.encoder(Facility)
+  implicit val facilityD: Decoder[Facility] = SimpleStringEnumSerializer.decoder(Facility)
 
-  private implicit val energySourceCategoryE: Encoder[EnergySourceCategory] =
+  implicit val energySourceCategoryE: Encoder[EnergySourceCategory] =
     SimpleStringEnumSerializer.encoder(EnergySourceCategory)
-  private implicit val energySourceCategoryD: Decoder[EnergySourceCategory] =
+  implicit val energySourceCategoryD: Decoder[EnergySourceCategory] =
     SimpleStringEnumSerializer.decoder(EnergySourceCategory)
 
-  private implicit val environmentalImpactCategoryE: Encoder[EnvironmentalImpactCategory] =
+  implicit val environmentalImpactCategoryE: Encoder[EnvironmentalImpactCategory] =
     SimpleStringEnumSerializer.encoder(EnvironmentalImpactCategory)
-  private implicit val environmentalImpactCategoryD: Decoder[EnvironmentalImpactCategory] =
+  implicit val environmentalImpactCategoryD: Decoder[EnvironmentalImpactCategory] =
     SimpleStringEnumSerializer.decoder(EnvironmentalImpactCategory)
 
-  private[v2_1] implicit val energySourceE: Encoder[EnergySource] = deriveEncoder
-  private[v2_1] implicit val energySourceD: Decoder[EnergySource] = deriveDecoder
+  implicit val energySourceE: Encoder[EnergySource] = deriveEncoder
+  implicit val energySourceD: Decoder[EnergySource] = deriveDecoder
 
-  private[v2_1] implicit val environmentalImpactE: Encoder[EnvironmentalImpact] = deriveEncoder
-  private[v2_1] implicit val environmentalImpactD: Decoder[EnvironmentalImpact] = deriveDecoder
+  implicit val environmentalImpactE: Encoder[EnvironmentalImpact] = deriveEncoder
+  implicit val environmentalImpactD: Decoder[EnvironmentalImpact] = deriveDecoder
 
-  private[v2_1] implicit val energyMixE: Encoder[EnergyMix] = deriveEncoder
-  private[v2_1] implicit val energyMixD: Decoder[EnergyMix] = deriveDecoder
+  implicit val energyMixE: Encoder[EnergyMix] = deriveEncoder
+  implicit val energyMixD: Decoder[EnergyMix] = deriveDecoder
 
-  private implicit val latitudeE: Encoder[Latitude] = stringEncoder(_.toString)
-  private implicit val latitudeD: Decoder[Latitude] =
+  implicit val latitudeE: Encoder[Latitude] = stringEncoder(_.toString)
+  implicit val latitudeD: Decoder[Latitude] =
     if (strict) tryStringDecoder(Latitude.strict) else tryStringDecoder(Latitude.apply)
 
-  private implicit val longitudeE: Encoder[Longitude] = stringEncoder(_.toString)
-  private implicit val longitudeD: Decoder[Longitude] =
+  implicit val longitudeE: Encoder[Longitude] = stringEncoder(_.toString)
+  implicit val longitudeD: Decoder[Longitude] =
     if (strict) tryStringDecoder(Longitude.strict) else tryStringDecoder(Longitude.apply)
 
-  private implicit val geoLocationE: Encoder[GeoLocation] = deriveEncoder
-  private implicit val geoLocationD: Decoder[GeoLocation] = deriveDecoder
+  implicit val geoLocationE: Encoder[GeoLocation] = deriveEncoder
+  implicit val geoLocationD: Decoder[GeoLocation] = deriveDecoder
 
-  private implicit val additionalGeoLocationE: Encoder[AdditionalGeoLocation] = deriveEncoder
-  private implicit val additionalGeoLocationD: Decoder[AdditionalGeoLocation] = deriveDecoder
+  implicit val additionalGeoLocationE: Encoder[AdditionalGeoLocation] = deriveEncoder
+  implicit val additionalGeoLocationD: Decoder[AdditionalGeoLocation] = deriveDecoder
 
-  private implicit val regularHoursE: Encoder[RegularHours] = deriveEncoder
-  private implicit val regularHoursD: Decoder[RegularHours] = deriveDecoder
+  implicit val regularHoursE: Encoder[RegularHours] = deriveEncoder
+  implicit val regularHoursD: Decoder[RegularHours] = deriveDecoder
 
-  private[v2_1] implicit val exceptionalPeriodE: Encoder[ExceptionalPeriod] = deriveEncoder
-  private[v2_1] implicit val exceptionalPeriodD: Decoder[ExceptionalPeriod] = deriveDecoder
+  implicit val exceptionalPeriodE: Encoder[ExceptionalPeriod] = deriveEncoder
+  implicit val exceptionalPeriodD: Decoder[ExceptionalPeriod] = deriveDecoder
 
-  private[v2_1] implicit val hoursE: Encoder[Hours] = deriveEncoder
-  private[v2_1] implicit val hoursD: Decoder[Hours] = deriveDecoder
+  implicit val hoursE: Encoder[Hours] = deriveEncoder
+  implicit val hoursD: Decoder[Hours] = deriveDecoder
 
   implicit val connectorE: Encoder[Connector] = deriveEncoder
   implicit val connectorD: Decoder[Connector] = deriveDecoder
@@ -94,8 +94,8 @@ trait LocationsJsonProtocol {
   implicit val connectorPatchE: Encoder[ConnectorPatch] = deriveEncoder
   implicit val connectorPatchD: Decoder[ConnectorPatch] = deriveDecoder
 
-  private implicit val statusScheduleE: Encoder[StatusSchedule] = deriveEncoder
-  private implicit val statusScheduleD: Decoder[StatusSchedule] = deriveDecoder
+  implicit val statusScheduleE: Encoder[StatusSchedule] = deriveEncoder
+  implicit val statusScheduleD: Decoder[StatusSchedule] = deriveDecoder
 
   implicit val evseE: Encoder[Evse] = deriveEncoder
   implicit val evseD: Decoder[Evse] = deriveDecoder

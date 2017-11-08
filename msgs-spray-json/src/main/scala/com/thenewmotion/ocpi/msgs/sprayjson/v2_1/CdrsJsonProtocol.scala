@@ -9,7 +9,7 @@ import sprayjson.SimpleStringEnumSerializer
 import v2_1.Cdrs._
 
 trait CdrsJsonProtocol {
-  private implicit val cdrIdFmt = new JsonFormat[CdrId] {
+  implicit val cdrIdFmt = new JsonFormat[CdrId] {
     override def read(json: JsValue) = json match {
       case JsString(s) => CdrId(s)
       case _ => deserializationError("CdrId must be a string")
@@ -20,10 +20,10 @@ trait CdrsJsonProtocol {
   implicit val authMethodFormat =
     new SimpleStringEnumSerializer[AuthMethod](AuthMethod).enumFormat
 
-  private implicit val cdrDimensionTypeFormat =
+  implicit val cdrDimensionTypeFormat =
     new SimpleStringEnumSerializer[CdrDimensionType](CdrDimensionType).enumFormat
 
-  private implicit val cdrDimensionFormat = jsonFormat2(CdrDimension)
+  implicit val cdrDimensionFormat = jsonFormat2(CdrDimension)
 
   implicit val chargingPeriodFormat = jsonFormat2(ChargingPeriod)
 

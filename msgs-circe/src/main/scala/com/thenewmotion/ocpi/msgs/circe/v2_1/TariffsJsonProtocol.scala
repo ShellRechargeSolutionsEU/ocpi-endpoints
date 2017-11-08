@@ -13,16 +13,16 @@ trait TariffsJsonProtocol {
   implicit val tariffIdE: Encoder[TariffId] = stringEncoder(_.value)
   implicit val tariffIdD: Decoder[TariffId] = tryStringDecoder(TariffId.apply)
 
-  private implicit val tariffDimensionTypeE: Encoder[TariffDimensionType] =
+  implicit val tariffDimensionTypeE: Encoder[TariffDimensionType] =
     SimpleStringEnumSerializer.encoder(TariffDimensionType)
 
-  private implicit val tariffDimensionTypeD: Decoder[TariffDimensionType] =
+  implicit val tariffDimensionTypeD: Decoder[TariffDimensionType] =
     SimpleStringEnumSerializer.decoder(TariffDimensionType)
 
-  private implicit val dayOfWeekE: Encoder[DayOfWeek] =
+  implicit val dayOfWeekE: Encoder[DayOfWeek] =
     SimpleStringEnumSerializer.encoder(DayOfWeek)
 
-  private implicit val dayOfWeekD: Decoder[DayOfWeek] =
+  implicit val dayOfWeekD: Decoder[DayOfWeek] =
     SimpleStringEnumSerializer.decoder(DayOfWeek)
 
   implicit val priceComponentE: Encoder[PriceComponent] = deriveEncoder

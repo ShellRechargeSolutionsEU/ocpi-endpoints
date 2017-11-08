@@ -20,10 +20,10 @@ trait TokensJsonProtocol {
     connectorIds.getOrElse(Nil)
   )
 
-  private implicit val tokenTypeFormat =
+  implicit val tokenTypeFormat =
     new SimpleStringEnumSerializer[TokenType](TokenType).enumFormat
 
-  private implicit val whitelistTypeFormat =
+  implicit val whitelistTypeFormat =
     new SimpleStringEnumSerializer[WhitelistType](WhitelistType).enumFormat
 
   implicit val tokenUidFmt = new JsonFormat[TokenUid] {
@@ -53,7 +53,7 @@ trait TokensJsonProtocol {
     override def write(obj: LocationReferences): JsValue = writeFormat.write(obj)
   }
 
-  private implicit val allowedFormat =
+  implicit val allowedFormat =
     new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat
 
   implicit val authorizationInfoFormat = jsonFormat3(AuthorizationInfo)

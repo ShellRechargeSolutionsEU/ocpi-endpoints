@@ -10,7 +10,7 @@ import sprayjson.SimpleStringEnumSerializer
 
 trait CommandsJsonProtocol {
 
-  private implicit val commandResponseTypeFormat =
+  implicit val commandResponseTypeFormat =
     new SimpleStringEnumSerializer(CommandResponseType).enumFormat
 
   implicit val commandResponse = jsonFormat1(CommandResponse)

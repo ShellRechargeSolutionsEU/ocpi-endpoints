@@ -7,7 +7,7 @@ import com.thenewmotion.ocpi.msgs.sprayjson.SimpleStringEnumSerializer
 import spray.json.{JsString, JsValue, JsonFormat, deserializationError}
 
 trait TariffsJsonProtocol {
-  private implicit val tariffIdFmt = new JsonFormat[TariffId] {
+  implicit val tariffIdFmt = new JsonFormat[TariffId] {
     override def read(json: JsValue) = json match {
       case JsString(s) => TariffId(s)
       case _ => deserializationError("TariffId must be a string")
@@ -15,17 +15,17 @@ trait TariffsJsonProtocol {
     override def write(obj: TariffId) = JsString(obj.value)
   }
 
-  private implicit val tariffDimensionTypeFormat =
+  implicit val tariffDimensionTypeFormat =
     new SimpleStringEnumSerializer[TariffDimensionType](TariffDimensionType).enumFormat
 
-  private implicit val dayOfWeekFormat =
+  implicit val dayOfWeekFormat =
     new SimpleStringEnumSerializer[DayOfWeek](DayOfWeek).enumFormat
 
-  private implicit val priceComponentFormat = jsonFormat3(PriceComponent)
+  implicit val priceComponentFormat = jsonFormat3(PriceComponent)
 
   implicit val tariffRestrictionsFormat = jsonFormat11(TariffRestrictions)
 
-  private implicit val tariffElementFormat = jsonFormat2(TariffElement)
+  implicit val tariffElementFormat = jsonFormat2(TariffElement)
 
   implicit val tariffFormat = jsonFormat7(Tariff)
 }
