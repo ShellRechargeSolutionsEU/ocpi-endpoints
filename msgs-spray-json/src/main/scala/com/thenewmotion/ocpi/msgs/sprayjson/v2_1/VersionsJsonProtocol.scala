@@ -7,7 +7,7 @@ import DefaultJsonProtocol._
 
 trait VersionsJsonProtocol {
 
-  private implicit val endpointIdentifierFormat = new JsonFormat[EndpointIdentifier] {
+  implicit val endpointIdentifierFormat = new JsonFormat[EndpointIdentifier] {
     override def write(obj: EndpointIdentifier) = JsString(obj.value)
 
     override def read(json: JsValue) = json match {
@@ -16,7 +16,7 @@ trait VersionsJsonProtocol {
     }
   }
 
-  private implicit val versionNumberFormat = new JsonFormat[VersionNumber] {
+  implicit val versionNumberFormat = new JsonFormat[VersionNumber] {
     override def write(obj: VersionNumber) = JsString(obj.toString)
 
     override def read(json: JsValue) = json match {
@@ -26,7 +26,7 @@ trait VersionsJsonProtocol {
   }
 
   implicit val versionFormat = jsonFormat2(Version)
-  private implicit val endpointFormat = jsonFormat2(Endpoint)
+  implicit val endpointFormat = jsonFormat2(Endpoint)
   implicit val versionDetailsFormat = jsonFormat2(VersionDetails)
 }
 

@@ -13,10 +13,10 @@ import SessionJsonProtocol._
 
 trait CommandsJsonProtocol {
 
-  private implicit val commandResponseTypeE: Encoder[CommandResponseType] =
+  implicit val commandResponseTypeE: Encoder[CommandResponseType] =
     SimpleStringEnumSerializer.encoder(CommandResponseType)
 
-  private implicit val commandResponseTypeD: Decoder[CommandResponseType] =
+  implicit val commandResponseTypeD: Decoder[CommandResponseType] =
     SimpleStringEnumSerializer.decoder(CommandResponseType)
 
   implicit val commandResponseE: Encoder[CommandResponse] = deriveEncoder

@@ -9,16 +9,16 @@ import CommonJsonProtocol._
 
 trait TokensJsonProtocol {
 
-  private implicit val tokenTypeE: Encoder[TokenType] =
+  implicit val tokenTypeE: Encoder[TokenType] =
     SimpleStringEnumSerializer.encoder(TokenType)
 
-  private implicit val tokenTypeD: Decoder[TokenType] =
+  implicit val tokenTypeD: Decoder[TokenType] =
     SimpleStringEnumSerializer.decoder(TokenType)
 
-  private implicit val whitelistTypeE: Encoder[WhitelistType] =
+  implicit val whitelistTypeE: Encoder[WhitelistType] =
     SimpleStringEnumSerializer.encoder(WhitelistType)
 
-  private implicit val whitelistTypeD: Decoder[WhitelistType] =
+  implicit val whitelistTypeD: Decoder[WhitelistType] =
     SimpleStringEnumSerializer.decoder(WhitelistType)
 
   implicit val tokenUidE: Encoder[TokenUid] = stringEncoder(_.value)
@@ -36,10 +36,10 @@ trait TokensJsonProtocol {
   implicit val locationReferencesE: Encoder[LocationReferences] = deriveEncoder
   implicit val locationReferencesD: Decoder[LocationReferences] = deriveDecoder
 
-  private implicit val allowedE: Encoder[Allowed] =
+  implicit val allowedE: Encoder[Allowed] =
     SimpleStringEnumSerializer.encoder(Allowed)
 
-  private implicit val allowedD: Decoder[Allowed] =
+  implicit val allowedD: Decoder[Allowed] =
     SimpleStringEnumSerializer.decoder(Allowed)
 
   implicit val authorizationInfoE: Encoder[AuthorizationInfo] = deriveEncoder

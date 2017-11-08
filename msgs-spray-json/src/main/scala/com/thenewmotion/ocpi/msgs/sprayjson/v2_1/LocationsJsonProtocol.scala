@@ -117,38 +117,38 @@ trait LocationsJsonProtocol {
     images.getOrElse(Nil)
   )
 
-  private implicit val capabilityFormat =
+  implicit val capabilityFormat =
     new SimpleStringEnumSerializer[Capability](Capability).enumFormat
 
-  private implicit val connectorStatusFormat =
+  implicit val connectorStatusFormat =
     new SimpleStringEnumSerializer[ConnectorStatus](ConnectorStatus).enumFormat
 
-  private implicit val connectorTypeFormat =
+  implicit val connectorTypeFormat =
     new SimpleStringEnumSerializer[ConnectorType](ConnectorType).enumFormat
 
-  private implicit val connectorFormatFormat =
+  implicit val connectorFormatFormat =
     new SimpleStringEnumSerializer[ConnectorFormat](ConnectorFormat).enumFormat
 
-  private implicit val currentTypeFormat =
+  implicit val currentTypeFormat =
     new SimpleStringEnumSerializer[PowerType](PowerType).enumFormat
 
-  private implicit val locationTypeFormat =
+  implicit val locationTypeFormat =
     new SimpleStringEnumSerializer[LocationType](LocationType).enumFormat
 
-  private implicit val parkingRestrictionTypeFormat =
+  implicit val parkingRestrictionTypeFormat =
     new SimpleStringEnumSerializer[ParkingRestriction](ParkingRestriction).enumFormat
 
-  private implicit val facilityTypeFormat =
+  implicit val facilityTypeFormat =
     new SimpleStringEnumSerializer[Facility](Facility).enumFormat
 
-  private implicit val energySourceCategoryTypeFormat =
+  implicit val energySourceCategoryTypeFormat =
     new SimpleStringEnumSerializer[EnergySourceCategory](EnergySourceCategory).enumFormat
 
-  private implicit val environmentalImpactCategoryTypeFormat =
+  implicit val environmentalImpactCategoryTypeFormat =
     new SimpleStringEnumSerializer[EnvironmentalImpactCategory](EnvironmentalImpactCategory).enumFormat
 
-  private implicit val energySourceFormat = jsonFormat2(EnergySource)
-  private implicit val environmentalImpactFormat = jsonFormat2(EnvironmentalImpact)
+  implicit val energySourceFormat = jsonFormat2(EnergySource)
+  implicit val environmentalImpactFormat = jsonFormat2(EnvironmentalImpact)
 
   implicit val energyMixFormat = new JsonFormat[EnergyMix] {
     val readFormat = jsonFormat5(deserializeEnergyMix)
@@ -157,7 +157,7 @@ trait LocationsJsonProtocol {
     override def write(obj: EnergyMix): JsValue = writeFormat.write(obj)
   }
 
-  private implicit val latitudeFormat = new JsonFormat[Latitude] {
+  implicit val latitudeFormat = new JsonFormat[Latitude] {
     override def read(json: JsValue) = json match {
       case JsString(s) => if (strict) Latitude.strict(s) else Latitude(s)
       case _           => deserializationError("Latitude must be a string")
@@ -165,7 +165,7 @@ trait LocationsJsonProtocol {
     override def write(obj: Latitude) = JsString(obj.toString)
   }
 
-  private implicit val longitudeFormat = new JsonFormat[Longitude] {
+  implicit val longitudeFormat = new JsonFormat[Longitude] {
     override def read(json: JsValue) = json match {
       case JsString(s) => if (strict) Longitude.strict(s) else Longitude(s)
       case _           => deserializationError("Longitude must be a string")
@@ -173,10 +173,10 @@ trait LocationsJsonProtocol {
     override def write(obj: Longitude) = JsString(obj.toString)
   }
 
-  private implicit val geoLocationFormat = jsonFormat2(GeoLocation)
-  private implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
-  private implicit val regularHoursFormat = jsonFormat3(RegularHours.apply(_: Int, _: LocalTime, _: LocalTime))
-  private implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
+  implicit val geoLocationFormat = jsonFormat2(GeoLocation)
+  implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
+  implicit val regularHoursFormat = jsonFormat3(RegularHours.apply(_: Int, _: LocalTime, _: LocalTime))
+  implicit val exceptionalPeriodFormat = jsonFormat2(ExceptionalPeriod)
   private[v2_1] implicit val hoursFormat = new JsonFormat[Hours] {
     val readFormat = jsonFormat4(deserializeHours)
     val writeFormat = jsonFormat4(Hours.apply)
@@ -210,7 +210,7 @@ trait LocationsJsonProtocol {
 
   implicit val connectorFormat = jsonFormat9(Connector)
   implicit val connectorPatchFormat = jsonFormat8(ConnectorPatch)
-  private implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
+  implicit val statusScheduleFormat = jsonFormat3(StatusSchedule)
   implicit val evseFormat = new RootJsonFormat[Evse] {
     val readFormat = jsonFormat13(deserializeEvse)
     val writeFormat = jsonFormat13(Evse.apply)
