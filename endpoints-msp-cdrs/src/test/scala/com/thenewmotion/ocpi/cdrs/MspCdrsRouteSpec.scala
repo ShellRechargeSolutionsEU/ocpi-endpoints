@@ -78,7 +78,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
         "Gent",
         "9000",
         CountryCode("BEL"),
-        GeoLocation("3.72994", "51.04759"),
+        GeoLocation(Latitude("3.72994"), Longitude("51.04759")),
         List(),
         List(
           Evse(EvseUid("3256"), ZonedDateTime.parse("2015-06-29T21:39:01Z"), ConnectorStatus.Available,

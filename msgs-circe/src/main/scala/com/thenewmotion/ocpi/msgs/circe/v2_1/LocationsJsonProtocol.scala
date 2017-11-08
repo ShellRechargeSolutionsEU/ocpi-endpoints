@@ -9,6 +9,8 @@ import CommonJsonProtocol._
 
 trait LocationsJsonProtocol {
 
+  def strict: Boolean
+
   implicit val connectorIdE: Encoder[ConnectorId] = stringEncoder(_.value)
   implicit val connectorIdD: Decoder[ConnectorId] = tryStringDecoder(ConnectorId.apply)
 
@@ -63,6 +65,14 @@ trait LocationsJsonProtocol {
   private[v2_1] implicit val energyMixE: Encoder[EnergyMix] = deriveEncoder
   private[v2_1] implicit val energyMixD: Decoder[EnergyMix] = deriveDecoder
 
+  private implicit val latitudeE: Encoder[Latitude] = stringEncoder(_.toString)
+  private implicit val latitudeD: Decoder[Latitude] =
+    if (strict) tryStringDecoder(Latitude.strict) else tryStringDecoder(Latitude.apply)
+
+  private implicit val longitudeE: Encoder[Longitude] = stringEncoder(_.toString)
+  private implicit val longitudeD: Decoder[Longitude] =
+    if (strict) tryStringDecoder(Longitude.strict) else tryStringDecoder(Longitude.apply)
+
   private implicit val geoLocationE: Encoder[GeoLocation] = deriveEncoder
   private implicit val geoLocationD: Decoder[GeoLocation] = deriveDecoder
 
@@ -100,4 +110,6 @@ trait LocationsJsonProtocol {
   implicit val locationPatchD: Decoder[LocationPatch] = deriveDecoder
 }
 
-object LocationsJsonProtocol extends LocationsJsonProtocol
+object LocationsJsonProtocol extends LocationsJsonProtocol {
+  override def strict = true
+}

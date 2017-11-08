@@ -110,6 +110,20 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
         hours.exceptionalClosings mustEqual Nil
       }
     }
+
+    "GeoLocation" should {
+      "fail when too much precision is given for latitude or longitude" in {
+        val geoJson =
+          """
+            |{
+            | "latitude": "26.487574584",
+            | "longitude": "-37.34763463247432
+            |}
+          """.stripMargin
+
+        parse(geoJson) should throwA[Exception]
+      }
+    }
   }
 
   private def parseToUtc(s: String) =
@@ -204,7 +218,7 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
     city = "Gent",
     postalCode = "9000",
     country = CountryCode("BEL"),
-    coordinates = GeoLocation("3.729945", "51.047594"),
+    coordinates = GeoLocation(Latitude("3.729945"), Longitude("51.047594")),
     evses = List(evse1),
     directions = List(dir1),
     operator = None,
@@ -231,7 +245,7 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
     city = "Gent",
     postalCode = "9000",
     country = CountryCode("BEL"),
-    coordinates = GeoLocation("3.729955", "51.047604"),
+    coordinates = GeoLocation(Latitude("3.729955"), Longitude("51.047604")),
     evses = List(evse2,evse3),
     directions = List(dir1),
     operator = None,

@@ -11,6 +11,8 @@ import spray.json.{JsString, JsValue, JsonFormat, RootJsonFormat, deserializatio
 
 trait LocationsJsonProtocol {
 
+  def strict: Boolean
+
   private def deserializeLocation(
     id: LocationId,
     lastUpdated: ZonedDateTime,
@@ -155,6 +157,22 @@ trait LocationsJsonProtocol {
     override def write(obj: EnergyMix): JsValue = writeFormat.write(obj)
   }
 
+  private implicit val latitudeFormat = new JsonFormat[Latitude] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => if (strict) Latitude.strict(s) else Latitude(s)
+      case _           => deserializationError("Latitude must be a string")
+    }
+    override def write(obj: Latitude) = JsString(obj.toString)
+  }
+
+  private implicit val longitudeFormat = new JsonFormat[Longitude] {
+    override def read(json: JsValue) = json match {
+      case JsString(s) => if (strict) Longitude.strict(s) else Longitude(s)
+      case _           => deserializationError("Longitude must be a string")
+    }
+    override def write(obj: Longitude) = JsString(obj.toString)
+  }
+
   private implicit val geoLocationFormat = jsonFormat2(GeoLocation)
   private implicit val additionalGeoLocationFormat = jsonFormat3(AdditionalGeoLocation)
   private implicit val regularHoursFormat = jsonFormat3(RegularHours.apply(_: Int, _: LocalTime, _: LocalTime))
@@ -211,4 +229,6 @@ trait LocationsJsonProtocol {
   implicit val locationPatchFormat = jsonFormat20(LocationPatch.apply)
 }
 
-object LocationsJsonProtocol extends LocationsJsonProtocol
+object LocationsJsonProtocol extends LocationsJsonProtocol {
+  override def strict = true
+}
