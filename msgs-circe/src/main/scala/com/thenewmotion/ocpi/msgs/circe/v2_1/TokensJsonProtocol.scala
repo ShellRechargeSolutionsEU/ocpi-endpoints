@@ -1,6 +1,5 @@
 package com.thenewmotion.ocpi.msgs.circe.v2_1
 
-import com.thenewmotion.ocpi.msgs.circe.SimpleStringEnumSerializer._
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}

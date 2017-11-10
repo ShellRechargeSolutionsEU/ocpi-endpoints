@@ -11,12 +11,12 @@ import com.thenewmotion.ocpi.{Enumerable, Nameable}
 
 object Commands {
 
-  sealed trait CommandName extends Nameable
+  sealed abstract class CommandName(val name: String) extends Nameable
   object CommandName extends Enumerable[CommandName] {
-    case object ReserveNow extends CommandName {val name = "RESERVE_NOW"}
-    case object StartSession extends CommandName {val name = "START_SESSION"}
-    case object StopSession extends CommandName {val name = "STOP_SESSION"}
-    case object UnlockConnector extends CommandName {val name = "UNLOCK_CONNECTOR"}
+    case object ReserveNow extends CommandName("RESERVE_NOW")
+    case object StartSession extends CommandName("START_SESSION")
+    case object StopSession extends CommandName("STOP_SESSION")
+    case object UnlockConnector extends CommandName("UNLOCK_CONNECTOR")
     val values = Iterable(ReserveNow, StartSession, StopSession, UnlockConnector)
   }
 
@@ -121,13 +121,13 @@ object Commands {
     }
   }
 
-  sealed trait CommandResponseType extends Nameable
+  sealed abstract class CommandResponseType(val name: String) extends Nameable
   implicit object CommandResponseType extends Enumerable[CommandResponseType] {
-    case object NotSupported extends CommandResponseType {val name = "NOT_SUPPORTED"}
-    case object Rejected extends CommandResponseType {val name = "REJECTED"}
-    case object Accepted extends CommandResponseType {val name = "ACCEPTED"}
-    case object Timeout extends CommandResponseType {val name = "TIMEOUT"}
-    case object UnknownSession extends CommandResponseType {val name = "UNKNOWN_SESSION"}
+    case object NotSupported extends CommandResponseType("NOT_SUPPORTED")
+    case object Rejected extends CommandResponseType("REJECTED")
+    case object Accepted extends CommandResponseType("ACCEPTED")
+    case object Timeout extends CommandResponseType("TIMEOUT")
+    case object UnknownSession extends CommandResponseType("UNKNOWN_SESSION")
     val values = Iterable(NotSupported, Rejected, Accepted, Timeout, UnknownSession)
   }
 
