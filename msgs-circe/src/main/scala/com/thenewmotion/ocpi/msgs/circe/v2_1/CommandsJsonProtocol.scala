@@ -1,9 +1,9 @@
 package com.thenewmotion.ocpi.msgs
 package circe.v2_1
 
-import circe.SimpleStringEnumSerializer
+import circe.SimpleStringEnumSerializer._
 import v2_1.Commands.Command.UnlockConnector
-import v2_1.Commands.{Command, CommandResponse, CommandResponseType}
+import v2_1.Commands.{Command, CommandResponse}
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
 import CommonJsonProtocol._
@@ -12,13 +12,6 @@ import LocationsJsonProtocol._
 import SessionJsonProtocol._
 
 trait CommandsJsonProtocol {
-
-  implicit val commandResponseTypeE: Encoder[CommandResponseType] =
-    SimpleStringEnumSerializer.encoder(CommandResponseType)
-
-  implicit val commandResponseTypeD: Decoder[CommandResponseType] =
-    SimpleStringEnumSerializer.decoder(CommandResponseType)
-
   implicit val commandResponseE: Encoder[CommandResponse] = deriveEncoder
   implicit val commandResponseD: Decoder[CommandResponse] = deriveDecoder
 

@@ -10,14 +10,14 @@ import com.thenewmotion.ocpi.msgs.v2_1.Tariffs.Tariff
 
 object Cdrs {
   sealed abstract class AuthMethod(val name: String) extends Nameable
-  object AuthMethod extends Enumerable[AuthMethod] {
+  implicit object AuthMethod extends Enumerable[AuthMethod] {
     case object AuthRequest extends AuthMethod("AUTH_REQUEST")
     case object Whitelist extends AuthMethod("WHITELIST")
     val values = Set(AuthRequest, Whitelist)
   }
 
   sealed abstract class CdrDimensionType(val name: String) extends Nameable
-  object CdrDimensionType extends Enumerable[CdrDimensionType] {
+  implicit object CdrDimensionType extends Enumerable[CdrDimensionType] {
     case object Energy extends CdrDimensionType("ENERGY")
     case object Flat extends CdrDimensionType("FLAT")
     case object MaxCurrent extends CdrDimensionType("MAX_CURRENT")

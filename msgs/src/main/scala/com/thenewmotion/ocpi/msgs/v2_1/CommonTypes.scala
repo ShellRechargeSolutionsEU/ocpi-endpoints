@@ -10,7 +10,7 @@ object CommonTypes {
   )
 
   sealed trait ImageCategory extends Nameable
-  object ImageCategory extends Enumerable[ImageCategory] {
+  implicit object ImageCategory extends Enumerable[ImageCategory] {
     case object Charger extends ImageCategory {val name = "CHARGER"}
     case object Entrance extends ImageCategory {val name = "ENTRANCE"}
     case object Location extends ImageCategory {val name = "LOCATION"}

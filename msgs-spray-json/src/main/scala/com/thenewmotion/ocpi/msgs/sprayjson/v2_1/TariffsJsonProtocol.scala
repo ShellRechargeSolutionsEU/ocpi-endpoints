@@ -3,7 +3,7 @@ package com.thenewmotion.ocpi.msgs.sprayjson.v2_1
 import com.thenewmotion.ocpi.msgs.v2_1.Tariffs._
 import DefaultJsonProtocol._
 import LocationsJsonProtocol._
-import com.thenewmotion.ocpi.msgs.sprayjson.SimpleStringEnumSerializer
+import com.thenewmotion.ocpi.msgs.sprayjson.SimpleStringEnumSerializer._
 import spray.json.{JsString, JsValue, JsonFormat, deserializationError}
 
 trait TariffsJsonProtocol {
@@ -14,12 +14,6 @@ trait TariffsJsonProtocol {
     }
     override def write(obj: TariffId) = JsString(obj.value)
   }
-
-  implicit val tariffDimensionTypeFormat =
-    new SimpleStringEnumSerializer[TariffDimensionType](TariffDimensionType).enumFormat
-
-  implicit val dayOfWeekFormat =
-    new SimpleStringEnumSerializer[DayOfWeek](DayOfWeek).enumFormat
 
   implicit val priceComponentFormat = jsonFormat3(PriceComponent)
 

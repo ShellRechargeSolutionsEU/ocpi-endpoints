@@ -5,7 +5,7 @@ import v2_1.Tokens._
 import DefaultJsonProtocol._
 import LocationsJsonProtocol._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 import spray.json.{JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
 
 trait TokensJsonProtocol {
@@ -19,12 +19,6 @@ trait TokensJsonProtocol {
     evseUids.getOrElse(Nil),
     connectorIds.getOrElse(Nil)
   )
-
-  implicit val tokenTypeFormat =
-    new SimpleStringEnumSerializer[TokenType](TokenType).enumFormat
-
-  implicit val whitelistTypeFormat =
-    new SimpleStringEnumSerializer[WhitelistType](WhitelistType).enumFormat
 
   implicit val tokenUidFmt = new JsonFormat[TokenUid] {
     override def read(json: JsValue) = json match {
@@ -52,9 +46,6 @@ trait TokensJsonProtocol {
     override def read(json: JsValue) = readFormat.read(json)
     override def write(obj: LocationReferences): JsValue = writeFormat.write(obj)
   }
-
-  implicit val allowedFormat =
-    new SimpleStringEnumSerializer[Allowed](Allowed).enumFormat
 
   implicit val authorizationInfoFormat = jsonFormat3(AuthorizationInfo)
 }

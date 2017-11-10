@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs
 package circe.v2_1
 
-import circe.SimpleStringEnumSerializer
+import circe.SimpleStringEnumSerializer._
 import v2_1.Locations._
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
@@ -19,42 +19,6 @@ trait LocationsJsonProtocol {
 
   implicit val evseUidE: Encoder[EvseUid] = stringEncoder(_.value)
   implicit val evseUidD: Decoder[EvseUid] = tryStringDecoder(EvseUid.apply)
-
-  implicit val capabilityE: Encoder[Capability] = SimpleStringEnumSerializer.encoder(Capability)
-  implicit val capabilityD: Decoder[Capability] = SimpleStringEnumSerializer.decoder(Capability)
-
-  implicit val connectorStatusE: Encoder[ConnectorStatus] = SimpleStringEnumSerializer.encoder(ConnectorStatus)
-  implicit val connectorStatusD: Decoder[ConnectorStatus] = SimpleStringEnumSerializer.decoder(ConnectorStatus)
-
-  implicit val connectorTypeE: Encoder[ConnectorType] = SimpleStringEnumSerializer.encoder(ConnectorType)
-  implicit val connectorTypeD: Decoder[ConnectorType] = SimpleStringEnumSerializer.decoder(ConnectorType)
-
-  implicit val connectorFormatE: Encoder[ConnectorFormat] = SimpleStringEnumSerializer.encoder(ConnectorFormat)
-  implicit val connectorFormatD: Decoder[ConnectorFormat] = SimpleStringEnumSerializer.decoder(ConnectorFormat)
-
-  implicit val powerTypeE: Encoder[PowerType] = SimpleStringEnumSerializer.encoder(PowerType)
-  implicit val powerTypeD: Decoder[PowerType] = SimpleStringEnumSerializer.decoder(PowerType)
-
-  implicit val locationTypeE: Encoder[LocationType] = SimpleStringEnumSerializer.encoder(LocationType)
-  implicit val locationTypeD: Decoder[LocationType] = SimpleStringEnumSerializer.decoder(LocationType)
-
-  implicit val parkingRestrictionE: Encoder[ParkingRestriction] =
-    SimpleStringEnumSerializer.encoder(ParkingRestriction)
-  implicit val parkingRestrictionD: Decoder[ParkingRestriction] =
-    SimpleStringEnumSerializer.decoder(ParkingRestriction)
-
-  implicit val facilityE: Encoder[Facility] = SimpleStringEnumSerializer.encoder(Facility)
-  implicit val facilityD: Decoder[Facility] = SimpleStringEnumSerializer.decoder(Facility)
-
-  implicit val energySourceCategoryE: Encoder[EnergySourceCategory] =
-    SimpleStringEnumSerializer.encoder(EnergySourceCategory)
-  implicit val energySourceCategoryD: Decoder[EnergySourceCategory] =
-    SimpleStringEnumSerializer.decoder(EnergySourceCategory)
-
-  implicit val environmentalImpactCategoryE: Encoder[EnvironmentalImpactCategory] =
-    SimpleStringEnumSerializer.encoder(EnvironmentalImpactCategory)
-  implicit val environmentalImpactCategoryD: Decoder[EnvironmentalImpactCategory] =
-    SimpleStringEnumSerializer.decoder(EnvironmentalImpactCategory)
 
   implicit val energySourceE: Encoder[EnergySource] = deriveEncoder
   implicit val energySourceD: Decoder[EnergySource] = deriveDecoder

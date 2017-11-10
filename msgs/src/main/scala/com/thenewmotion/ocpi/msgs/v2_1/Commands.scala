@@ -122,7 +122,7 @@ object Commands {
   }
 
   sealed trait CommandResponseType extends Nameable
-  object CommandResponseType extends Enumerable[CommandResponseType] {
+  implicit object CommandResponseType extends Enumerable[CommandResponseType] {
     case object NotSupported extends CommandResponseType {val name = "NOT_SUPPORTED"}
     case object Rejected extends CommandResponseType {val name = "REJECTED"}
     case object Accepted extends CommandResponseType {val name = "ACCEPTED"}

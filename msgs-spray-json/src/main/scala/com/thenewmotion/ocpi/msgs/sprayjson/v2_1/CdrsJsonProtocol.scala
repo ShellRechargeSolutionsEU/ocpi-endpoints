@@ -5,7 +5,7 @@ import spray.json.{JsString, JsValue, JsonFormat, deserializationError}
 import DefaultJsonProtocol._
 import LocationsJsonProtocol._
 import TariffsJsonProtocol._
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 import v2_1.Cdrs._
 
 trait CdrsJsonProtocol {
@@ -16,12 +16,6 @@ trait CdrsJsonProtocol {
     }
     override def write(obj: CdrId) = JsString(obj.value)
   }
-
-  implicit val authMethodFormat =
-    new SimpleStringEnumSerializer[AuthMethod](AuthMethod).enumFormat
-
-  implicit val cdrDimensionTypeFormat =
-    new SimpleStringEnumSerializer[CdrDimensionType](CdrDimensionType).enumFormat
 
   implicit val cdrDimensionFormat = jsonFormat2(CdrDimension)
 
