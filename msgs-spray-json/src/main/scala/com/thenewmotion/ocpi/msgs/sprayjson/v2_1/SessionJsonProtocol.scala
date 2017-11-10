@@ -10,7 +10,7 @@ import TokensJsonProtocol._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{AuthMethod, ChargingPeriod}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.AuthId
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 import spray.json.{JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
 
 trait SessionJsonProtocol {
@@ -22,9 +22,6 @@ trait SessionJsonProtocol {
     }
     override def write(obj: SessionId) = JsString(obj.value)
   }
-
-  implicit val sessionStatusFormat =
-    new SimpleStringEnumSerializer[SessionStatus](SessionStatus).enumFormat
 
   private def deserializeSession(
     id: SessionId,

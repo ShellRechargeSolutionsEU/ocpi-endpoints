@@ -6,7 +6,7 @@ import java.time.{LocalTime, ZonedDateTime}
 import v2_1.Locations._
 import DefaultJsonProtocol._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.{BusinessDetails, DisplayText, Image}
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 import spray.json.{JsString, JsValue, JsonFormat, RootJsonFormat, deserializationError}
 
 trait LocationsJsonProtocol {
@@ -116,36 +116,6 @@ trait LocationsJsonProtocol {
     parkingRestrictions.getOrElse(Nil),
     images.getOrElse(Nil)
   )
-
-  implicit val capabilityFormat =
-    new SimpleStringEnumSerializer[Capability](Capability).enumFormat
-
-  implicit val connectorStatusFormat =
-    new SimpleStringEnumSerializer[ConnectorStatus](ConnectorStatus).enumFormat
-
-  implicit val connectorTypeFormat =
-    new SimpleStringEnumSerializer[ConnectorType](ConnectorType).enumFormat
-
-  implicit val connectorFormatFormat =
-    new SimpleStringEnumSerializer[ConnectorFormat](ConnectorFormat).enumFormat
-
-  implicit val currentTypeFormat =
-    new SimpleStringEnumSerializer[PowerType](PowerType).enumFormat
-
-  implicit val locationTypeFormat =
-    new SimpleStringEnumSerializer[LocationType](LocationType).enumFormat
-
-  implicit val parkingRestrictionTypeFormat =
-    new SimpleStringEnumSerializer[ParkingRestriction](ParkingRestriction).enumFormat
-
-  implicit val facilityTypeFormat =
-    new SimpleStringEnumSerializer[Facility](Facility).enumFormat
-
-  implicit val energySourceCategoryTypeFormat =
-    new SimpleStringEnumSerializer[EnergySourceCategory](EnergySourceCategory).enumFormat
-
-  implicit val environmentalImpactCategoryTypeFormat =
-    new SimpleStringEnumSerializer[EnvironmentalImpactCategory](EnvironmentalImpactCategory).enumFormat
 
   implicit val energySourceFormat = jsonFormat2(EnergySource)
   implicit val environmentalImpactFormat = jsonFormat2(EnvironmentalImpact)

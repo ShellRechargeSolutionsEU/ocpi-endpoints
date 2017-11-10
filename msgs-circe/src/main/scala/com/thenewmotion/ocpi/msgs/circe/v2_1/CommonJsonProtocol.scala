@@ -5,7 +5,7 @@ import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
 import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.SuccessCode
 import com.thenewmotion.ocpi.msgs._
-import com.thenewmotion.ocpi.msgs.circe.SimpleStringEnumSerializer
+import com.thenewmotion.ocpi.msgs.circe.SimpleStringEnumSerializer._
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
 import io.circe.generic.extras.semiauto._
@@ -34,12 +34,6 @@ trait CommonJsonProtocol {
   implicit val durationD: Decoder[Duration] = Decoder.decodeLong.emap(n =>
     java.time.Duration.ofSeconds(n).asRight
   )
-
-  implicit val imageCategoryTypeE: Encoder[ImageCategory] =
-    SimpleStringEnumSerializer.encoder(ImageCategory)
-
-  implicit val imageCategoryTypeD: Decoder[ImageCategory] =
-    SimpleStringEnumSerializer.decoder(ImageCategory)
 
   implicit val urlE: Encoder[Url] = Encoder.encodeString.contramap[Url](_.value)
   implicit val urlD: Decoder[Url] = Decoder.decodeString.emap(Url(_).asRight)

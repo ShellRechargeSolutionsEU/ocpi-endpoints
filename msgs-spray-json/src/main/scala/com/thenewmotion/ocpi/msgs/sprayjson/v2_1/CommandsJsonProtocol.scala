@@ -6,12 +6,9 @@ import DefaultJsonProtocol._
 import SessionJsonProtocol._
 import TokensJsonProtocol._
 import LocationsJsonProtocol._
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 
 trait CommandsJsonProtocol {
-
-  implicit val commandResponseTypeFormat =
-    new SimpleStringEnumSerializer(CommandResponseType).enumFormat
 
   implicit val commandResponse = jsonFormat1(CommandResponse)
 

@@ -4,7 +4,7 @@ package sprayjson.v2_1
 import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
 
 import OcpiStatusCode.SuccessCode
-import sprayjson.SimpleStringEnumSerializer
+import sprayjson.SimpleStringEnumSerializer._
 import v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
 import spray.json.{JsNumber, JsString, JsValue, JsonFormat, deserializationError}
@@ -63,9 +63,6 @@ trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
       case x => deserializationError(s"Expected Duration as JsNumber, but got $x")
     }
   }
-
-  implicit val imageCategoryTypeFormat =
-    new SimpleStringEnumSerializer[ImageCategory](ImageCategory).enumFormat
 
   implicit val urlFmt = new JsonFormat[Url] {
     override def read(json: JsValue) = json match {

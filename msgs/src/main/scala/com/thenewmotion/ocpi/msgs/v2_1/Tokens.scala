@@ -10,14 +10,14 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, Location
 
 object Tokens {
   sealed abstract class TokenType(val name: String) extends Nameable
-  object TokenType extends Enumerable[TokenType] {
+  implicit object TokenType extends Enumerable[TokenType] {
     case object Other extends TokenType("OTHER")
     case object Rfid extends TokenType("RFID")
     val values = Set(Other, Rfid)
   }
 
   sealed abstract class WhitelistType(val name: String) extends Nameable
-  object WhitelistType extends Enumerable[WhitelistType] {
+  implicit object WhitelistType extends Enumerable[WhitelistType] {
     case object Always extends WhitelistType("ALWAYS")
     case object Allowed extends WhitelistType("ALLOWED")
     case object AllowedOffline extends WhitelistType("ALLOWED_OFFLINE")
@@ -96,7 +96,7 @@ object Tokens {
   )
 
   sealed abstract class Allowed(val name: String) extends Nameable
-  object Allowed extends Enumerable[Allowed] {
+  implicit object Allowed extends Enumerable[Allowed] {
     case object Allowed extends Allowed("ALLOWED")
     case object Blocked extends Allowed("BLOCKED")
     case object Expired extends Allowed("EXPIRED")

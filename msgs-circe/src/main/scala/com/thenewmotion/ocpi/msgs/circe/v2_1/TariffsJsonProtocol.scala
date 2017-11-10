@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs
 package circe.v2_1
 
-import circe.SimpleStringEnumSerializer
+import circe.SimpleStringEnumSerializer._
 import v2_1.Tariffs._
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
@@ -12,18 +12,6 @@ trait TariffsJsonProtocol {
 
   implicit val tariffIdE: Encoder[TariffId] = stringEncoder(_.value)
   implicit val tariffIdD: Decoder[TariffId] = tryStringDecoder(TariffId.apply)
-
-  implicit val tariffDimensionTypeE: Encoder[TariffDimensionType] =
-    SimpleStringEnumSerializer.encoder(TariffDimensionType)
-
-  implicit val tariffDimensionTypeD: Decoder[TariffDimensionType] =
-    SimpleStringEnumSerializer.decoder(TariffDimensionType)
-
-  implicit val dayOfWeekE: Encoder[DayOfWeek] =
-    SimpleStringEnumSerializer.encoder(DayOfWeek)
-
-  implicit val dayOfWeekD: Decoder[DayOfWeek] =
-    SimpleStringEnumSerializer.decoder(DayOfWeek)
 
   implicit val priceComponentE: Encoder[PriceComponent] = deriveEncoder
   implicit val priceComponentD: Decoder[PriceComponent] = deriveDecoder

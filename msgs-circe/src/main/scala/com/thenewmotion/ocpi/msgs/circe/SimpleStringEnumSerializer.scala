@@ -3,12 +3,14 @@ package com.thenewmotion.ocpi.msgs.circe
 import com.thenewmotion.ocpi.{Enumerable, Nameable}
 import io.circe.{Decoder, Encoder}
 
-object SimpleStringEnumSerializer {
-  def encoder[T <: Nameable](enum: Enumerable[T]): Encoder[T] =
+trait SimpleStringEnumSerializer {
+  implicit def encoder[T <: Nameable]: Encoder[T] =
     Encoder.encodeString.contramap[T](_.name)
 
-  def decoder[T <: Nameable](enum: Enumerable[T]): Decoder[T] =
+  implicit def decoder[T <: Nameable: Enumerable]: Decoder[T] =
     Decoder.decodeString.emap { x =>
-      enum.withName(x).toRight(s"Unknown value: $x")
+      implicitly[Enumerable[T]].withName(x).toRight(s"Unknown value: $x")
     }
 }
+
+object SimpleStringEnumSerializer extends SimpleStringEnumSerializer

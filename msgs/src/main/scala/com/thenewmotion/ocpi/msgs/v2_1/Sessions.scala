@@ -26,7 +26,7 @@ object Sessions {
   }
 
   sealed trait SessionStatus extends Nameable
-  object SessionStatus extends Enumerable[SessionStatus] {
+  implicit object SessionStatus extends Enumerable[SessionStatus] {
     case object Active extends SessionStatus { val name = "ACTIVE" }
     case object Completed extends SessionStatus { val name = "COMPLETED" }
     case object Invalid extends SessionStatus { val name = "INVALID" }

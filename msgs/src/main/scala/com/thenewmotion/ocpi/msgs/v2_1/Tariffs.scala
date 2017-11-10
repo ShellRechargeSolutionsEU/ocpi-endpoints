@@ -10,7 +10,7 @@ import com.thenewmotion.ocpi.{Enumerable, Nameable}
 
 object Tariffs {
   sealed abstract class DayOfWeek(val name: String) extends Nameable
-  object DayOfWeek extends Enumerable[DayOfWeek] {
+  implicit object DayOfWeek extends Enumerable[DayOfWeek] {
     case object Monday extends DayOfWeek("MONDAY")
     case object Tuesday extends DayOfWeek("TUESDAY")
     case object Wednesday extends DayOfWeek("WEDNESDAY")
@@ -22,7 +22,7 @@ object Tariffs {
   }
 
   sealed abstract class TariffDimensionType(val name: String) extends Nameable
-  object TariffDimensionType extends Enumerable[TariffDimensionType] {
+  implicit object TariffDimensionType extends Enumerable[TariffDimensionType] {
     case object Energy extends TariffDimensionType("ENERGY")
     case object Flat extends TariffDimensionType("FLAT")
     case object ParkingTime extends TariffDimensionType("PARKING_TIME")
