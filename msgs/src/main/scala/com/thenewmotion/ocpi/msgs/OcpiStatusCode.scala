@@ -1,10 +1,7 @@
 package com.thenewmotion.ocpi.msgs
 
-import OcpiStatusCode.SuccessCode
-
 sealed trait OcpiStatusCode {
   def code: Int
-  def isSuccess = this.isInstanceOf[SuccessCode]
 }
 
 object OcpiStatusCode {

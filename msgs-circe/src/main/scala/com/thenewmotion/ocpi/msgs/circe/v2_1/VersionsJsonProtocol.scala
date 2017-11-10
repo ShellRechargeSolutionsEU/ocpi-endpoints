@@ -8,9 +8,6 @@ import CommonJsonProtocol._
 
 trait VersionsJsonProtocol {
 
-  implicit val endpointIdentifierE: Encoder[EndpointIdentifier] = stringEncoder(_.value)
-  implicit val endpointIdentifierD: Decoder[EndpointIdentifier] = tryStringDecoder(EndpointIdentifier.apply)
-
   implicit val versionNumberE: Encoder[VersionNumber] = stringEncoder(_.toString)
   implicit val versionNumberD: Decoder[VersionNumber] = tryStringDecoder(VersionNumber.apply)
 

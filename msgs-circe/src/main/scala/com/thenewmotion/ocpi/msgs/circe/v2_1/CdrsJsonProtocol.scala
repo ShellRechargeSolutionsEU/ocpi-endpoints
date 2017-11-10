@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi.msgs
 package circe.v2_1
 
-import circe.SimpleStringEnumSerializer._
 import v2_1.Cdrs._
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}

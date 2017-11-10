@@ -26,12 +26,12 @@ object Sessions {
     def unapply(id: SessionId): Option[String] = Some(id.value)
   }
 
-  sealed trait SessionStatus extends Nameable
+  sealed abstract class SessionStatus(val name: String) extends Nameable
   implicit object SessionStatus extends Enumerable[SessionStatus] {
-    case object Active extends SessionStatus { val name = "ACTIVE" }
-    case object Completed extends SessionStatus { val name = "COMPLETED" }
-    case object Invalid extends SessionStatus { val name = "INVALID" }
-    case object Pending extends SessionStatus { val name = "PENDING" }
+    case object Active extends SessionStatus("ACTIVE")
+    case object Completed extends SessionStatus("COMPLETED")
+    case object Invalid extends SessionStatus("INVALID")
+    case object Pending extends SessionStatus("PENDING")
     val values = Iterable(Active, Completed, Invalid, Pending)
   }
 

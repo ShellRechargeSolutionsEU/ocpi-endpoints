@@ -97,35 +97,35 @@ object Locations {
     energyMix: Option[EnergyMix] = None
   ) extends BaseLocation[Patch]
 
-  sealed trait LocationType extends Nameable
+  sealed abstract class LocationType(val name: String) extends Nameable
   implicit object LocationType extends Enumerable[LocationType] {
-    case object OnStreet extends LocationType { val name = "ON_STREET" }
-    case object ParkingGarage extends LocationType { val name = "PARKING_GARAGE" }
-    case object UndergroundGarage extends LocationType { val name = "UNDERGROUND_GARAGE" }
-    case object ParkingLot extends LocationType { val name = "PARKING_LOT" }
-    case object Other extends LocationType { val name = "OTHER" }
-    case object Unknown extends LocationType { val name = "UNKNOWN" }
+    case object OnStreet extends LocationType("ON_STREET")
+    case object ParkingGarage extends LocationType("PARKING_GARAGE")
+    case object UndergroundGarage extends LocationType("UNDERGROUND_GARAGE")
+    case object ParkingLot extends LocationType("PARKING_LOT")
+    case object Other extends LocationType("OTHER")
+    case object Unknown extends LocationType("UNKNOWN")
     val values = Iterable(OnStreet, ParkingGarage, UndergroundGarage, ParkingLot, Other, Unknown)
   }
 
-  sealed trait Facility extends Nameable
+  sealed abstract class Facility(val name: String) extends Nameable
   implicit object Facility extends Enumerable[Facility] {
-    case object Hotel extends Facility { val name = "HOTEL" }
-    case object Restaurant extends Facility { val name = "RESTAURANT" }
-    case object Cafe extends Facility { val name = "CAFE" }
-    case object Mall extends Facility { val name = "MALL" }
-    case object Supermarket extends Facility { val name = "SUPERMARKET" }
-    case object Sport extends Facility { val name = "SPORT" }
-    case object RecreationArea extends Facility { val name = "RECREATION_AREA" }
-    case object Nature extends Facility { val name = "NATURE" }
-    case object Museum extends Facility { val name = "MUSEUM" }
-    case object BusStop extends Facility { val name = "BUS_STOP" }
-    case object TaxiStand extends Facility { val name = "TAXI_STAND" }
-    case object TrainStation extends Facility { val name = "TRAIN_STATION" }
-    case object Airport extends Facility { val name = "AIRPORT" }
-    case object CarpoolParking extends Facility { val name = "CARPOOL_PARKING" }
-    case object FuelStation extends Facility { val name = "FUEL_STATION" }
-    case object Wifi extends Facility { val name = "WIFI" }
+    case object Hotel extends Facility("HOTEL")
+    case object Restaurant extends Facility("RESTAURANT")
+    case object Cafe extends Facility("CAFE")
+    case object Mall extends Facility("MALL")
+    case object Supermarket extends Facility("SUPERMARKET")
+    case object Sport extends Facility("SPORT")
+    case object RecreationArea extends Facility("RECREATION_AREA")
+    case object Nature extends Facility("NATURE")
+    case object Museum extends Facility("MUSEUM")
+    case object BusStop extends Facility("BUS_STOP")
+    case object TaxiStand extends Facility("TAXI_STAND")
+    case object TrainStation extends Facility("TRAIN_STATION")
+    case object Airport extends Facility("AIRPORT")
+    case object CarpoolParking extends Facility("CARPOOL_PARKING")
+    case object FuelStation extends Facility("FUEL_STATION")
+    case object Wifi extends Facility("WIFI")
     val values = Seq(
       Hotel,
       Restaurant,
@@ -146,23 +146,23 @@ object Locations {
     )
   }
 
-  sealed trait EnergySourceCategory extends Nameable
+  sealed abstract class EnergySourceCategory(val name: String) extends Nameable
   implicit object EnergySourceCategory extends Enumerable[EnergySourceCategory] {
-    case object Nuclear extends EnergySourceCategory { val name = "NUCLEAR" }
-    case object GeneralFossil extends EnergySourceCategory { val name = "GENERAL_FOSSIL" }
-    case object Coal extends EnergySourceCategory { val name = "COAL" }
-    case object Gas extends EnergySourceCategory { val name = "GAS" }
-    case object GeneralGreen extends EnergySourceCategory { val name = "GENERAL_GREEN" }
-    case object Solar extends EnergySourceCategory { val name = "SOLAR" }
-    case object Wind extends EnergySourceCategory { val name = "WIND" }
-    case object Water extends EnergySourceCategory { val name = "WATER" }
+    case object Nuclear extends EnergySourceCategory("NUCLEAR")
+    case object GeneralFossil extends EnergySourceCategory("GENERAL_FOSSIL")
+    case object Coal extends EnergySourceCategory("COAL")
+    case object Gas extends EnergySourceCategory("GAS")
+    case object GeneralGreen extends EnergySourceCategory("GENERAL_GREEN")
+    case object Solar extends EnergySourceCategory("SOLAR")
+    case object Wind extends EnergySourceCategory("WIND")
+    case object Water extends EnergySourceCategory("WATER")
     val values = Seq(Nuclear, GeneralFossil, Coal, Gas, GeneralGreen, Solar, Wind, Water)
   }
 
-  sealed trait EnvironmentalImpactCategory extends Nameable
+  sealed abstract class EnvironmentalImpactCategory(val name: String) extends Nameable
   implicit object EnvironmentalImpactCategory extends Enumerable[EnvironmentalImpactCategory] {
-    case object NuclearWaste extends EnvironmentalImpactCategory { val name = "NUCLEAR_WASTE" }
-    case object CarbonDioxide extends EnvironmentalImpactCategory { val name = "CARBON_DIOXIDE" }
+    case object NuclearWaste extends EnvironmentalImpactCategory("NUCLEAR_WASTE")
+    case object CarbonDioxide extends EnvironmentalImpactCategory("CARBON_DIOXIDE")
     val values = Seq(NuclearWaste, CarbonDioxide)
   }
 
@@ -262,14 +262,14 @@ object Locations {
     termsAndConditions: Option[Url] = None
   ) extends BaseConnector[Patch]
 
-  sealed trait Capability extends Nameable
+  sealed abstract class Capability(val name: String) extends Nameable
   implicit object Capability extends Enumerable[Capability] {
-    case object ChargingProfileCapable extends Capability { val name = "CHARGING_PROFILE_CAPABLE" }
-    case object CreditCardPayable extends Capability { val name = "CREDIT_CARD_PAYABLE" }
-    case object Reservable extends Capability { val name = "RESERVABLE" }
-    case object RfidReader extends Capability { val name = "RFID_READER" }
-    case object RemoteStartStopCapable extends Capability { val name = "REMOTE_START_STOP_CAPABLE" }
-    case object UnlockCapabale extends Capability { val name = "UNLOCK_CAPABLE" }
+    case object ChargingProfileCapable extends Capability("CHARGING_PROFILE_CAPABLE")
+    case object CreditCardPayable extends Capability("CREDIT_CARD_PAYABLE")
+    case object Reservable extends Capability("RESERVABLE")
+    case object RfidReader extends Capability("RFID_READER")
+    case object RemoteStartStopCapable extends Capability("REMOTE_START_STOP_CAPABLE")
+    case object UnlockCapabale extends Capability("UNLOCK_CAPABLE")
     val values = Iterable(
       ChargingProfileCapable,
       CreditCardPayable,
@@ -415,29 +415,27 @@ object Locations {
     longitude: Longitude
   )
 
-  sealed trait ParkingRestriction extends Nameable
+  sealed abstract class ParkingRestriction(val name: String) extends Nameable
   implicit object ParkingRestriction extends Enumerable[ParkingRestriction] {
-    case object EvOnly extends ParkingRestriction { val name = "EV_ONLY" }
-    case object Plugged extends ParkingRestriction { val name = "PLUGGED" }
-    case object Disabled extends ParkingRestriction { val name = "DISABLED" }
-    case object Customers extends ParkingRestriction { val name = "CUSTOMERS" }
-    case object Motorcycles extends ParkingRestriction { val name = "MOTORCYCLES" }
+    case object EvOnly extends ParkingRestriction("EV_ONLY")
+    case object Plugged extends ParkingRestriction("PLUGGED")
+    case object Disabled extends ParkingRestriction("DISABLED")
+    case object Customers extends ParkingRestriction("CUSTOMERS")
+    case object Motorcycles extends ParkingRestriction("MOTORCYCLES")
     val values = Iterable(EvOnly, Plugged, Disabled, Customers, Motorcycles)
   }
 
-  sealed trait ConnectorStatus extends Nameable
+  sealed abstract class ConnectorStatus(val name: String) extends Nameable
   implicit object ConnectorStatus extends Enumerable[ConnectorStatus] {
-    case object Available extends ConnectorStatus { val name = "AVAILABLE" }
-    case object Blocked extends ConnectorStatus { val name = "BLOCKED" }
-    case object Charging extends ConnectorStatus { val name = "CHARGING" }
-    case object Inoperative extends ConnectorStatus { val name = "INOPERATIVE" }
-    case object OutOfOrder extends ConnectorStatus { val name = "OUTOFORDER" }
-    case object Planned extends ConnectorStatus { val name = "PLANNED" }
-    case object Removed extends ConnectorStatus { val name = "REMOVED" }
-    case object Reserved extends ConnectorStatus { val name = "RESERVED" }
-    case object Unknown extends ConnectorStatus { val name = "UNKNOWN" }
-
-    //case object Unknown extends ConnectorStatus {val name = "unknown"}
+    case object Available extends ConnectorStatus("AVAILABLE")
+    case object Blocked extends ConnectorStatus("BLOCKED")
+    case object Charging extends ConnectorStatus("CHARGING")
+    case object Inoperative extends ConnectorStatus("INOPERATIVE")
+    case object OutOfOrder extends ConnectorStatus("OUTOFORDER")
+    case object Planned extends ConnectorStatus("PLANNED")
+    case object Removed extends ConnectorStatus("REMOVED")
+    case object Reserved extends ConnectorStatus("RESERVED")
+    case object Unknown extends ConnectorStatus("UNKNOWN")
     val values = Iterable(Available, Blocked, Charging, Inoperative, OutOfOrder, Planned, Removed, Reserved, Unknown)
   }
 
@@ -447,34 +445,34 @@ object Locations {
     status: ConnectorStatus
   )
 
-  sealed trait ConnectorType extends Nameable
+  sealed abstract class ConnectorType(val name: String) extends Nameable
 
   implicit object ConnectorType extends Enumerable[ConnectorType] {
-    case object CHADEMO extends ConnectorType { val name = "CHADEMO" }
-    case object `IEC_62196_T1` extends ConnectorType { val name = "IEC_62196_T1" }
-    case object `IEC_62196_T1_COMBO` extends ConnectorType { val name = "IEC_62196_T1_COMBO" }
-    case object `IEC_62196_T2` extends ConnectorType { val name = "IEC_62196_T2" }
-    case object `IEC_62196_T2_COMBO` extends ConnectorType { val name = "IEC_62196_T2_COMBO" }
-    case object `IEC_62196_T3A` extends ConnectorType { val name = "IEC_62196_T3A" }
-    case object `IEC_62196_T3C` extends ConnectorType { val name = "IEC_62196_T3C" }
-    case object `DOMESTIC_A` extends ConnectorType { val name = "DOMESTIC_A" }
-    case object `DOMESTIC_B` extends ConnectorType { val name = "DOMESTIC_B" }
-    case object `DOMESTIC_C` extends ConnectorType { val name = "DOMESTIC_C" }
-    case object `DOMESTIC_D` extends ConnectorType { val name = "DOMESTIC_D" }
-    case object `DOMESTIC_E` extends ConnectorType { val name = "DOMESTIC_E" }
-    case object `DOMESTIC_F` extends ConnectorType { val name = "DOMESTIC_F" }
-    case object `DOMESTIC_G` extends ConnectorType { val name = "DOMESTIC_G" }
-    case object `DOMESTIC_H` extends ConnectorType { val name = "DOMESTIC_H" }
-    case object `DOMESTIC_I` extends ConnectorType { val name = "DOMESTIC_I" }
-    case object `DOMESTIC_J` extends ConnectorType { val name = "DOMESTIC_J" }
-    case object `DOMESTIC_K` extends ConnectorType { val name = "DOMESTIC_K" }
-    case object `DOMESTIC_L` extends ConnectorType { val name = "DOMESTIC_L" }
-    case object `TESLA_R` extends ConnectorType { val name = "TESLA_R" }
-    case object `TESLA_S` extends ConnectorType { val name = "TESLA_S" }
-    case object `IEC_60309_2_single_16` extends ConnectorType { val name = "IEC_60309_2_single_16" }
-    case object `IEC_60309_2_three_16` extends ConnectorType { val name = "IEC_60309_2_three_16" }
-    case object `IEC_60309_2_three_32` extends ConnectorType { val name = "IEC_60309_2_three_32" }
-    case object `IEC_60309_2_three_64` extends ConnectorType { val name = "IEC_60309_2_three_64" }
+    case object CHADEMO extends ConnectorType("CHADEMO")
+    case object `IEC_62196_T1` extends ConnectorType("IEC_62196_T1")
+    case object `IEC_62196_T1_COMBO` extends ConnectorType("IEC_62196_T1_COMBO")
+    case object `IEC_62196_T2` extends ConnectorType("IEC_62196_T2")
+    case object `IEC_62196_T2_COMBO` extends ConnectorType("IEC_62196_T2_COMBO")
+    case object `IEC_62196_T3A` extends ConnectorType("IEC_62196_T3A")
+    case object `IEC_62196_T3C` extends ConnectorType("IEC_62196_T3C")
+    case object `DOMESTIC_A` extends ConnectorType("DOMESTIC_A")
+    case object `DOMESTIC_B` extends ConnectorType("DOMESTIC_B")
+    case object `DOMESTIC_C` extends ConnectorType("DOMESTIC_C")
+    case object `DOMESTIC_D` extends ConnectorType("DOMESTIC_D")
+    case object `DOMESTIC_E` extends ConnectorType("DOMESTIC_E")
+    case object `DOMESTIC_F` extends ConnectorType("DOMESTIC_F")
+    case object `DOMESTIC_G` extends ConnectorType("DOMESTIC_G")
+    case object `DOMESTIC_H` extends ConnectorType("DOMESTIC_H")
+    case object `DOMESTIC_I` extends ConnectorType("DOMESTIC_I")
+    case object `DOMESTIC_J` extends ConnectorType("DOMESTIC_J")
+    case object `DOMESTIC_K` extends ConnectorType("DOMESTIC_K")
+    case object `DOMESTIC_L` extends ConnectorType("DOMESTIC_L")
+    case object `TESLA_R` extends ConnectorType("TESLA_R")
+    case object `TESLA_S` extends ConnectorType("TESLA_S")
+    case object `IEC_60309_2_single_16` extends ConnectorType("IEC_60309_2_single_16")
+    case object `IEC_60309_2_three_16` extends ConnectorType("IEC_60309_2_three_16")
+    case object `IEC_60309_2_three_32` extends ConnectorType("IEC_60309_2_three_32")
+    case object `IEC_60309_2_three_64` extends ConnectorType("IEC_60309_2_three_64")
     val values = Iterable(
       CHADEMO,
       `IEC_62196_T1`,
@@ -504,19 +502,19 @@ object Locations {
     )
   }
 
-  sealed trait ConnectorFormat extends Nameable
+  sealed abstract class ConnectorFormat(val name: String) extends Nameable
   implicit object ConnectorFormat extends Enumerable[ConnectorFormat] {
-    case object Socket extends ConnectorFormat { val name = "SOCKET" }
-    case object Cable extends ConnectorFormat { val name = "CABLE" }
+    case object Socket extends ConnectorFormat("SOCKET")
+    case object Cable extends ConnectorFormat("CABLE")
     val values = Iterable(Socket, Cable)
   }
 
-  sealed trait PowerType extends Nameable
+  sealed abstract class PowerType(val name: String) extends Nameable
 
   implicit object PowerType extends Enumerable[PowerType] {
-    case object AC1Phase extends PowerType { val name = "AC_1_PHASE" }
-    case object AC3Phase extends PowerType { val name = "AC_3_PHASE" }
-    case object DC extends PowerType { val name = "DC" }
+    case object AC1Phase extends PowerType("AC_1_PHASE")
+    case object AC3Phase extends PowerType("AC_3_PHASE")
+    case object DC extends PowerType("DC")
     val values = Iterable(AC1Phase, AC3Phase, DC)
   }
 }
