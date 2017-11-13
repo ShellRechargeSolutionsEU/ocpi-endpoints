@@ -16,6 +16,7 @@ object Locations {
 
     def apply(value: String): LocationId = {
       require(value.length <= 39, "Location Id must be 39 characters or less")
+      require(value.nonEmpty, "Location Id cannot be an empty string")
       LocationIdImpl(value)
     }
 
@@ -218,6 +219,7 @@ object Locations {
 
     def apply(value: String): ConnectorId = {
       require(value.length <= 36, "Connector Id must be 36 characters or less")
+      require(value.nonEmpty, "Token Id cannot be an empty string")
       ConnectorIdImpl(value)
     }
 
@@ -285,6 +287,7 @@ object Locations {
 
     def apply(value: String): EvseUid = {
       require(value.length <= 39, "Evse Uid must be 39 characters or less")
+      require(value.nonEmpty, "Token Id cannot be an empty string")
       EvseUidImpl(value)
     }
 

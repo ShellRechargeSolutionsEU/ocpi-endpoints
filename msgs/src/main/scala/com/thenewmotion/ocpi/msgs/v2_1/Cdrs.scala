@@ -52,6 +52,7 @@ object Cdrs {
 
     def apply(value: String): CdrId = {
       require(value.length <= 36, "Cdr Id must be 36 characters or less")
+      require(value.nonEmpty, "Cdr Id cannot be an empty string")
       new CdrIdImpl(value)
     }
 
