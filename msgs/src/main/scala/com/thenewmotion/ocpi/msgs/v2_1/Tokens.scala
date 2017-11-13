@@ -33,6 +33,7 @@ object Tokens {
 
     def apply(value: String): TokenUid = {
       require(value.length <= 36, "Token Uid must be 36 characters or less")
+      require(value.nonEmpty, "Token Id cannot be an empty string")
       TokenUidImpl(value)
     }
 
@@ -48,6 +49,7 @@ object Tokens {
 
     def apply(value: String): AuthId = {
       require(value.length <= 36, "Auth Id must be 36 characters or less")
+      require(value.nonEmpty, "Auth Id cannot be an empty string")
       AuthIdImpl(value)
     }
 

@@ -63,6 +63,7 @@ object Tariffs {
 
     def apply(value: String): TariffId = {
       require(value.length <= 36, "Tariff Id must be 36 characters or less")
+      require(value.nonEmpty, "Tariff Id cannot be an empty string")
       TariffIdImpl(value)
     }
 

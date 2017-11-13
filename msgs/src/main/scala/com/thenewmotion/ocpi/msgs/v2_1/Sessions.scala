@@ -19,6 +19,7 @@ object Sessions {
 
     def apply(value: String): SessionId = {
       require(value.length <= 36, "Session Id must be 36 characters or less")
+      require(value.nonEmpty, "Session Id cannot be an empty string")
       SessionIdImpl(value)
     }
 
