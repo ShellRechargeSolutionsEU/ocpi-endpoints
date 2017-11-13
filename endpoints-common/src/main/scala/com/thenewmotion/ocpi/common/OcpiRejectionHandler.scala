@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi
 package common
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
@@ -9,7 +8,7 @@ import akka.http.scaladsl.server.directives.BasicDirectives
 import msgs.ErrorResp
 import msgs.OcpiStatusCode._
 
-object OcpiRejectionHandler extends BasicDirectives with SprayJsonSupport {
+object OcpiRejectionHandler extends BasicDirectives {
 
   def Default(
     implicit m: ErrRespMar

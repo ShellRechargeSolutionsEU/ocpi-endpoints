@@ -27,9 +27,10 @@ val akka =
   Seq(
     akkaModule("actor"),
     akkaModule("stream"),
-    akkaModule("http"),
-    akkaModule("http-spray-json")
+    akkaModule("http")
   )
+
+val akkaHttpSprayJson = Seq(akkaModule("http-spray-json"))
 
 val cats = Seq("org.typelevel" %% "cats-core" % "0.9.0")
 
@@ -114,7 +115,8 @@ val `endpoints-common` = project
     commonSettings,
     name := "ocpi-endpoints-common",
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ akka ++ cats ++ specs2 ++ akkaHttpTestKit ++ akkaStreamTestKit
+    libraryDependencies := logging ++ akka ++ cats ++ specs2 ++
+      akkaHttpTestKit ++ akkaStreamTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-msp-locations` = project
@@ -124,7 +126,7 @@ val `endpoints-msp-locations` = project
     commonSettings,
     name := "ocpi-endpoints-msp-locations",
     description := "OCPI endpoints MSP Locations",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-msp-tokens` = project
@@ -134,7 +136,7 @@ val `endpoints-msp-tokens` = project
     commonSettings,
     name := "ocpi-endpoints-msp-tokens",
     description := "OCPI endpoints MSP Tokens",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-msp-cdrs` = project
@@ -144,7 +146,7 @@ val `endpoints-msp-cdrs` = project
     commonSettings,
     name := "ocpi-endpoints-msp-cdrs",
     description := "OCPI endpoints MSP Cdrs",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-msp-commands` = project
@@ -154,7 +156,7 @@ val `endpoints-msp-commands` = project
     commonSettings,
     name := "ocpi-endpoints-msp-commands",
     description := "OCPI endpoints MSP Commands",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-msp-sessions` = project
@@ -164,7 +166,7 @@ val `endpoints-msp-sessions` = project
     commonSettings,
     name := "ocpi-endpoints-msp-sessions",
     description := "OCPI endpoints MSP Sessions",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-cpo-locations` = project
@@ -174,7 +176,7 @@ val `endpoints-cpo-locations` = project
     commonSettings,
     name := "ocpi-endpoints-cpo-locations",
     description := "OCPI endpoints CPO Locations",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-cpo-tokens` = project
@@ -184,7 +186,7 @@ val `endpoints-cpo-tokens` = project
     commonSettings,
     name := "ocpi-endpoints-cpo-tokens",
     description := "OCPI endpoints CPO Tokens",
-    libraryDependencies := specs2 ++ akkaHttpTestKit
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-versions` = project
@@ -194,7 +196,7 @@ val `endpoints-versions` = project
     commonSettings,
     name := "ocpi-endpoints-versions",
     description := "OCPI endpoints versions",
-    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test") ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `endpoints-registration` = project
@@ -204,7 +206,7 @@ val `endpoints-registration` = project
     commonSettings,
     name := "ocpi-endpoints-registration",
     description := "OCPI endpoints registration",
-    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test")
+    libraryDependencies := specs2 ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test") ++ akkaHttpSprayJson.map(_ % "test")
   )
 
 val `example` = project
@@ -213,7 +215,8 @@ val `example` = project
   .settings(
     commonSettings,
     publish := { },
-    description := "OCPI endpoints example app"
+    description := "OCPI endpoints example app",
+    libraryDependencies := akkaHttpSprayJson
   )
 
 val `ocpi-endpoints-root` = (project in file("."))

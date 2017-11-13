@@ -2,9 +2,7 @@ package com.thenewmotion.ocpi
 package common
 
 import akka.http.scaladsl.server.{Directive0, Directives, PathMatcher1}
-import akka.http.scaladsl.server.PathMatchers.Segment
 import msgs.GlobalPartyId
-import akka.http.scaladsl.server.Directives._
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
 
 trait OcpiDirectives extends Directives {
