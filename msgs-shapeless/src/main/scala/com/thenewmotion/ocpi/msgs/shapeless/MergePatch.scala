@@ -44,15 +44,17 @@ object ResourceMerge {
     pAux: Generic.Aux[P, PA],
     evHead: IsHCons.Aux[FA, FAH, FAT],
     zipper: Zip.Aux[FA :: (FAH :: PA) :: HNil, Z],
-    mapper: Mapper.Aux[tupleMerger.type, Z, FA],
-  ): ResourceMerge[F, P] = (t: F, patch: P) => {
-    val reprFull: FA = fAux.to(t)
-    val reprPatch: (FAH :: PA) = reprFull.head :: pAux.to(patch)
+    mapper: Mapper.Aux[tupleMerger.type, Z, FA]
+  ): ResourceMerge[F, P] = new ResourceMerge[F, P] {
+    override def apply(t: F, patch: P) = {
+      val reprFull: FA = fAux.to(t)
+      val reprPatch: (FAH :: PA) = reprFull.head :: pAux.to(patch)
 
-    val zipped: Z = reprFull.zip(reprPatch)
-    val merged: FA = zipped.map(tupleMerger)
+      val zipped: Z = reprFull.zip(reprPatch)
+      val merged: FA = zipped.map(tupleMerger)
 
-    fAux.from(merged)
+      fAux.from(merged)
+    }
   }
 }
 
