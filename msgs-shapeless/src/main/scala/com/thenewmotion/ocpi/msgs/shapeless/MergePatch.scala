@@ -1,17 +1,19 @@
 package com.thenewmotion.ocpi.msgs.shapeless
 
-import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{Session, SessionPatch}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
-import shapeless.{Generic, Poly1}
-
+import com.thenewmotion.ocpi.msgs.{Resource, ResourceType}
+import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
 import scala.annotation.implicitNotFound
+import scala.language.higherKinds
+import shapeless._
+import shapeless.ops.hlist.{IsHCons, Mapper, Zip}
 
+@implicitNotFound("It is not possible to merge ${P} into ${F}")
 trait ResourceMerge[F, P] {
   def apply(t: F, u: P): F
 }
 
 object ResourceMerge {
+
   protected object tupleMerger extends Poly1 {
     implicit def atTuple[A] = at[(A, A)] {
       case (b, _) => b
@@ -28,80 +30,34 @@ object ResourceMerge {
     }
   }
 
-  implicit case object MergeToken extends ResourceMerge[Token, TokenPatch] {
-    def apply(t: Token, p: TokenPatch): Token = {
-      val genFull = Generic[Token]
-      val genPatch = Generic[TokenPatch]
+  implicit def mergeAnything[
+    F <: Resource[Full],
+    P <: Resource[Patch],
+    PA <: HList,
+    FA <: HList,
+    FAH,
+    FAT <: HList,
+    Z <: HList
+  ](
+    implicit
+    fAux: Generic.Aux[F, FA],
+    pAux: Generic.Aux[P, PA],
+    evHead: IsHCons.Aux[FA, FAH, FAT],
+    zipper: Zip.Aux[FA :: (FAH :: PA) :: HNil, Z],
+    mapper: Mapper.Aux[tupleMerger.type, Z, FA],
+  ): ResourceMerge[F, P] = (t: F, patch: P) => {
+    val reprFull: FA = fAux.to(t)
+    val reprPatch: (FAH :: PA) = reprFull.head :: pAux.to(patch)
 
-      val reprFull = genFull.to(t)
-      val reprPatch = reprFull.head :: genPatch.to(p)
+    val zipped: Z = reprFull.zip(reprPatch)
+    val merged: FA = zipped.map(tupleMerger)
 
-      genFull.from(
-        reprFull.zip(reprPatch).map(tupleMerger)
-      )
-    }
-  }
-
-  implicit case object MergeConnector extends ResourceMerge[Connector, ConnectorPatch] {
-    def apply(c: Connector, p: ConnectorPatch): Connector = {
-      val genFull = Generic[Connector]
-      val genPatch = Generic[ConnectorPatch]
-
-      val reprFull = genFull.to(c)
-      val reprPatch = reprFull.head :: genPatch.to(p)
-
-      genFull.from(
-        reprFull.zip(reprPatch).map(tupleMerger)
-      )
-    }
-  }
-
-  implicit case object MergeEvse extends ResourceMerge[Evse, EvsePatch] {
-    def apply(c: Evse, p: EvsePatch): Evse = {
-      val genFull = Generic[Evse]
-      val genPatch = Generic[EvsePatch]
-
-      val reprFull = genFull.to(c)
-      val reprPatch = reprFull.head :: genPatch.to(p)
-
-      genFull.from(
-        reprFull.zip(reprPatch).map(tupleMerger)
-      )
-    }
-  }
-
-  implicit case object MergeLocation extends ResourceMerge[Location, LocationPatch] {
-    def apply(c: Location, p: LocationPatch): Location = {
-      val genFull = Generic[Location]
-      val genPatch = Generic[LocationPatch]
-
-      val reprFull = genFull.to(c)
-      val reprPatch = reprFull.head :: genPatch.to(p)
-
-      genFull.from(
-        reprFull.zip(reprPatch).map(tupleMerger)
-      )
-    }
-  }
-
-  implicit case object MergeSession extends ResourceMerge[Session, SessionPatch] {
-    def apply(c: Session, p: SessionPatch): Session = {
-      val genFull = Generic[Session]
-      val genPatch = Generic[SessionPatch]
-
-      val reprFull = genFull.to(c)
-      val reprPatch = reprFull.head :: genPatch.to(p)
-
-      genFull.from(
-        reprFull.zip(reprPatch).map(tupleMerger)
-      )
-    }
+    fAux.from(merged)
   }
 }
 
 object mergeSyntax {
-  implicit class MergeSyntax[F](t: F) {
-    @implicitNotFound("It is not possible to merge {P} into {F}")
-    def merge[P](patch: P)(implicit merge: ResourceMerge[F, P]): F = merge(t, patch)
+  implicit class MergeSyntax[F <: Resource[Full], B[RT <: ResourceType] >: Resource[RT]](t: F) {
+    def merge[P <: B[Patch]](patch: P)(implicit merge: ResourceMerge[F, P]): F = merge(t, patch)
   }
 }

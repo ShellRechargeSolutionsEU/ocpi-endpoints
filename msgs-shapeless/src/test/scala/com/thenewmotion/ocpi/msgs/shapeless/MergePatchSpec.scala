@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi.msgs.shapeless
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.time.format.DateTimeFormatter
-
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.AuthMethod
 import com.thenewmotion.ocpi.msgs.{CountryCode, CurrencyCode}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
