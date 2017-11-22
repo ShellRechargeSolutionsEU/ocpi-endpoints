@@ -73,7 +73,7 @@ class MspTokensRoute private[ocpi](
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
-          onSuccess(service.tokens(pager, dateFrom, dateTo)) { pagTokens =>
+          onSuccess(service.tokens(apiUser, pager, dateFrom, dateTo)) { pagTokens =>
             respondWithPaginationHeaders(pager, pagTokens) {
               complete(SuccessResp(GenericSuccess, data = pagTokens.result))
             }
@@ -81,15 +81,15 @@ class MspTokensRoute private[ocpi](
         }
       }
     } ~
-      pathPrefix(TokenUidSegment) { tokenUid =>
-        path("authorize") {
-          (post & optionalEntity(as[LocationReferences])) { lr =>
-            complete {
-              service.authorize(tokenUid, lr).mapRight { authInfo =>
-                SuccessResp(GenericSuccess, data = authInfo)
-              }
+    pathPrefix(TokenUidSegment) { tokenUid =>
+      path("authorize") {
+        (post & optionalEntity(as[LocationReferences])) { lr =>
+          complete {
+            service.authorize(apiUser, tokenUid, lr).mapRight { authInfo =>
+              SuccessResp(GenericSuccess, data = authInfo)
             }
           }
         }
       }
+    }
 }

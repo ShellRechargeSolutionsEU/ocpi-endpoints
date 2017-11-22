@@ -9,6 +9,10 @@ import akka.http.scaladsl.server.{Directive0, Directives}
 
 case class PaginatedResult[+T](result: Iterable[T], total: Int)
 
+object PaginatedResult {
+  val empty = PaginatedResult(Seq.empty, 0)
+}
+
 case class Pager(offset: Int, limit: Int) {
   def nextOffset = offset + limit
 }
