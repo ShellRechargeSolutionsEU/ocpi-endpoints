@@ -1,9 +1,9 @@
 package com.thenewmotion.ocpi
 package common
 
-import akka.http.scaladsl.model.HttpEntity
-import akka.http.scaladsl.unmarshalling.Unmarshaller.EitherUnmarshallingException
-import akka.http.scaladsl.unmarshalling._
+import _root_.akka.http.scaladsl.model.HttpEntity
+import _root_.akka.http.scaladsl.unmarshalling.Unmarshaller.EitherUnmarshallingException
+import _root_.akka.http.scaladsl.unmarshalling._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

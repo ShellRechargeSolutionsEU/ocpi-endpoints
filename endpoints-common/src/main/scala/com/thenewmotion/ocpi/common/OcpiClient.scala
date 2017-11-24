@@ -3,13 +3,13 @@ package common
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.{DateTime => _, _}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.Materializer
+import _root_.akka.http.scaladsl.HttpExt
+import _root_.akka.http.scaladsl.model.{DateTime => _, _}
+import _root_.akka.http.scaladsl.unmarshalling.Unmarshal
+import _root_.akka.stream.Materializer
 
 import scala.concurrent.{ExecutionContext, Future}
-import akka.stream.scaladsl.Sink
+import _root_.akka.stream.scaladsl.Sink
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResp}
 import cats.syntax.either._

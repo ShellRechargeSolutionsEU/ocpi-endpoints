@@ -3,9 +3,9 @@ package common
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.model.Uri.Query
-import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
-import akka.http.scaladsl.server.{Directive0, Directives}
+import _root_.akka.http.scaladsl.model.Uri.Query
+import _root_.akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
+import _root_.akka.http.scaladsl.server.{Directive0, Directives}
 
 case class PaginatedResult[+T](result: Iterable[T], total: Int)
 

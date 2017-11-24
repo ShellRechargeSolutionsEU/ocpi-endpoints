@@ -3,10 +3,10 @@ package locations
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
-import akka.http.scaladsl.model.StatusCode
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Route
+import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
+import _root_.akka.http.scaladsl.model.StatusCode
+import _root_.akka.http.scaladsl.model.StatusCodes._
+import _root_.akka.http.scaladsl.server.Route
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import common._

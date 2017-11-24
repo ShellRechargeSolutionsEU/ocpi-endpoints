@@ -1,11 +1,11 @@
 package com.thenewmotion.ocpi
 package commands
 
-import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
-import akka.http.scaladsl.model.Uri
-import akka.stream.Materializer
+import _root_.akka.http.scaladsl.HttpExt
+import _root_.akka.http.scaladsl.client.RequestBuilding._
+import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
+import _root_.akka.http.scaladsl.model.Uri
+import _root_.akka.stream.Materializer
 import common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import msgs.AuthToken
 import msgs.Ownership.Ours

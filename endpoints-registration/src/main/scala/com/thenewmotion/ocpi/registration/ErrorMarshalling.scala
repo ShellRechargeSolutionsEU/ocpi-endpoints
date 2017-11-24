@@ -1,9 +1,9 @@
 package com.thenewmotion.ocpi
 package registration
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
-import akka.http.scaladsl.model.StatusCode
-import akka.http.scaladsl.model.StatusCodes._
+import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
+import _root_.akka.http.scaladsl.model.StatusCode
+import _root_.akka.http.scaladsl.model.StatusCodes._
 import common.EitherUnmarshalling
 import RegistrationError._
 import msgs.{ErrorResp, OcpiStatusCode}

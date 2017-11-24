@@ -1,10 +1,10 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import akka.http.scaladsl._
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
-import akka.http.scaladsl.model.Uri
-import akka.stream.Materializer
+import _root_.akka.http.scaladsl._
+import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
+import _root_.akka.http.scaladsl.model.Uri
+import _root_.akka.stream.Materializer
 import client.RequestBuilding._
 import com.thenewmotion.ocpi.msgs.AuthToken
 import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}

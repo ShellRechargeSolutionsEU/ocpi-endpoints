@@ -2,8 +2,8 @@ package com.thenewmotion.ocpi
 package commands
 
 import java.util.UUID
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
+import _root_.akka.http.scaladsl.server.Route
+import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
 import common._
 import msgs._

@@ -3,11 +3,11 @@ package tokens
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
-import akka.http.scaladsl.model.StatusCode
-import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
-import akka.http.scaladsl.server.{Directive1, Route}
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller}
+import _root_.akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
+import _root_.akka.http.scaladsl.model.StatusCode
+import _root_.akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
+import _root_.akka.http.scaladsl.server.{Directive1, Route}
+import _root_.akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller}
 import common._
 import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 import msgs.OcpiStatusCode._

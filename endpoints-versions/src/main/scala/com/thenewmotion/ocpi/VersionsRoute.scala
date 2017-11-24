@@ -2,8 +2,8 @@ package com.thenewmotion.ocpi
 
 import java.time.ZonedDateTime
 
-import akka.http.scaladsl.model.Uri
-import akka.http.scaladsl.server.{PathMatcher1, Route}
+import _root_.akka.http.scaladsl.model.Uri
+import _root_.akka.http.scaladsl.server.{PathMatcher1, Route}
 import VersionRejections._
 import VersionsRoute.OcpiVersionConfig
 import com.thenewmotion.ocpi

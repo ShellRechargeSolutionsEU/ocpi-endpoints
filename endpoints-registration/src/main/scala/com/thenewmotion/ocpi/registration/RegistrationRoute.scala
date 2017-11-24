@@ -5,9 +5,9 @@ import msgs.OcpiStatusCode.GenericSuccess
 
 import scala.concurrent.ExecutionContext
 import ErrorMarshalling._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import akka.stream.Materializer
+import _root_.akka.http.scaladsl.server.Route
+import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
+import _root_.akka.stream.Materializer
 import com.thenewmotion.ocpi.common.{ErrRespMar, OcpiDirectives, SuccessRespMar}
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds

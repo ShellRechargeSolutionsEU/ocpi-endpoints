@@ -1,11 +1,11 @@
 package com.thenewmotion.ocpi
 package cdrs
 
-import akka.http.scaladsl.marshalling.ToResponseMarshaller
-import akka.http.scaladsl.model.StatusCode
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
+import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
+import _root_.akka.http.scaladsl.model.StatusCode
+import _root_.akka.http.scaladsl.model.StatusCodes._
+import _root_.akka.http.scaladsl.server.Route
+import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
 import common._
 import cdrs.CdrsError._

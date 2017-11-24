@@ -1,10 +1,10 @@
 package com.thenewmotion.ocpi
 package common
 
-import akka.http.scaladsl.model.headers.GenericHttpCredentials
-import akka.http.scaladsl.model.headers.HttpChallenge
-import akka.http.scaladsl.model.headers.HttpCredentials
-import akka.http.scaladsl.server.directives.SecurityDirectives.AuthenticationResult
+import _root_.akka.http.scaladsl.model.headers.GenericHttpCredentials
+import _root_.akka.http.scaladsl.model.headers.HttpChallenge
+import _root_.akka.http.scaladsl.model.headers.HttpCredentials
+import _root_.akka.http.scaladsl.server.directives.SecurityDirectives.AuthenticationResult
 import msgs.Ownership.Theirs
 import msgs.{AuthToken, GlobalPartyId}
 import scala.concurrent.ExecutionContext

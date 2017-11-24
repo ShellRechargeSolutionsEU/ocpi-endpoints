@@ -1,10 +1,10 @@
 package com.thenewmotion.ocpi
 package common
 
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.ExceptionHandler
-import akka.http.scaladsl.server.directives.BasicDirectives
+import _root_.akka.http.scaladsl.model.StatusCodes._
+import _root_.akka.http.scaladsl.server.Directives._
+import _root_.akka.http.scaladsl.server.ExceptionHandler
+import _root_.akka.http.scaladsl.server.directives.BasicDirectives
 import msgs.ErrorResp
 import msgs.OcpiStatusCode._
 

@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi
 
-import akka.http.scaladsl.model.Uri
+import _root_.akka.http.scaladsl.model.Uri
 import scala.language.implicitConversions
 
 package object msgs {

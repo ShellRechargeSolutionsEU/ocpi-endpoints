@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 
-import akka.http.scaladsl.marshalling.ToEntityMarshaller
-import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
+import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
+import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import cats.data.EitherT
 import common.PaginatedSource.PagedResp
 import msgs.{ErrorResp, SuccessResp}

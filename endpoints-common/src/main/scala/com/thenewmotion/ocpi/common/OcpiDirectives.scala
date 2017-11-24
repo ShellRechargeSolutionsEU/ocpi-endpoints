@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi
 package common
 
-import akka.http.scaladsl.server.{Directive0, Directives, PathMatcher1}
+import _root_.akka.http.scaladsl.server.{Directive0, Directives, PathMatcher1}
 import msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber
 
