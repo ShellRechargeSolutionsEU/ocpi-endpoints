@@ -1,22 +1,22 @@
 package com.thenewmotion.ocpi
 package registration
 
-import com.thenewmotion.ocpi.msgs.Ownership.Theirs
-import com.thenewmotion.ocpi.msgs.Versions.{Endpoint, VersionNumber}
-import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
-import com.thenewmotion.ocpi.msgs.{GlobalPartyId, AuthToken}
+import msgs.Ownership.Theirs
+import msgs.Versions.{Endpoint, VersionNumber}
+import msgs.v2_1.Credentials.Creds
+import msgs.{GlobalPartyId, AuthToken}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.Future
 
 trait RegistrationRepo {
 
   def isPartyRegistered(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[Boolean]
+  ): Future[Boolean]
 
   def findTheirAuthToken(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[Option[AuthToken[Theirs]]]
+  ): Future[Option[AuthToken[Theirs]]]
 
   // Called after a 3rd party has called our credentials endpoint with a POST or a PUT
   def persistInfoAfterConnectToUs(
@@ -25,7 +25,7 @@ trait RegistrationRepo {
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext): Future[Unit]
+  ): Future[Unit]
 
   // Called after _we_ start the registration by calling _their_ credentials endpoint with a POST or a PUT
   def persistInfoAfterConnectToThem(
@@ -33,9 +33,9 @@ trait RegistrationRepo {
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext): Future[Unit]
+  ): Future[Unit]
 
   def deletePartyInformation(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[Unit]
+  ): Future[Unit]
 }

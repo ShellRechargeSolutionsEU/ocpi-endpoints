@@ -7,7 +7,7 @@ import com.thenewmotion.ocpi.sessions.SessionError.IncorrectSessionId
 import cats.syntax.either._
 import cats.syntax.option._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 /**
   * All methods are to be implemented in an idempotent fashion.
@@ -18,7 +18,7 @@ trait SessionsService {
     apiUser: GlobalPartyId,
     sessionId: SessionId,
     session: Session
-  )(implicit ec: ExecutionContext): Future[Either[SessionError, CreateOrUpdateResult]] = {
+  ): Future[Either[SessionError, CreateOrUpdateResult]] = {
     if (session.id == sessionId) {
       createOrUpdateSession(apiUser, session)
     } else
@@ -30,17 +30,17 @@ trait SessionsService {
   def createOrUpdateSession(
     globalPartyId: GlobalPartyId,
     session: Session
-  )(implicit ec: ExecutionContext): Future[Either[SessionError, CreateOrUpdateResult]]
+  ): Future[Either[SessionError, CreateOrUpdateResult]]
 
   def updateSession(
     globalPartyId: GlobalPartyId,
     sessionId: SessionId,
     session: SessionPatch
-  )(implicit ec: ExecutionContext): Future[Either[SessionError, Unit]]
+  ): Future[Either[SessionError, Unit]]
 
   def session(
     globalPartyId: GlobalPartyId,
     sessionId: SessionId
-  )(implicit ec: ExecutionContext): Future[Either[SessionError, Session]]
+  ): Future[Either[SessionError, Session]]
 
 }

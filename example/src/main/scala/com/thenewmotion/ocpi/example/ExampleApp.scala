@@ -15,28 +15,29 @@ import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
 import com.thenewmotion.ocpi.registration.{RegistrationClient, RegistrationRepo, RegistrationRoute, RegistrationService}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class ExampleRegistrationRepo extends RegistrationRepo {
-  def isPartyRegistered(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
-  def findTheirAuthToken(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext) = ???
+  def isPartyRegistered(globalPartyId: GlobalPartyId) = ???
+  def findTheirAuthToken(globalPartyId: GlobalPartyId) = ???
   def persistInfoAfterConnectToUs(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     newTokenToConnectToUs: AuthToken[Theirs],
     credsToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext) = ???
+  ) = ???
 
   def persistInfoAfterConnectToThem(
     version: VersionNumber,
     newTokenToConnectToUs: AuthToken[Theirs],
     newCredToConnectToThem: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  )(implicit ec: ExecutionContext) = ???
+  ) = ???
+
   def deletePartyInformation(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[Unit] = ???
+  ): Future[Unit] = ???
 }
 
 
