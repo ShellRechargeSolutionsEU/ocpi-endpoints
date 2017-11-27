@@ -56,6 +56,22 @@ import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 # Changelog
 
+## 0.7.10
+
+* Pass the requester's globalPartyId to MspTokenService methods
+* Stop passing the ExecutionContext from Routes into Services in some cases
+
+## 0.7.9
+
+* Require non empty ids
+* Improved Generic merging or patches using Shapeless 
+* Validation for Latitude and Longitude
+
+## 0.7.8
+
+* Tokens Client for CPO Tokens module
+* Don't include akka-http-spray-json anymore, as spray json is optional
+
 ## 0.7.7 
 
 * Many of the modules have a method such as createOrUpdate*, this method used to take both an id from the url
