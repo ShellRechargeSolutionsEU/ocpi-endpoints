@@ -38,7 +38,7 @@ object Sessions {
   trait BaseSession[RT <: ResourceType] extends Resource[RT] {
     def startDatetime: RT#F[ZonedDateTime]
     def endDatetime: Option[ZonedDateTime]
-    def kwh: RT#F[Int]
+    def kwh: RT#F[BigDecimal]
     def authId: RT#F[AuthId]
     def authMethod: RT#F[AuthMethod]
     def location: RT#F[Location]
@@ -54,7 +54,7 @@ object Sessions {
     id: SessionId,
     startDatetime: ZonedDateTime,
     endDatetime: Option[ZonedDateTime],
-    kwh: Int,
+    kwh: BigDecimal,
     authId: AuthId,
     authMethod: AuthMethod,
     location: Location,
@@ -72,7 +72,7 @@ object Sessions {
   case class SessionPatch(
     startDatetime: Option[ZonedDateTime] = None,
     endDatetime: Option[ZonedDateTime] = None,
-    kwh: Option[Int] = None,
+    kwh: Option[BigDecimal] = None,
     authId: Option[AuthId] = None,
     authMethod: Option[AuthMethod] = None,
     location: Option[Location] = None,

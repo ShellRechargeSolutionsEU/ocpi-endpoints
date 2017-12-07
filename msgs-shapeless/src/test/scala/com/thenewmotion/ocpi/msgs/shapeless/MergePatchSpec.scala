@@ -112,7 +112,7 @@ class MergePatchSpec extends Specification {
       id = SessionId("abc"),
       startDatetime = parseToUtc("2017-03-01T08:00:00Z"),
       endDatetime = Some(parseToUtc("2017-03-01T10:00:00Z")),
-      kwh = 1000,
+      kwh = 1000.0,
       authId = AuthId("ABC1234"),
       authMethod = AuthMethod.AuthRequest,
       location = location1,
