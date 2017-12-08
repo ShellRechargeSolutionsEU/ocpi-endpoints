@@ -199,14 +199,15 @@ class RegistrationService(
         credentialExchange(credEp.url, ourToken, generateCreds(theirNewToken))
       }
       _ <- registrationCheck(theirCreds.globalPartyId)
-      _ <- result(
+      _ <- result{
+        logger.debug(s"registration successful; agreed version: ${details.version}; theirCreds: $theirCreds")
         repo.persistInfoAfterConnectToThem(
           details.version,
           theirNewToken,
           theirCreds,
           details.endpoints
         ).map(_.asRight[RegistrationError])
-      )
+      }
     } yield theirCreds).value.map {
         _.leftMap {
           e => logger.error("error during handshake: {}", e); e
