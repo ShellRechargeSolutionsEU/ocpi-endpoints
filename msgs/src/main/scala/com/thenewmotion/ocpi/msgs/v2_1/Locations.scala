@@ -70,9 +70,7 @@ object Locations {
     chargingWhenClosed: Option[Boolean] = None,
     images: Iterable[Image] = Nil,
     energyMix: Option[EnergyMix] = None
-  ) extends BaseLocation[Full] {
-    require(evses.nonEmpty, "Location must have at least one Evse")
-  }
+  ) extends BaseLocation[Full]
 
   case class LocationPatch(
     lastUpdated: Option[ZonedDateTime] = None,
