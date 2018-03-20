@@ -18,7 +18,7 @@ class TokenAuthenticator(toApiUser: AuthToken[Theirs] => Future[Option[GlobalPar
   override def apply(credentials: Option[HttpCredentials]): Future[AuthenticationResult[GlobalPartyId]] = {
     credentials
       .flatMap {
-        case GenericHttpCredentials("Token", _, params) => params.headOption.map(_._2)
+        case GenericHttpCredentials("Token", token, _) => Some(token)
         case _ => None
       } match {
         case None => Future.successful(Left(challenge))

@@ -121,7 +121,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
     ))))
 
     def mockRequest[R <: OcpiResponse[_] : JsonFormat](req: HttpRequest, response: R, headers: List[HttpHeader] = List.empty) =
-      http.singleRequest(ArgumentMatchers.eq(req), any(), any(), any())(any()) returns Future.successful(HttpResponse(
+      http.singleRequest(ArgumentMatchers.eq(req), any(), any(), any()) returns Future.successful(HttpResponse(
         OK, entity = HttpEntity(`application/json`, CompactPrinter(response.toJson).getBytes),
         headers = headers
       ))

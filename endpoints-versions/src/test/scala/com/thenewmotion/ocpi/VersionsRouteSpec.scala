@@ -103,9 +103,9 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
   }
 
   trait VersionsScope extends Scope with OcpiDirectives with SprayJsonSupport {
-    val validToken = Authorization(GenericHttpCredentials("Token", Map("" -> "12345")))
+    val validToken = Authorization(GenericHttpCredentials("Token", "12345"))
     val invalidHeaderName = RawHeader("Auth", "Token 12345")
-    val invalidToken = Authorization(GenericHttpCredentials("Token", Map("" -> "letmein")))
+    val invalidToken = Authorization(GenericHttpCredentials("Token", "letmein"))
 
     val ourCredentialsRoute = (version: VersionNumber, apiUser: GlobalPartyId) => complete((StatusCodes.OK, s"credentials: $version"))
     val ourLocationsRoute = (version: VersionNumber, apiUser: GlobalPartyId) => complete((StatusCodes.OK, s"locations: $version"))
