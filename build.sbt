@@ -19,7 +19,7 @@ val `circe` = {
 }
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.0.10" else "2.5.6"
+  val v = if (name.startsWith("http")) "10.1.0" else "2.5.11"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
