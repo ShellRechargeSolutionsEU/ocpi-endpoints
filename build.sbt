@@ -9,7 +9,7 @@ val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.4")
 val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
 
 val `circe` = {
-  val version = "0.8.0"
+  val version = "0.9.3"
 
   Seq(
     "io.circe" %% "circe-core" % version,

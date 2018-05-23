@@ -5,7 +5,7 @@ import io.circe.{Decoder, Encoder}
 import scala.util.Try
 
 package object v2_1 {
-  implicit val config: Configuration = Configuration.default.withSnakeCaseKeys.withDefaults
+  implicit val config: Configuration = Configuration.default.withSnakeCaseMemberNames.withDefaults
 
   def stringEncoder[T](enc: T => String): Encoder[T] =
     Encoder.encodeString.contramap[T](enc)
