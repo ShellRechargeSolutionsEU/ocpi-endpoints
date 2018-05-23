@@ -6,7 +6,7 @@ val logging = Seq(
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.4")
 
-val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
+val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
 val `circe` = {
   val version = "0.9.3"
@@ -19,7 +19,7 @@ val `circe` = {
 }
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.1.0" else "2.5.11"
+  val v = if (name.startsWith("http")) "10.1.1" else "2.5.12"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -32,10 +32,10 @@ val akka =
 
 val akkaHttpSprayJson = Seq(akkaModule("http-spray-json"))
 
-val cats = Seq("org.typelevel" %% "cats-core" % "0.9.0")
+val cats = Seq("org.typelevel" %% "cats-core" % "1.1.0")
 
 val specs2 = {
-  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.0.1" % "test"
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.2.0" % "test"
   Seq(
     module("core"), module("junit"), module("mock")
   )
