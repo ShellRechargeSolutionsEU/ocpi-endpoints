@@ -11,6 +11,7 @@ import sprayjson.SimpleStringEnumSerializer._
 trait CommandsJsonProtocol {
 
   implicit val commandResponse = jsonFormat1(CommandResponse)
+  implicit val commandResponseType = nameableFormat[CommandResponseType]
 
   implicit val reserveNowF = jsonFormat6(Command.ReserveNow.apply)
   implicit val startSessionF = jsonFormat4(Command.StartSession.apply)

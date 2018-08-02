@@ -2,29 +2,26 @@ package com.thenewmotion.ocpi.commands
 
 import java.net.UnknownHostException
 import java.time.ZonedDateTime
-
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{Http, HttpExt}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.{Http, HttpExt}
+import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
-
-import scala.concurrent.duration.FiniteDuration
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+import com.thenewmotion.ocpi.msgs.v2_1.Commands
+import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandName, CommandResponseType}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, Url}
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import akka.http.scaladsl.model.ContentTypes._
-
+import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
-import akka.stream.{ActorMaterializer, Materializer}
-import com.thenewmotion.ocpi.msgs.Ownership.Ours
-import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, Url}
-import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
-import org.specs2.concurrent.ExecutionEnv
-import com.thenewmotion.ocpi.msgs.v2_1.Commands
-import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandName, CommandResponse, CommandResponseType}
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
 
@@ -49,9 +46,9 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
         Some(EvseUid("1234_A"))
       )
 
-      client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponse]] {
+      client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
-          r.result === CommandResponseType.Accepted
+          r === CommandResponseType.Accepted
       }.await
     }
   }
@@ -72,9 +69,7 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
            |{
            |  "status_code": 1000,
            |  "timestamp": "2010-01-01T00:00:00Z",
-           |  "data": {
-           |    "result": "ACCEPTED"
-           |  }
+           |  "data": "ACCEPTED"
            |}
            |""".stripMargin.getBytes)
     )
