@@ -23,23 +23,23 @@ class SessionsClient(
   def getSessions(
     uri: Uri,
     auth: AuthToken[Ours],
-    dateFrom: Option[ZonedDateTime] = None,
+    dateFrom: ZonedDateTime,
     dateTo: Option[ZonedDateTime] = None
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Future[ErrorRespOr[Iterable[Session]]] =
-    traversePaginatedResource[Session](uri, auth, dateFrom, dateTo)
+    traversePaginatedResource[Session](uri, auth, Some(dateFrom), dateTo)
 
   def sessionsSource(
     uri: Uri,
     auth: AuthToken[Ours],
-    dateFrom: Option[ZonedDateTime] = None,
+    dateFrom: ZonedDateTime,
     dateTo: Option[ZonedDateTime] = None
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Source[Session, NotUsed] =
-    PaginatedSource[Session](http, uri, auth, dateFrom, dateTo)
+    PaginatedSource[Session](http, uri, auth, Some(dateFrom), dateTo)
 
 }
