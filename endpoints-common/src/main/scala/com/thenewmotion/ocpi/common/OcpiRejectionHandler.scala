@@ -14,13 +14,11 @@ object OcpiRejectionHandler extends BasicDirectives {
     implicit m: ErrRespMar
   ): RejectionHandler =
     RejectionHandler.newBuilder().handle {
-      case MalformedRequestContentRejection(msg, _) => complete {
-        ( BadRequest,
-          ErrorResp(
-            GenericClientFailure,
-            Some(msg)))
+      case MalformedRequestContentRejection(msg, _) =>
+        complete {
+        (BadRequest, ErrorResp(GenericClientFailure, Some(msg)))
       }
-
+    }.handle {
       case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsMissing, _) =>
         complete {
           ( Unauthorized,
@@ -28,7 +26,7 @@ object OcpiRejectionHandler extends BasicDirectives {
               MissingHeader,
               Some("Authorization Token not supplied")))
         }
-
+    }.handle {
       case AuthenticationFailedRejection(AuthenticationFailedRejection.CredentialsRejected, _) =>
         complete {
           ( Unauthorized,
@@ -36,7 +34,7 @@ object OcpiRejectionHandler extends BasicDirectives {
               AuthenticationFailed,
               Some("Invalid Authorization Token")))
         }
-
+    }.handle {
       case AuthorizationFailedRejection => extractUri { uri =>
         complete {
           Forbidden -> ErrorResp(
@@ -45,7 +43,7 @@ object OcpiRejectionHandler extends BasicDirectives {
           )
         }
       }
-
+    }.handle {
       case MissingHeaderRejection(header) => complete {
         ( BadRequest,
           ErrorResp(
