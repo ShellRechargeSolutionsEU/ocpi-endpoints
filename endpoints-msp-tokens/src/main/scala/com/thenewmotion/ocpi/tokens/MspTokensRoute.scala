@@ -70,8 +70,8 @@ class MspTokensRoute private[ocpi](
   )(
     implicit ec: ExecutionContext
   ): Route =
-    get {
-      pathEndOrSingleSlash {
+    pathEndOrSingleSlash {
+      get {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
           onSuccess(service.tokens(apiUser, pager, dateFrom, dateTo)) { pagTokens =>
             respondWithPaginationHeaders(pager, pagTokens) {
