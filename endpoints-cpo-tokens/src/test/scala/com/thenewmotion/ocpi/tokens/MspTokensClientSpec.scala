@@ -44,6 +44,17 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
           r.allowed === Allowed.Allowed
       }.await
     }
+
+
+    "request authorization for a token and get it, when endpoint ends with a slash already" in new TestScope {
+      val urlWithTrailingSlash = Uri(theirTokensEndpoint + "/")
+
+      client.authorize(urlWithTrailingSlash, AuthToken[Ours]("auth"), tokenId,
+        locationReferences = None) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        case Right(r) =>
+          r.allowed === Allowed.Allowed
+      }.await
+    }
   }
 
   trait TestScope extends Scope {

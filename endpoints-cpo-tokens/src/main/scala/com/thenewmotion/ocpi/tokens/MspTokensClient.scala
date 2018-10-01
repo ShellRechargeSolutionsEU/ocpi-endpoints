@@ -30,7 +30,10 @@ class MspTokensClient(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Future[ErrorRespOr[AuthorizationInfo]] = {
-    val authorizeUri = endpointUri.withPath(endpointUri.path / tokenUid.value / "authorize")
+    val oldPath = endpointUri.path
+    val authorizeUri = endpointUri.withPath {
+      (if (oldPath.endsWithSlash) oldPath + tokenUid.value else  oldPath / tokenUid.value) / "authorize"
+    }
     singleRequest[AuthorizationInfo](Post(authorizeUri, locationReferences), authToken) map {
       _.bimap({ err =>
         logger.error(s"Error getting real-time authorization from $authorizeUri: $err")
