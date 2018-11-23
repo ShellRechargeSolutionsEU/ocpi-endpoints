@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi
 package common
 
 import java.time.ZonedDateTime
-
 import _root_.akka.http.scaladsl.model.Uri.Query
 import _root_.akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import _root_.akka.http.scaladsl.server.{Directive0, Directives}
@@ -36,6 +35,8 @@ trait PaginatedRoute extends Directives with DateDeserializers {
 
   val paged = (offset & limit).as(Pager) & dateFrom & dateTo
 
+  def linkHeaderScheme: Option[String] = None
+
   def respondWithPaginationHeaders(pager: Pager, pagRes: PaginatedResult[_]): Directive0 =
     extract(identity) flatMap { ctx =>
       val baseHeaders = List(
@@ -52,8 +53,12 @@ trait PaginatedRoute extends Directives with DateDeserializers {
               "limit" -> pager.limit.toString
             ))
 
+          val uri = linkHeaderScheme.foldLeft(ctx.request.uri.withQuery(linkParams)) {
+            case (u, s) => u.withScheme(s)
+          }
+
           baseHeaders :+
-            Link(ctx.request.uri.withQuery(linkParams), LinkParams.next)
+            Link(uri, LinkParams.next)
         }
       }
     }

@@ -107,6 +107,28 @@ class PaginatedRouteSpec extends Specification with Specs2RouteTest {
         }
       }
     }
+
+    "allow override of scheme in next link" in new TestScope {
+      override def linkHeaderScheme = Some("fish")
+
+      val testRoute =
+        get {
+          pathEndOrSingleSlash {
+            paged { (pager: Pager, _: Option[ZonedDateTime], _: Option[ZonedDateTime]) =>
+              respondWithPaginationHeaders(pager, PaginatedResult((1 to 5).map(_.toString), 100)) {
+                complete("OK")
+              }
+            }
+          }
+        }
+
+      Get("?horses=neigh&sheep=baa") ~> testRoute ~> check {
+        response.header[Link].map(_.values) must beLike {
+          case Some(List(lv)) =>
+            lv.uri.scheme mustEqual "fish"
+        }
+      }
+    }
   }
 
   trait TestScope extends Scope with PaginatedRoute {
