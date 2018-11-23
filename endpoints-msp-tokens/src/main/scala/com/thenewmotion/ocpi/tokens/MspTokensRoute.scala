@@ -20,19 +20,21 @@ object MspTokensRoute {
   def apply(
     service: MspTokensService,
     DefaultLimit: Int = 1000,
-    MaxLimit: Int = 1000
+    MaxLimit: Int = 1000,
+    linkHeaderScheme: Option[String] = None
   )(
     implicit pagTokensM: SuccessRespMar[Iterable[Token]],
     authM: SuccessRespMar[AuthorizationInfo],
     errorM: ErrRespMar,
     locationReferencesU: FromEntityUnmarshaller[LocationReferences]
-  ) = new MspTokensRoute(service, DefaultLimit, MaxLimit)
+  ) = new MspTokensRoute(service, DefaultLimit, MaxLimit, linkHeaderScheme)
 }
 
 class MspTokensRoute private[ocpi](
   service: MspTokensService,
   val DefaultLimit: Int,
-  val MaxLimit: Int
+  val MaxLimit: Int,
+  override val linkHeaderScheme: Option[String] = None
 )(
   implicit pagTokensM: SuccessRespMar[Iterable[Token]],
   authM: SuccessRespMar[AuthorizationInfo],

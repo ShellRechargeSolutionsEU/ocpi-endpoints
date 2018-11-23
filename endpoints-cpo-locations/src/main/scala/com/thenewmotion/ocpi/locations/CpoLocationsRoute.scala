@@ -21,21 +21,23 @@ object CpoLocationsRoute {
     service: CpoLocationsService,
     DefaultLimit: Int = 1000,
     MaxLimit: Int = 1000,
-    currentTime: => ZonedDateTime = ZonedDateTime.now
+    currentTime: => ZonedDateTime = ZonedDateTime.now,
+    linkHeaderScheme: Option[String] = None
   )(
     implicit errorM: ErrRespMar,
     successIterableLocM: SuccessRespMar[Iterable[Location]],
     successLocM: SuccessRespMar[Location],
     successEvseM: SuccessRespMar[Evse],
     successConnM: SuccessRespMar[Connector]
-  ) = new CpoLocationsRoute(service, DefaultLimit, MaxLimit, currentTime)
+  ) = new CpoLocationsRoute(service, DefaultLimit, MaxLimit, currentTime, linkHeaderScheme)
 }
 
 class CpoLocationsRoute private[ocpi](
   service: CpoLocationsService,
   val DefaultLimit: Int,
   val MaxLimit: Int,
-  currentTime: => ZonedDateTime
+  currentTime: => ZonedDateTime,
+  override val linkHeaderScheme: Option[String] = None
 )(
   implicit errorM: ErrRespMar,
   successIterableLocM: SuccessRespMar[Iterable[Location]],
@@ -53,7 +55,7 @@ class CpoLocationsRoute private[ocpi](
   ): ToResponseMarshaller[LocationsError] = {
     em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
-        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound) => NotFound
+        case _: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound => NotFound
         case _                                                              => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason.orElse(DefaultErrorMsg))
