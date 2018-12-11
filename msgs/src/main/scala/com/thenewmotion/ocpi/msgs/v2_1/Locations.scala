@@ -187,7 +187,12 @@ object Locations {
     periodBegin: LocalTime,
     periodEnd: LocalTime
   ) {
-    require(periodEnd.isAfter(periodBegin), "periodEnd must be after periodBegin")
+    private def realPeriodEnd = periodEnd match {
+      case p if p == LocalTime.MIN => LocalTime.MAX  // If 00:00, validate against 23:59:59.999999999 instead
+      case p => p
+    }
+
+    require(realPeriodEnd.isAfter(periodBegin), s"period_end ($periodEnd) must be after period_begin ($periodBegin")
   }
 
   object RegularHours {
@@ -195,7 +200,7 @@ object Locations {
       weekday: Int,
       periodBegin: String,
       periodEnd: String
-    ): RegularHours = RegularHours(weekday, LocalTime.parse(periodBegin), LocalTime.parse(periodEnd))
+    ): RegularHours = RegularHours(weekday, LocalTimeParser.parse(periodBegin), LocalTimeParser.parse(periodEnd))
   }
 
   case class ExceptionalPeriod(

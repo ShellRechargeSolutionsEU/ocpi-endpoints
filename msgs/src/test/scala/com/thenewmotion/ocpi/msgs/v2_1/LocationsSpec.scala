@@ -1,6 +1,6 @@
 package com.thenewmotion.ocpi.msgs.v2_1
 
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Latitude, Longitude}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Latitude, Longitude, RegularHours}
 import org.specs2.mutable.Specification
 
 class LocationsSpec extends Specification {
@@ -55,6 +55,24 @@ class LocationsSpec extends Specification {
     "Parse a string" >> {
       Longitude("34.45775663434").value mustEqual 34.457757
       Longitude("abc") must throwA[IllegalArgumentException]
+    }
+  }
+
+  "RegularHours" should {
+    "Accept 00:00 as an ending time" >> {
+      RegularHours(1, "17:00", "00:00") must not(throwA[IllegalArgumentException])
+    }
+
+    "Accept 24:00 as an ending time" >> {
+      RegularHours(1, "17:00", "24:00") must not(throwA[IllegalArgumentException])
+    }
+
+    "Not accept 00:01 as an ending time" >> {
+      RegularHours(1, "17:00", "00:01") must throwA[IllegalArgumentException]
+    }
+
+    "Not accept 24:01 as an ending time" >> {
+      RegularHours(1, "17:00", "24:01") must throwA[IllegalArgumentException]
     }
   }
 }
