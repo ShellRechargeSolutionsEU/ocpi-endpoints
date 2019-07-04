@@ -56,6 +56,10 @@ import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 # Changelog
 
+## 0.10.5
+
+* Make commands module compatible with OCPI 2.1.1-d2
+
 ## 0.7.10
 
 * Pass the requester's globalPartyId to MspTokenService methods

@@ -27,7 +27,7 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
 
   "MSP Command client" should {
 
-    "Start a session" in new TestScope {
+    "Start a session using 2.1.1 own interpretation" in new TestScope {
 
       val cmd = Commands.Command.StartSession(
         Url("http://localhost:8096"),
@@ -47,6 +47,31 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
       )
 
       client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
+        case Right(r) =>
+          r === CommandResponseType.Accepted
+      }.await
+    }
+
+    "Start a session using 2.1.1-d2 interpretation" in new TestScope {
+
+      val cmd = Commands.Command.StartSession(
+        Url("http://localhost:8096"),
+        Token(
+          TokenUid("ABC12345678"),
+          TokenType.Rfid,
+          AuthId("NL-TNM-BLAH"),
+          visualNumber = None,
+          "TheNewMotion",
+          valid = true,
+          WhitelistType.Always,
+          language = None,
+          lastUpdated = ZonedDateTime.now
+        ),
+        LocationId("1234"),
+        Some(EvseUid("1234_A"))
+      )
+
+      clientD2.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
       }.await
@@ -74,6 +99,19 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
            |""".stripMargin.getBytes)
     )
 
+    def successRespD2 = HttpResponse(
+      StatusCodes.OK, entity = HttpEntity(`application/json`,
+        s"""
+           |{
+           |  "status_code": 1000,
+           |  "timestamp": "2010-01-01T00:00:00Z",
+           |  "data": {
+           |    "result": "ACCEPTED"
+           |    }
+           |}
+           |""".stripMargin.getBytes)
+    )
+
     implicit val timeout: Timeout = Timeout(FiniteDuration(20, "seconds"))
 
     val startCommandUrl = s"$commandUrl/${CommandName.StartSession}"
@@ -83,7 +121,13 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
       case x                 => Future.failed(new UnknownHostException(x.toString))
     }
 
+    def requestWithAuthD2(uri: String) = uri match {
+      case `startCommandUrl` => Future.successful(successRespD2)
+      case x                 => Future.failed(new UnknownHostException(x.toString))
+    }
+
     lazy val client = new TestCpoTokensClient(requestWithAuth)
+    lazy val clientD2 = new TestCpoTokensClient(requestWithAuthD2)
   }
 }
 
