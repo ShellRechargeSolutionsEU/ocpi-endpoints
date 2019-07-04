@@ -10,13 +10,14 @@ import cats.syntax.either._
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
-import com.thenewmotion.ocpi.msgs.v2_1.Commands.{Command, CommandResponseType}
+import com.thenewmotion.ocpi.msgs.v2_1.Commands.{Command, CommandResponse, CommandResponseType}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class CommandClient(
   implicit http: HttpExt,
   errorU: ErrRespUnMar,
-  sucU: SuccessRespUnMar[CommandResponseType]
+  sucU: SuccessRespUnMar[Either[CommandResponseType, CommandResponse]]
 ) extends OcpiClient {
 
   def sendCommand[C <: Command : ToEntityMarshaller](
@@ -30,11 +31,14 @@ class CommandClient(
 
     val commandUri = commandsUri.copy(path = commandsUri.path / command.name.name)
 
-    singleRequest[CommandResponseType](Post(commandUri, command), auth).map {
+    singleRequest[Either[CommandResponseType, CommandResponse]](Post(commandUri, command), auth).map {
       _.bimap(err => {
         logger.error(s"Could not post command to $commandUri. Reason: $err")
         err
-      }, _.data)
+      }, _.data match {
+        case Left(crt) => crt
+        case Right(cr) => cr.result
+      } )
     }
 
   }
