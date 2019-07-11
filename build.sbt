@@ -2,14 +2,14 @@ import sbt.Keys.libraryDependencies
 
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.2.3",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.25")
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.26")
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.5")
 
 val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
 val `circe` = {
-  val version = "0.10.1"
+  val version = "0.11.1"
 
   Seq(
     "io.circe" %% "circe-core" % version,
@@ -19,7 +19,7 @@ val `circe` = {
 }
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.1.5" else "2.5.18"
+  val v = if (name.startsWith("http")) "10.1.8" else "2.5.23"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -32,10 +32,10 @@ val akka =
 
 val akkaHttpSprayJson = Seq(akkaModule("http-spray-json"))
 
-val cats = Seq("org.typelevel" %% "cats-core" % "1.4.0")
+val cats = Seq("org.typelevel" %% "cats-core" % "1.6.1")
 
 val specs2 = {
-  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.3.5" % "test"
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.6.0" % "test"
   Seq(
     module("core"), module("junit"), module("mock")
   )
