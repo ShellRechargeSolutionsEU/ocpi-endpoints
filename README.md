@@ -51,6 +51,10 @@ import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
 # Changelog
 
+## 1.0.0
+
+Update dependencies
+
 ## 0.10.6
 
 Bugfix so that users of the CommandClient do not need to provide a JSON deserializer that can handle Either
