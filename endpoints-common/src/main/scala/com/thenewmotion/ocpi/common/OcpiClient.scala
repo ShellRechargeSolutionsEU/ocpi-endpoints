@@ -2,18 +2,16 @@ package com.thenewmotion.ocpi
 package common
 
 import java.time.ZonedDateTime
-
 import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.model.{DateTime => _, _}
-import _root_.akka.http.scaladsl.unmarshalling.Unmarshal
+import _root_.akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import _root_.akka.stream.Materializer
-
 import scala.concurrent.{ExecutionContext, Future}
 import _root_.akka.stream.scaladsl.Sink
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import msgs.{AuthToken, ErrorResp, SuccessResp}
 import cats.syntax.either._
-
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 //cf. chapter 3.1.3 from the OCPI 2.1 spec
@@ -49,6 +47,21 @@ case class FailedRequestException(request: HttpRequest, response: HttpResponse, 
 abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
   extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
+  protected def singleRequestRawT[T : ClassTag](
+    req: HttpRequest,
+    auth: AuthToken[Ours]
+  )(
+    implicit ec: ExecutionContext,
+    mat: Materializer,
+    errorU: ErrRespUnMar,
+    sucU: FromEntityUnmarshaller[T]
+  ): Future[ErrorRespOr[T]] =
+    requestWithAuth(http, req, auth).flatMap { response =>
+      Unmarshal(response).to[ErrorRespOr[T]].recover {
+        case NonFatal(cause) => throw FailedRequestException(req, response, cause)
+      }
+    }
+
   def singleRequest[T](
     req: HttpRequest,
     auth: AuthToken[Ours]
@@ -57,12 +70,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     mat: Materializer,
     errorU: ErrRespUnMar,
     sucU: SuccessRespUnMar[T]
-  ): Future[ErrorRespOr[SuccessResp[T]]] =
-    requestWithAuth(http, req, auth).flatMap { response =>
-      Unmarshal(response).to[ErrorRespOr[SuccessResp[T]]].recover {
-        case NonFatal(cause) => throw FailedRequestException(req, response, cause)
-      }
-    }
+  ): Future[ErrorRespOr[SuccessResp[T]]] = singleRequestRawT[SuccessResp[T]](req, auth)
 
   def traversePaginatedResource[T](
     uri: Uri,
