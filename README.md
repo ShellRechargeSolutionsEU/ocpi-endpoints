@@ -1,4 +1,4 @@
-# OCPI endpoints [![Build Status](https://travis-ci.org/NewMotion/ocpi-endpoints.png?branch=master)](https://travis-ci.org/NewMotion/ocpi-endpoints)
+# OCPI endpoints [![Build Status](https://travis-ci.org/NewMotion/ocpi-endpoints.png?branch=master)](https://travis-ci.org/NewMotion/ocpi-endpoints) ![Latest Version](https://img.shields.io/nexus/r/https/nexus.thenewmotion.com/com.thenewmotion.ocpi/ocpi-endpoints-common_2.12.svg)
 
 The New Motion implementation of common endpoints of the OCPI protocol.
 
@@ -26,7 +26,7 @@ You can use either Circe (recommended) or Spray-Json for (de)serialization of JS
 In build.sbt
 
 ```
-libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-circe" % "0.10.6"
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-circe" % "<version>"
 ```
 
 Then in the route or client you want to use
@@ -40,7 +40,7 @@ import com.thenewmotion.ocpi.msgs.circe.v2_1.protocol._
 In build.sbt
 
 ```
-libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-spray-json" % "0.10.6"
+libraryDependencies += "com.thenewmotion.ocpi" %% s"ocpi-msgs-spray-json" % "<version>"
 ```
 
 Then in the route or client you want to use
