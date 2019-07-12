@@ -29,7 +29,7 @@ class CommandClient(
     mat: Materializer
   ): Future[ErrorRespOr[CommandResponseType]] = {
 
-    val commandUri = commandsUri.copy(path = commandsUri.path / command.name.name)
+    val commandUri = commandsUri.copy(path = commandsUri.path ?/ command.name.name)
 
     singleRequestRawT[Either[SuccessResp[CommandResponseType], SuccessResp[CommandResponse]]](Post(commandUri, command), auth).map {
       _.bimap(err => {
