@@ -27,51 +27,42 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
 
   "MSP Command client" should {
 
-    "Start a session using 2.1.1 own interpretation" in new TestScope {
+    val cmd = Commands.Command.StartSession(
+      Url("http://localhost:8096"),
+      Token(
+        TokenUid("ABC12345678"),
+        TokenType.Rfid,
+        AuthId("NL-TNM-BLAH"),
+        visualNumber = None,
+        "TheNewMotion",
+        valid = true,
+        WhitelistType.Always,
+        language = None,
+        lastUpdated = ZonedDateTime.now
+      ),
+      LocationId("1234"),
+      Some(EvseUid("1234_A"))
+    )
 
-      val cmd = Commands.Command.StartSession(
-        Url("http://localhost:8096"),
-        Token(
-          TokenUid("ABC12345678"),
-          TokenType.Rfid,
-          AuthId("NL-TNM-BLAH"),
-          visualNumber = None,
-          "TheNewMotion",
-          valid = true,
-          WhitelistType.Always,
-          language = None,
-          lastUpdated = ZonedDateTime.now
-        ),
-        LocationId("1234"),
-        Some(EvseUid("1234_A"))
-      )
-
+    "Start a session using deprecated 2.1.1" in new TestScope {
       client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
       }.await
     }
 
-    "Start a session using 2.1.1-d2 interpretation" in new TestScope {
-
-      val cmd = Commands.Command.StartSession(
-        Url("http://localhost:8096"),
-        Token(
-          TokenUid("ABC12345678"),
-          TokenType.Rfid,
-          AuthId("NL-TNM-BLAH"),
-          visualNumber = None,
-          "TheNewMotion",
-          valid = true,
-          WhitelistType.Always,
-          language = None,
-          lastUpdated = ZonedDateTime.now
-        ),
-        LocationId("1234"),
-        Some(EvseUid("1234_A"))
-      )
-
+    "Start a session using new 2.1.1-d2 interpretation" in new TestScope {
       clientD2.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
+        case Right(r) =>
+          r === CommandResponseType.Accepted
+      }.await
+    }
+
+    "handle trailing slashes in command module URLs" in new TestScope {
+
+      private val pathWithTrailingSlash = commandUrl.path ++ Uri.Path.SingleSlash
+
+      client.sendCommand(commandUrl.withPath(pathWithTrailingSlash), AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
       }.await
