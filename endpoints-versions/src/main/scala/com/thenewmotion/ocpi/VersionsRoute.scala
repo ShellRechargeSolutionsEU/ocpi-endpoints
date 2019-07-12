@@ -41,12 +41,10 @@ class VersionsRoute private[ocpi](
 
   private val EndPointPathMatcher = Segment.map(EndpointIdentifier(_))
 
-  private def appendPath(uri: Uri, segments: String*) = {
+  private def appendPath(uri: Uri, segments: String*) =
     uri.withPath(segments.foldLeft(uri.path) {
-      case (path, add) if path.toString.endsWith("/") => path + add
-      case (path, add)                                => path / add
+      case (path, add) => path ?/ add
     })
-  }
 
   def versionsRoute(
     uri: Uri
