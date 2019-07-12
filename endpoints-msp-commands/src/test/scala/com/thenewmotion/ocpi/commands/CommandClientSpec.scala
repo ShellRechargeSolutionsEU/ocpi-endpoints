@@ -126,8 +126,8 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
       case x                 => Future.failed(new UnknownHostException(x.toString))
     }
 
-    lazy val client = new TestCpoTokensClient(requestWithAuth)
-    lazy val clientD2 = new TestCpoTokensClient(requestWithAuthD2)
+    lazy val client = new TestMspCommandsClient(requestWithAuth)
+    lazy val clientD2 = new TestMspCommandsClient(requestWithAuthD2)
   }
 }
 
@@ -138,7 +138,7 @@ object GenericRespTypes {
 }
 
 
-class TestCpoTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
+class TestMspCommandsClient(reqWithAuthFunc: String => Future[HttpResponse])
   (implicit httpExt: HttpExt) extends CommandClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
