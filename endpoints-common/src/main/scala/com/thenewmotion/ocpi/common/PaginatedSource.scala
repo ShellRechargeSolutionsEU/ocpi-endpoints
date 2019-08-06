@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi
 package common
 
 import java.time.ZonedDateTime
-
 import _root_.akka.NotUsed
 import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.client.RequestBuilding.Get
@@ -16,8 +15,11 @@ import msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.ZonedDateTimeParser._
 import cats.syntax.either._
 import cats.instances.future._
-
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
+
+case class PaginationException(uri: Uri, cause: Throwable)
+  extends RuntimeException(s"An error occurred when calling ${uri.toString}", cause)
 
 object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
@@ -34,7 +36,9 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
     (for {
       response <- result(requestWithAuth(http, req, auth).map(_.asRight))
       success <- result(Unmarshal(response).to[Either[ErrorResp, (PagedResp[T], Option[Uri])]])
-    } yield success).value
+    } yield success).value.recoverWith {
+      case NonFatal(ex) => Future.failed(PaginationException(req.uri, ex))
+    }
 
   def apply[T](
     http: HttpExt,
