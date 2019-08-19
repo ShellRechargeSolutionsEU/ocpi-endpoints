@@ -73,9 +73,9 @@ object ExampleApp extends App {
   val auth = new TokenAuthenticator(_ => Future.successful(Some(GlobalPartyId("NL", "TNM"))))
 
   val topLevelRoute = {
-    path("example") {
+    pathPrefix("example") {
       authenticateOrRejectWithChallenge(auth) { user =>
-        path("versions") {
+        pathPrefix("versions") {
           versionRoute(user)
         }
       }
