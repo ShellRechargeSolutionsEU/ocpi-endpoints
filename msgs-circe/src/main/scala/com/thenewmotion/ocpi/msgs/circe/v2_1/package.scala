@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.msgs.circe
 
 import io.circe.generic.extras.Configuration
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import scala.util.Try
 
 package object v2_1 {
@@ -16,6 +16,11 @@ package object v2_1 {
         Try(dec(str))
       }
     }
+
+  def decodeSeqTolerantly[A: Decoder]: Decoder[Seq[A]] =
+    Decoder.decodeList(Decoder[A].either(Decoder[Json])).map(
+      _.flatMap(_.left.toOption)
+    )
 
   object protocol
     extends CdrsJsonProtocol

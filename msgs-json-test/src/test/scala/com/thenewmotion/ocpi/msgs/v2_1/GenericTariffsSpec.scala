@@ -12,12 +12,19 @@ import scala.language.higherKinds
 trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {
 
+  def testDeserialization[T : GenericJsonWriter : GenericJsonReader](obj: T, json: J): Fragments = {
+    "deserialize" in {
+      jsonToObj(json) === obj
+    }
+  }
+
   def runTests()(
     implicit tariffR: GenericJsonReader[Tariff],
     tariffW: GenericJsonWriter[Tariff]
   ): Fragments = {
     "Tariff" should {
       testPair(tariff, parse(tariffJson))
+      testDeserialization(tariffWithunknownTariffDimensions, parse(tariffWithunknownTariffDimensionsJson))
     }
   }
 
@@ -119,6 +126,43 @@ trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       |			"end_time": "17:00",
       |			"day_of_week": ["SATURDAY"]
       |		}
+      |	}],
+      |	"last_updated": "2015-06-29T20:39:09Z"
+      |}
+    """.stripMargin
+
+  val tariffWithunknownTariffDimensions =
+    Tariff(
+      id = TariffId("12"),
+      currency = CurrencyCode("EUR"),
+      tariffAltUrl = Some(Url("https://company.com/tariffs/12")),
+      elements = List(TariffElement(List()) ),
+      energyMix = None,
+      lastUpdated = ZonedDateTime.of(2015, 6, 29, 20, 39, 9, 0, ZoneId.of("Z"))
+    )
+
+  // uses TariffDimensionTypes SESSION_TIME, MIN and MAX, which are not in the OCPI spec but
+  // are used by ChargePoint Inc.
+  val tariffWithunknownTariffDimensionsJson =
+    """
+      |{
+      |	"id": "12",
+      |	"currency": "EUR",
+      |	"tariff_alt_url": "https://company.com/tariffs/12",
+      |	"elements": [{
+      |		"price_components": [{
+      |			"type": "SESSION_TIME",
+      |			"price": 6.00,
+      |			"step_size": 1
+      |		},{
+      |			"type": "MIN",
+      |			"price": 6.00,
+      |			"step_size": 0
+      |		},{
+      |			"type": "MAX",
+      |			"price": 6.00,
+      |			"step_size": 0
+      |		}]
       |	}],
       |	"last_updated": "2015-06-29T20:39:09Z"
       |}
