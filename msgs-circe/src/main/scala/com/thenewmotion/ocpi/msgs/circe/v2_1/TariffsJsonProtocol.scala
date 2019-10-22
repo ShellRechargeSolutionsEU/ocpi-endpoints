@@ -6,6 +6,7 @@ import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder, HCursor}
 import CommonJsonProtocol._
 import LocationsJsonProtocol._
+import io.circe.Decoder.Result
 
 trait TariffsJsonProtocol {
 
@@ -20,13 +21,15 @@ trait TariffsJsonProtocol {
   implicit val tariffRestrictionsD: Decoder[TariffRestrictions] = deriveDecoder
 
   implicit val tariffElementE: Encoder[TariffElement] = deriveEncoder
-  implicit val tariffElementD: Decoder[TariffElement] = (c: HCursor) =>
-    for {
+
+  implicit val tariffElementD: Decoder[TariffElement] = new Decoder[TariffElement] {
+    final def apply(c: HCursor): Result[TariffElement] = for {
       pcs <- c.downField("price_components").as[Seq[PriceComponent]]
       restr <- c.downField("restrictions").as[Option[TariffRestrictions]]
     } yield {
       TariffElement(pcs, restr)
     }
+  }
 
   implicit val tariffE: Encoder[Tariff] = deriveEncoder
   implicit val tariffD: Decoder[Tariff] = deriveDecoder
