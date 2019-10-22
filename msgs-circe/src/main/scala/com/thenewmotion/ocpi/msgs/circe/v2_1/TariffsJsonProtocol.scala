@@ -6,6 +6,7 @@ import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder, HCursor}
 import CommonJsonProtocol._
 import LocationsJsonProtocol._
+import cats.syntax.either._
 import io.circe.Decoder.Result
 
 trait TariffsJsonProtocol {
