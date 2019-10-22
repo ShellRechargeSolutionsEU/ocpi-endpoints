@@ -8,7 +8,7 @@ class TariffsSpec extends GenericTariffsSpec[JsValue, JsonReader, JsonWriter] wi
   import TariffsJsonProtocol._
 
   "Spray Json TariffsJsonProtocol" should {
-//    runTests()
+    runTests()
   }
 
 }

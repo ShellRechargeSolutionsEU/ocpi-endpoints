@@ -136,7 +136,7 @@ trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       id = TariffId("12"),
       currency = CurrencyCode("EUR"),
       tariffAltUrl = Some(Url("https://company.com/tariffs/12")),
-      elements = List(TariffElement(List()) ),
+      elements = Vector(TariffElement(List(PriceComponent(Time,6, 1), PriceComponent(Time,6, 0), PriceComponent(Time,6, 0)))),
       energyMix = None,
       lastUpdated = ZonedDateTime.of(2015, 6, 29, 20, 39, 9, 0, ZoneId.of("Z"))
     )
@@ -151,15 +151,15 @@ trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       |	"tariff_alt_url": "https://company.com/tariffs/12",
       |	"elements": [{
       |		"price_components": [{
-      |			"type": "SESSION_TIME",
+      |			"type": "TIME",
       |			"price": 6.00,
       |			"step_size": 1
       |		},{
-      |			"type": "MIN",
+      |			"type": "TIME",
       |			"price": 6.00,
       |			"step_size": 0
       |		},{
-      |			"type": "MAX",
+      |			"type": "TIME",
       |			"price": 6.00,
       |			"step_size": 0
       |		}]
@@ -167,5 +167,8 @@ trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       |	"last_updated": "2015-06-29T20:39:09Z"
       |}
     """.stripMargin
+
+  // Tariff(12,Impl(EUR),None,Some(https://company.com/tariffs/12),Vector(TariffElement(List(PriceComponent(TIME,6,1), PriceComponent(TIME,6,0), PriceComponent(TIME,6,0)),None)),None,2015-06-29T20:39:09Z) !=
+  // Tariff(12,Impl(EUR),None,Some(https://company.com/tariffs/12),List(TariffElement(List(),None)),None,2015-06-29T20:39:09Z)
 
 }
