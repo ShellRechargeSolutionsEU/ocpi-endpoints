@@ -54,25 +54,35 @@ class MspCdrsRoute private[ocpi](
   )(
     implicit executionContext: ExecutionContext
   ): Route =
-    handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
+    handleRejections(OcpiRejectionHandler.Default)(routeWithPartyPathMatch(apiUser))
+
+  def applyWithoutGlobalPartyMatch(apiUser: GlobalPartyId)(
+    implicit executionContext: ExecutionContext
+  ): Route =
+    handleRejections(OcpiRejectionHandler.Default)(cdrRoute(apiUser))
 
   private val CdrIdSegment = Segment.map(CdrId(_))
 
-  private[cdrs] def routeWithoutRh(
+  private[cdrs] def routeWithPartyPathMatch(
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
   ) = {
     authPathPrefixGlobalPartyIdEquality(apiUser) {
-      (post & pathEndOrSingleSlash) {
-        entity(as[Cdr]) { cdr =>
-          complete {
-            service.createCdr(apiUser, cdr).mapRight { _ =>
-              (Created, SuccessResp(GenericSuccess))
-            }
+      cdrRoute(apiUser)
+    }
+  }
+
+  private[cdrs] def cdrRoute(apiUser: GlobalPartyId)(implicit executionContext: ExecutionContext) = {
+    (post & pathEndOrSingleSlash) {
+      entity(as[Cdr]) { cdr =>
+        complete {
+          service.createCdr(apiUser, cdr).mapRight { _ =>
+            (Created, SuccessResp(GenericSuccess))
           }
         }
-      } ~
+      }
+    } ~
       (get & pathPrefix(CdrIdSegment) & pathEndOrSingleSlash) { cdrId =>
         complete {
           service.cdr(apiUser, cdrId).mapRight { cdr =>
@@ -80,6 +90,5 @@ class MspCdrsRoute private[ocpi](
           }
         }
       }
-    }
   }
 }

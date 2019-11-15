@@ -21,41 +21,82 @@ import scala.concurrent.Future
 
 class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
-  "MspCdrsRoute" should {
-    "return an existing Cdr" in new TestScope {
-      service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
-      Get("/NL/TNM/12345") ~> route(apiUser) ~> check {
-        header[Link] must beNone
-        there was one(service).cdr(apiUser, cdr.id)
-        val res = entityAs[SuccessResp[Cdr]]
-        res.data mustEqual cdr
+  "MspCdrsRoute" >> {
+    "with Global Party match" should {
+      "return an existing Cdr" in new TestScope {
+        service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
+        Get("/NL/TNM/12345") ~> route(apiUser) ~> check {
+          header[Link] must beNone
+          there was one(service).cdr(apiUser, cdr.id)
+          val res = entityAs[SuccessResp[Cdr]]
+          res.data mustEqual cdr
+        }
+      }
+
+      "handle NotFound failure" in new TestScope {
+        service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
+
+        Get("/NL/TNM/does-not-exist") ~> route(apiUser) ~> check {
+          there was one(service).cdr(apiUser, CdrId("does-not-exist"))
+          status mustEqual StatusCodes.NotFound
+        }
+      }
+
+      "allow posting new cdr" in new TestScope {
+        service.createCdr(apiUser, cdr) returns Future(().asRight)
+
+        Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
+          there was one(service).createCdr(apiUser, cdr)
+          status mustEqual StatusCodes.Created
+        }
+      }
+
+      "not allow updating cdr" in new TestScope {
+        service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
+
+        Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
+          there was one(service).createCdr(apiUser, cdr)
+          status mustEqual StatusCodes.OK
+        }
       }
     }
 
-    "handle NotFound failure" in new TestScope {
-      service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
-
-      Get("/NL/TNM/does-not-exist") ~> route(apiUser) ~> check {
-        there was one(service).cdr(apiUser, CdrId("does-not-exist"))
-        status mustEqual StatusCodes.NotFound
+    "without Global Party match" should {
+      "return an existing Cdr" in new TestScope {
+        service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
+        Get("/12345") ~> route.applyWithoutGlobalPartyMatch(apiUser) ~> check {
+          header[Link] must beNone
+          there was one(service).cdr(apiUser, cdr.id)
+          val res = entityAs[SuccessResp[Cdr]]
+          res.data mustEqual cdr
+        }
       }
-    }
 
-    "allow posting new cdr" in new TestScope {
-      service.createCdr(apiUser, cdr) returns Future(().asRight)
+      "handle NotFound failure" in new TestScope {
+        service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
 
-      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
-        there was one(service).createCdr(apiUser, cdr)
-        status mustEqual StatusCodes.Created
+        Get("/does-not-exist") ~> route.applyWithoutGlobalPartyMatch(apiUser) ~> check {
+          there was one(service).cdr(apiUser, CdrId("does-not-exist"))
+          status mustEqual StatusCodes.NotFound
+        }
       }
-    }
 
-    "not allow updating cdr" in new TestScope {
-      service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
+      "allow posting new cdr" in new TestScope {
+        service.createCdr(apiUser, cdr) returns Future(().asRight)
 
-      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
-        there was one(service).createCdr(apiUser, cdr)
-        status mustEqual StatusCodes.OK
+        Post("/", cdr) ~> route.applyWithoutGlobalPartyMatch(apiUser) ~> check {
+          there was one(service).createCdr(apiUser, cdr)
+          status mustEqual StatusCodes.Created
+        }
+      }
+
+      "not allow updating cdr" in new TestScope {
+        service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
+
+        Post("/", cdr) ~> route.applyWithoutGlobalPartyMatch(apiUser) ~> check {
+          there was one(service).createCdr(apiUser, cdr)
+          status mustEqual StatusCodes.OK
+        }
       }
     }
   }
