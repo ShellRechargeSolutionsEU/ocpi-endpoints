@@ -1,1 +1,1 @@
-version in ThisBuild := "1.0.5-CHARGEPOINT-INC-RELEASE"
+version in ThisBuild := "1.0.4-CHARGEPOINT-INC-RELEASE"
