@@ -63,21 +63,19 @@ class MspCdrsRoute private[ocpi](
   )(
     implicit executionContext: ExecutionContext
   ) = {
-    authPathPrefixGlobalPartyIdEquality(apiUser) {
-      (post & pathEndOrSingleSlash) {
-        entity(as[Cdr]) { cdr =>
-          complete {
-            service.createCdr(apiUser, cdr).mapRight { _ =>
-              (Created, SuccessResp(GenericSuccess))
-            }
+    (post & pathEndOrSingleSlash) {
+      entity(as[Cdr]) { cdr =>
+        complete {
+          service.createCdr(apiUser, cdr).mapRight { _ =>
+            (Created, SuccessResp(GenericSuccess))
           }
         }
-      } ~
-      (get & pathPrefix(CdrIdSegment) & pathEndOrSingleSlash) { cdrId =>
-        complete {
-          service.cdr(apiUser, cdrId).mapRight { cdr =>
-            SuccessResp(GenericSuccess, data = cdr)
-          }
+      }
+    } ~
+    (get & pathPrefix(CdrIdSegment) & pathEndOrSingleSlash) { cdrId =>
+      complete {
+        service.cdr(apiUser, cdrId).mapRight { cdr =>
+          SuccessResp(GenericSuccess, data = cdr)
         }
       }
     }
