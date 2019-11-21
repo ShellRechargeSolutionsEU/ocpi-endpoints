@@ -24,7 +24,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
   "MspCdrsRoute" should {
     "return an existing Cdr" in new TestScope {
       service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
-      Get("/NL/TNM/12345") ~> route(apiUser) ~> check {
+      Get("/12345") ~> route(apiUser) ~> check {
         header[Link] must beNone
         there was one(service).cdr(apiUser, cdr.id)
         val res = entityAs[SuccessResp[Cdr]]
@@ -35,7 +35,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "handle NotFound failure" in new TestScope {
       service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
 
-      Get("/NL/TNM/does-not-exist") ~> route(apiUser) ~> check {
+      Get("/does-not-exist") ~> route(apiUser) ~> check {
         there was one(service).cdr(apiUser, CdrId("does-not-exist"))
         status mustEqual StatusCodes.NotFound
       }
@@ -44,7 +44,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "allow posting new cdr" in new TestScope {
       service.createCdr(apiUser, cdr) returns Future(().asRight)
 
-      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
+      Post("/", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
         status mustEqual StatusCodes.Created
       }
@@ -53,7 +53,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     "not allow updating cdr" in new TestScope {
       service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
 
-      Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
+      Post("/", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
         status mustEqual StatusCodes.OK
       }
