@@ -189,6 +189,16 @@ val `endpoints-cpo-tokens` = project
     libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
   )
 
+val `endpoints-cpo-cdrs` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
+  .settings(
+    commonSettings,
+    name := "ocpi-endpoints-cpo-cdrs",
+    description := "OCPI endpoints CPO Cdrs",
+    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+  )
+
 val `endpoints-versions` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`endpoints-common`, `msgs-spray-json` % "test->test")
@@ -236,6 +246,7 @@ val `ocpi-endpoints-root` = (project in file("."))
     `endpoints-msp-sessions`,
     `endpoints-cpo-locations`,
     `endpoints-cpo-tokens`,
+    `endpoints-cpo-cdrs`,
     `example`)
   .enablePlugins(OssLibPlugin)
   .settings(
