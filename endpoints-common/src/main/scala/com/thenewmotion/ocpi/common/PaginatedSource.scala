@@ -35,7 +35,7 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
   ): Future[Either[ErrorResp, (PagedResp[T], Option[Uri])]] =
     (for {
       response <- result(requestWithAuth(http, req, auth).map(_.asRight))
-      success <- result(Unmarshal(response).to[Either[ErrorResp, (PagedResp[T], Option[Uri])]])
+      success <- result(Unmarshal(response).to[ErrorRespOr[(PagedResp[T], Option[Uri])]])
     } yield success).value.recoverWith {
       case NonFatal(ex) => Future.failed(PaginationException(req.uri, ex))
     }
