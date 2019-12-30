@@ -328,9 +328,7 @@ object Locations {
     directions: Iterable[DisplayText] = Nil,
     parkingRestrictions: Iterable[ParkingRestriction] = Nil,
     images: Iterable[Image] = Nil
-  ) extends BaseEvse[Full] {
-    require(connectors.nonEmpty, "Evse must have at least one connector")
-  }
+  ) extends BaseEvse[Full]
 
   case class EvsePatch(
     lastUpdated: Option[ZonedDateTime] = None,
