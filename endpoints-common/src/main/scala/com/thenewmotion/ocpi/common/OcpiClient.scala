@@ -36,7 +36,8 @@ object ClientObjectUri {
 /**
  * Internally used to carry failure information through Akka Streams
  */
-private[common] case class OcpiClientException(errorResp: ErrorResp) extends Exception
+private[common] case class OcpiClientException(errorResp: ErrorResp)
+  extends Exception(s"OCPI client failure with code ${errorResp.statusCode.code}: ${errorResp.statusMessage.getOrElse("no status message")}")
 
 /**
  * Thrown to signal an error where no valid OCPI response was produced by the server
