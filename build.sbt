@@ -9,17 +9,17 @@ val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.5")
 val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
 val `circe` = {
-  val version = "0.11.1"
+  val version = "0.12.3"
 
   Seq(
     "io.circe" %% "circe-core" % version,
-    "io.circe" %% "circe-generic-extras" % version,
+    "io.circe" %% "circe-generic-extras" % "0.12.2",
     "io.circe" %% "circe-parser" % version % "test"
   )
 }
 
 def akkaModule(name: String) = {
-  val v = if (name.startsWith("http")) "10.1.8" else "2.5.23"
+  val v = if (name.startsWith("http")) "10.1.12" else "2.5.31"
   "com.typesafe.akka" %% s"akka-$name" % v
 }
 
@@ -32,10 +32,10 @@ val akka =
 
 val akkaHttpSprayJson = Seq(akkaModule("http-spray-json"))
 
-val cats = Seq("org.typelevel" %% "cats-core" % "1.6.1")
+val cats = Seq("org.typelevel" %% "cats-core" % "2.1.1")
 
 val specs2 = {
-  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.6.0" % "test"
+  def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.10.0" % "test"
   Seq(
     module("core"), module("junit"), module("mock")
   )
@@ -48,7 +48,9 @@ val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
-  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+  licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
+  crossScalaVersions := List(tnm.ScalaVersion.prev),
+  scalaVersion := tnm.ScalaVersion.prev
 )
 
 val `prelude` = project
