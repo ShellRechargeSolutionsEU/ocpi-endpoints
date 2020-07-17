@@ -19,14 +19,14 @@ trait LocationsJsonProtocol {
   implicit val evseUidE: Encoder[EvseUid] = stringEncoder(_.value)
   implicit val evseUidD: Decoder[EvseUid] = tryStringDecoder(EvseUid.apply)
 
-  implicit val energySourceE: Encoder[EnergySource] = deriveEncoder
-  implicit val energySourceD: Decoder[EnergySource] = deriveDecoder
+  implicit val energySourceE: Encoder[EnergySource] = deriveConfiguredEncoder
+  implicit val energySourceD: Decoder[EnergySource] = deriveConfiguredDecoder
 
-  implicit val environmentalImpactE: Encoder[EnvironmentalImpact] = deriveEncoder
-  implicit val environmentalImpactD: Decoder[EnvironmentalImpact] = deriveDecoder
+  implicit val environmentalImpactE: Encoder[EnvironmentalImpact] = deriveConfiguredEncoder
+  implicit val environmentalImpactD: Decoder[EnvironmentalImpact] = deriveConfiguredDecoder
 
-  implicit val energyMixE: Encoder[EnergyMix] = deriveEncoder
-  implicit val energyMixD: Decoder[EnergyMix] = deriveDecoder
+  implicit val energyMixE: Encoder[EnergyMix] = deriveConfiguredEncoder
+  implicit val energyMixD: Decoder[EnergyMix] = deriveConfiguredDecoder
 
   implicit val latitudeE: Encoder[Latitude] = stringEncoder(_.toString)
   implicit val latitudeD: Decoder[Latitude] =
@@ -36,41 +36,41 @@ trait LocationsJsonProtocol {
   implicit val longitudeD: Decoder[Longitude] =
     if (strict) tryStringDecoder(Longitude.strict) else tryStringDecoder(Longitude.apply)
 
-  implicit val geoLocationE: Encoder[GeoLocation] = deriveEncoder
-  implicit val geoLocationD: Decoder[GeoLocation] = deriveDecoder
+  implicit val geoLocationE: Encoder[GeoLocation] = deriveConfiguredEncoder
+  implicit val geoLocationD: Decoder[GeoLocation] = deriveConfiguredDecoder
 
-  implicit val additionalGeoLocationE: Encoder[AdditionalGeoLocation] = deriveEncoder
-  implicit val additionalGeoLocationD: Decoder[AdditionalGeoLocation] = deriveDecoder
+  implicit val additionalGeoLocationE: Encoder[AdditionalGeoLocation] = deriveConfiguredEncoder
+  implicit val additionalGeoLocationD: Decoder[AdditionalGeoLocation] = deriveConfiguredDecoder
 
-  implicit val regularHoursE: Encoder[RegularHours] = deriveEncoder
-  implicit val regularHoursD: Decoder[RegularHours] = deriveDecoder
+  implicit val regularHoursE: Encoder[RegularHours] = deriveConfiguredEncoder
+  implicit val regularHoursD: Decoder[RegularHours] = deriveConfiguredDecoder
 
-  implicit val exceptionalPeriodE: Encoder[ExceptionalPeriod] = deriveEncoder
-  implicit val exceptionalPeriodD: Decoder[ExceptionalPeriod] = deriveDecoder
+  implicit val exceptionalPeriodE: Encoder[ExceptionalPeriod] = deriveConfiguredEncoder
+  implicit val exceptionalPeriodD: Decoder[ExceptionalPeriod] = deriveConfiguredDecoder
 
-  implicit val hoursE: Encoder[Hours] = deriveEncoder
-  implicit val hoursD: Decoder[Hours] = deriveDecoder
+  implicit val hoursE: Encoder[Hours] = deriveConfiguredEncoder
+  implicit val hoursD: Decoder[Hours] = deriveConfiguredDecoder
 
-  implicit val connectorE: Encoder[Connector] = deriveEncoder
-  implicit val connectorD: Decoder[Connector] = deriveDecoder
+  implicit val connectorE: Encoder[Connector] = deriveConfiguredEncoder
+  implicit val connectorD: Decoder[Connector] = deriveConfiguredDecoder
 
-  implicit val connectorPatchE: Encoder[ConnectorPatch] = deriveEncoder
-  implicit val connectorPatchD: Decoder[ConnectorPatch] = deriveDecoder
+  implicit val connectorPatchE: Encoder[ConnectorPatch] = deriveConfiguredEncoder
+  implicit val connectorPatchD: Decoder[ConnectorPatch] = deriveConfiguredDecoder
 
-  implicit val statusScheduleE: Encoder[StatusSchedule] = deriveEncoder
-  implicit val statusScheduleD: Decoder[StatusSchedule] = deriveDecoder
+  implicit val statusScheduleE: Encoder[StatusSchedule] = deriveConfiguredEncoder
+  implicit val statusScheduleD: Decoder[StatusSchedule] = deriveConfiguredDecoder
 
-  implicit val evseE: Encoder[Evse] = deriveEncoder
-  implicit val evseD: Decoder[Evse] = deriveDecoder
+  implicit val evseE: Encoder[Evse] = deriveConfiguredEncoder
+  implicit val evseD: Decoder[Evse] = deriveConfiguredDecoder
 
-  implicit val evsePatchE: Encoder[EvsePatch] = deriveEncoder
-  implicit val evsePatchD: Decoder[EvsePatch] = deriveDecoder
+  implicit val evsePatchE: Encoder[EvsePatch] = deriveConfiguredEncoder
+  implicit val evsePatchD: Decoder[EvsePatch] = deriveConfiguredDecoder
 
-  implicit val locationE: Encoder[Location] = deriveEncoder
-  implicit val locationD: Decoder[Location] = deriveDecoder
+  implicit val locationE: Encoder[Location] = deriveConfiguredEncoder
+  implicit val locationD: Decoder[Location] = deriveConfiguredDecoder
 
-  implicit val locationPatchE: Encoder[LocationPatch] = deriveEncoder
-  implicit val locationPatchD: Decoder[LocationPatch] = deriveDecoder
+  implicit val locationPatchE: Encoder[LocationPatch] = deriveConfiguredEncoder
+  implicit val locationPatchD: Decoder[LocationPatch] = deriveConfiguredDecoder
 }
 
 object LocationsJsonProtocol extends LocationsJsonProtocol {

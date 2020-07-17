@@ -13,17 +13,17 @@ trait TokensJsonProtocol {
   implicit val authIdE: Encoder[AuthId] = stringEncoder(_.value)
   implicit val authIdD: Decoder[AuthId] = tryStringDecoder(AuthId.apply)
 
-  implicit val tokenE: Encoder[Token] = deriveEncoder
-  implicit val tokenD: Decoder[Token] = deriveDecoder
+  implicit val tokenE: Encoder[Token] = deriveConfiguredEncoder
+  implicit val tokenD: Decoder[Token] = deriveConfiguredDecoder
 
-  implicit val tokenPatchE: Encoder[TokenPatch] = deriveEncoder
-  implicit val tokenPatchD: Decoder[TokenPatch] = deriveDecoder
+  implicit val tokenPatchE: Encoder[TokenPatch] = deriveConfiguredEncoder
+  implicit val tokenPatchD: Decoder[TokenPatch] = deriveConfiguredDecoder
 
-  implicit val locationReferencesE: Encoder[LocationReferences] = deriveEncoder
-  implicit val locationReferencesD: Decoder[LocationReferences] = deriveDecoder
+  implicit val locationReferencesE: Encoder[LocationReferences] = deriveConfiguredEncoder
+  implicit val locationReferencesD: Decoder[LocationReferences] = deriveConfiguredDecoder
 
-  implicit val authorizationInfoE: Encoder[AuthorizationInfo] = deriveEncoder
-  implicit val authorizationInfoD: Decoder[AuthorizationInfo] = deriveDecoder
+  implicit val authorizationInfoE: Encoder[AuthorizationInfo] = deriveConfiguredEncoder
+  implicit val authorizationInfoD: Decoder[AuthorizationInfo] = deriveConfiguredDecoder
 }
 
 object TokensJsonProtocol extends TokensJsonProtocol

@@ -1,34 +1,32 @@
 package com.thenewmotion.ocpi
 package tokens
 
-import common._
 import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
 import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes._
 import _root_.akka.http.scaladsl.server.{PathMatcher1, Route}
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import msgs._
-import msgs.OcpiStatusCode.GenericClientFailure
-import msgs.OcpiStatusCode.GenericSuccess
-import msgs.v2_1.Tokens._
-import tokens.TokenError._
-
-import scala.concurrent.ExecutionContext
+import cats.Applicative
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.{GenericClientFailure, GenericSuccess}
+import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
+import com.thenewmotion.ocpi.tokens.TokenError._
 
 object CpoTokensRoute {
-  def apply(
-    service: CpoTokensService
+  def apply[F[_]: Applicative: HktMarshallable](
+    service: CpoTokensService[F]
   )(
     implicit successTokenM: SuccessRespMar[Token],
     successUnitM: SuccessRespMar[Unit],
     errorM: ErrRespMar,
     tokenU: FromEntityUnmarshaller[Token],
     tokenPU: FromEntityUnmarshaller[TokenPatch]
-  ): CpoTokensRoute = new CpoTokensRoute(service)
+  ): CpoTokensRoute[F] = new CpoTokensRoute(service)
 }
 
-class CpoTokensRoute private[ocpi](
-  service: CpoTokensService
+class CpoTokensRoute[F[_]: Applicative: HktMarshallable] private[ocpi](
+  service: CpoTokensService[F]
 )(
   implicit successTokenM: SuccessRespMar[Token],
   successUnitM: SuccessRespMar[Unit],
@@ -42,9 +40,9 @@ class CpoTokensRoute private[ocpi](
   ): ToResponseMarshaller[TokenError] = {
     em.compose[TokenError] { tokenError =>
       val statusCode = tokenError match {
-        case _: TokenNotFound                                => NotFound
-        case (_: TokenCreationFailed | _: TokenUpdateFailed) => OK
-        case _                                               => InternalServerError
+        case _: TokenNotFound                              => NotFound
+        case _: TokenCreationFailed | _: TokenUpdateFailed => OK
+        case _                                             => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, tokenError.reason)
     }
@@ -52,10 +50,10 @@ class CpoTokensRoute private[ocpi](
 
   private val TokenUidSegment: PathMatcher1[TokenUid] = Segment.map(TokenUid(_))
 
+  import HktMarshallableSyntax._
+
   def apply(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ): Route =
     handleRejections(OcpiRejectionHandler.Default) {
       (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(TokenUidSegment)) { tokenUid =>

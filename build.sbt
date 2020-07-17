@@ -8,14 +8,18 @@ val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.5")
 
 val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
-val `circe` = {
+val circe = {
   val version = "0.12.3"
   
   Seq(
     "io.circe" %% "circe-core" % version,
     "io.circe" %% "circe-generic-extras" % "0.12.2",
-    "io.circe" %% "circe-parser" % version % "test"
+    "io.circe" %% "circe-parser" % version
   )
+}
+
+val `akka-http-circe` = {
+  Seq("de.heikoseeberger" %% "akka-http-circe" % "1.29.1")
 }
 
 def akkaModule(name: String) = {
@@ -30,9 +34,10 @@ val akka =
     akkaModule("http")
   )
 
-val akkaHttpSprayJson = Seq(akkaModule("http-spray-json"))
+val `akka-http-spray-json` = Seq(akkaModule("http-spray-json"))
 
 val cats = Seq("org.typelevel" %% "cats-core" % "2.1.1")
+val `cats-effect` = Seq("org.typelevel" %% "cats-effect" % "2.1.4")
 
 val specs2 = {
   def module(name: String) = "org.specs2" %% s"specs2-$name" % "4.10.0" % "test"
@@ -41,26 +46,36 @@ val specs2 = {
   )
 }
 
-val akkaHttpTestKit = Seq(akkaModule("http-testkit") % "test")
-val akkaStreamTestKit = Seq(akkaModule("stream-testkit") % "test")
+val `akka-http-test-kit` = Seq(akkaModule("http-testkit") % "test")
+val `akka-stream-test-kit` = Seq(akkaModule("stream-testkit") % "test")
 
-val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
+val `json-lenses` = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   crossScalaVersions := List(tnm.ScalaVersion.prev, tnm.ScalaVersion.curr),
-  scalaVersion := tnm.ScalaVersion.prev
+  scalaVersion := tnm.ScalaVersion.prev,
+  scalacOptions ++= Seq(
+    "-encoding", "UTF-8",   // source files are in UTF-8
+    "-deprecation",         // warn about use of deprecated APIs
+    "-unchecked",           // warn about unchecked type parameters
+    "-feature",             // warn about misused language features
+    "-language:higherKinds",// allow higher kinded types without `import scala.language.higherKinds`
+    "-Xlint",               // enable handy linter warnings
+    "-Ypartial-unification",
+    "-language:postfixOps"
+  )
 )
 
-val `prelude` = project
+val prelude = project
   .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     name := "ocpi-prelude",
     description := "Definitions that are useful across all OCPI modules")
 
-val `msgs` = project
+val msgs = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`prelude`)
   .settings(
@@ -117,8 +132,8 @@ val `endpoints-common` = project
     commonSettings,
     name := "ocpi-endpoints-common",
     description := "OCPI endpoints common",
-    libraryDependencies := logging ++ akka ++ cats ++ specs2 ++
-      akkaHttpTestKit ++ akkaStreamTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := logging ++ akka ++ cats ++ `cats-effect` ++ specs2 ++
+      `akka-http-test-kit` ++ `akka-stream-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-msp-locations` = project
@@ -128,7 +143,7 @@ val `endpoints-msp-locations` = project
     commonSettings,
     name := "ocpi-endpoints-msp-locations",
     description := "OCPI endpoints MSP Locations",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-msp-tokens` = project
@@ -138,7 +153,7 @@ val `endpoints-msp-tokens` = project
     commonSettings,
     name := "ocpi-endpoints-msp-tokens",
     description := "OCPI endpoints MSP Tokens",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-msp-cdrs` = project
@@ -148,7 +163,7 @@ val `endpoints-msp-cdrs` = project
     commonSettings,
     name := "ocpi-endpoints-msp-cdrs",
     description := "OCPI endpoints MSP Cdrs",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-msp-commands` = project
@@ -158,7 +173,7 @@ val `endpoints-msp-commands` = project
     commonSettings,
     name := "ocpi-endpoints-msp-commands",
     description := "OCPI endpoints MSP Commands",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-msp-sessions` = project
@@ -168,7 +183,7 @@ val `endpoints-msp-sessions` = project
     commonSettings,
     name := "ocpi-endpoints-msp-sessions",
     description := "OCPI endpoints MSP Sessions",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-cpo-locations` = project
@@ -178,7 +193,7 @@ val `endpoints-cpo-locations` = project
     commonSettings,
     name := "ocpi-endpoints-cpo-locations",
     description := "OCPI endpoints CPO Locations",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-cpo-tokens` = project
@@ -188,7 +203,7 @@ val `endpoints-cpo-tokens` = project
     commonSettings,
     name := "ocpi-endpoints-cpo-tokens",
     description := "OCPI endpoints CPO Tokens",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-versions` = project
@@ -198,7 +213,7 @@ val `endpoints-versions` = project
     commonSettings,
     name := "ocpi-endpoints-versions",
     description := "OCPI endpoints versions",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test") ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `json-lenses`.map(_ % "test") ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `endpoints-registration` = project
@@ -208,17 +223,17 @@ val `endpoints-registration` = project
     commonSettings,
     name := "ocpi-endpoints-registration",
     description := "OCPI endpoints registration",
-    libraryDependencies := specs2 ++ akkaStreamTestKit ++ akkaHttpTestKit ++ jsonLenses.map(_ % "test") ++ akkaHttpSprayJson.map(_ % "test")
+    libraryDependencies := specs2 ++ `akka-stream-test-kit` ++ `akka-http-test-kit` ++ `json-lenses`.map(_ % "test") ++ `akka-http-spray-json`.map(_ % "test")
   )
 
 val `example` = project
   .enablePlugins(AppPlugin)
-  .dependsOn(`endpoints-registration`, `endpoints-versions`, `msgs-spray-json`)
+  .dependsOn(`endpoints-registration`, `endpoints-msp-tokens`, `endpoints-versions`, `msgs-spray-json`, `msgs-circe`)
   .settings(
     commonSettings,
     publish := { },
     description := "OCPI endpoints example app",
-    libraryDependencies := akkaHttpSprayJson
+    libraryDependencies := `akka-http-spray-json` ++ `akka-http-circe`
   )
 
 val `ocpi-endpoints-root` = (project in file("."))

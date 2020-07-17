@@ -4,19 +4,17 @@ package registration
 import msgs.Ownership.Theirs
 import msgs.Versions.{Endpoint, VersionNumber}
 import msgs.v2_1.Credentials.Creds
-import msgs.{GlobalPartyId, AuthToken}
+import msgs.{AuthToken, GlobalPartyId}
 
-import scala.concurrent.Future
-
-trait RegistrationRepo {
+trait RegistrationRepo[F[_]] {
 
   def isPartyRegistered(
     globalPartyId: GlobalPartyId
-  ): Future[Boolean]
+  ): F[Boolean]
 
   def findTheirAuthToken(
     globalPartyId: GlobalPartyId
-  ): Future[Option[AuthToken[Theirs]]]
+  ): F[Option[AuthToken[Theirs]]]
 
   // Called after a 3rd party has called our credentials endpoint with a POST or a PUT
   def persistInfoAfterConnectToUs(
@@ -25,7 +23,7 @@ trait RegistrationRepo {
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  ): Future[Unit]
+  ): F[Unit]
 
   // Called after _we_ start the registration by calling _their_ credentials endpoint with a POST or a PUT
   def persistInfoAfterConnectToThem(
@@ -33,9 +31,9 @@ trait RegistrationRepo {
     token: AuthToken[Theirs],
     creds: Creds[Theirs],
     endpoints: Iterable[Endpoint]
-  ): Future[Unit]
+  ): F[Unit]
 
   def deletePartyInformation(
     globalPartyId: GlobalPartyId
-  ): Future[Unit]
+  ): F[Unit]
 }

@@ -88,21 +88,20 @@ trait CommonJsonProtocol {
       case e if e.history == List(DownField("data")) => successPagedRespWithoutDataD[T]
     }
 
-  implicit val errorRespE: Encoder[ErrorResp] = deriveEncoder
-  implicit val errorRespD: Decoder[ErrorResp] = deriveDecoder
+  implicit val errorRespE: Encoder[ErrorResp] = deriveConfiguredEncoder
+  implicit val errorRespD: Decoder[ErrorResp] = deriveConfiguredDecoder
 
-  implicit def successRespE[D : Encoder]: Encoder[SuccessResp[D]] = deriveEncoder
-  implicit def successRespD[D : Decoder]: Decoder[SuccessResp[D]] = deriveDecoder
+  implicit def successRespE[D : Encoder]: Encoder[SuccessResp[D]] = deriveConfiguredEncoder
+  implicit def successRespD[D : Decoder]: Decoder[SuccessResp[D]] = deriveConfiguredDecoder
 
+  implicit val displayTextE: Encoder[DisplayText] = deriveConfiguredEncoder
+  implicit val displayTextD: Decoder[DisplayText] = deriveConfiguredDecoder
 
-  implicit val displayTextE: Encoder[DisplayText] = deriveEncoder
-  implicit val displayTextD: Decoder[DisplayText] = deriveDecoder
+  implicit val imageE: Encoder[Image] = deriveConfiguredEncoder
+  implicit val imageD: Decoder[Image] = deriveConfiguredDecoder
 
-  implicit val imageE: Encoder[Image] = deriveEncoder
-  implicit val imageD: Decoder[Image] = deriveDecoder
-
-  implicit val businessDetailsE: Encoder[BusinessDetails] = deriveEncoder
-  implicit val businessDetailsD: Decoder[BusinessDetails] = deriveDecoder
+  implicit val businessDetailsE: Encoder[BusinessDetails] = deriveConfiguredEncoder
+  implicit val businessDetailsD: Decoder[BusinessDetails] = deriveConfiguredDecoder
 }
 
 object CommonJsonProtocol extends CommonJsonProtocol

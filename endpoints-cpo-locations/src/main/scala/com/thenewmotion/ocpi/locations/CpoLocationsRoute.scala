@@ -2,23 +2,20 @@ package com.thenewmotion.ocpi
 package locations
 
 import java.time.ZonedDateTime
-
 import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
 import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes._
 import _root_.akka.http.scaladsl.server.Route
+import cats.effect.Effect
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.locations.LocationsError._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.{GenericClientFailure, GenericSuccess}
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
-import common._
-import locations.LocationsError._
-import msgs.OcpiStatusCode.GenericClientFailure
-import msgs.OcpiStatusCode.GenericSuccess
-
-import scala.concurrent.ExecutionContext
+import com.thenewmotion.ocpi.msgs.{ErrorResp, GlobalPartyId, SuccessResp}
 
 object CpoLocationsRoute {
-  def apply(
-    service: CpoLocationsService,
+  def apply[F[_]: Effect: HktMarshallable](
+    service: CpoLocationsService[F],
     DefaultLimit: Int = 1000,
     MaxLimit: Int = 1000,
     currentTime: => ZonedDateTime = ZonedDateTime.now,
@@ -32,8 +29,8 @@ object CpoLocationsRoute {
   ) = new CpoLocationsRoute(service, DefaultLimit, MaxLimit, currentTime, linkHeaderScheme)
 }
 
-class CpoLocationsRoute private[ocpi](
-  service: CpoLocationsService,
+class CpoLocationsRoute[F[_]: Effect: HktMarshallable] private[ocpi](
+  service: CpoLocationsService[F],
   val DefaultLimit: Int,
   val MaxLimit: Int,
   currentTime: => ZonedDateTime,
@@ -56,7 +53,7 @@ class CpoLocationsRoute private[ocpi](
     em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
         case _: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound => NotFound
-        case _                                                              => InternalServerError
+        case _                                                            => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason.orElse(DefaultErrorMsg))
     }
@@ -64,8 +61,6 @@ class CpoLocationsRoute private[ocpi](
 
   def apply(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
@@ -73,15 +68,15 @@ class CpoLocationsRoute private[ocpi](
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
+  import HktMarshallableSyntax._
+
   private[locations] def routeWithoutRh(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ) = {
     get {
       pathEndOrSingleSlash {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
-          onSuccess(service.locations(pager, dateFrom, dateTo)) {
+          onSuccess(Effect[F].toIO(service.locations(pager, dateFrom, dateTo)).unsafeToFuture()) {
             _.fold(complete(_), pagLocations => {
               respondWithPaginationHeaders(pager, pagLocations) {
                 complete {

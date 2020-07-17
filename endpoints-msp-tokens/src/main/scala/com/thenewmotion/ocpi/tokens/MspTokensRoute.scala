@@ -2,23 +2,22 @@ package com.thenewmotion.ocpi
 package tokens
 
 import java.time.ZonedDateTime
-
 import _root_.akka.http.scaladsl.marshalling.{Marshaller, ToResponseMarshaller}
 import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import _root_.akka.http.scaladsl.server.{Directive1, Route}
 import _root_.akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller}
-import common._
-import msgs.{ErrorResp, GlobalPartyId, SuccessResp}
-import msgs.OcpiStatusCode._
-import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, Token, TokenUid}
-import tokens.AuthorizeError._
-
+import cats.effect.Effect
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, Token, TokenUid}
+import com.thenewmotion.ocpi.msgs.{ErrorResp, GlobalPartyId, SuccessResp}
+import com.thenewmotion.ocpi.tokens.AuthorizeError._
 import scala.concurrent.ExecutionContext
 
 object MspTokensRoute {
-  def apply(
-    service: MspTokensService,
+  def apply[F[_]: Effect: HktMarshallable](
+    service: MspTokensService[F],
     DefaultLimit: Int = 1000,
     MaxLimit: Int = 1000,
     linkHeaderScheme: Option[String] = None
@@ -30,8 +29,8 @@ object MspTokensRoute {
   ) = new MspTokensRoute(service, DefaultLimit, MaxLimit, linkHeaderScheme)
 }
 
-class MspTokensRoute private[ocpi](
-  service: MspTokensService,
+class MspTokensRoute[F[_]: Effect: HktMarshallable] private[ocpi](
+  service: MspTokensService[F],
   val DefaultLimit: Int,
   val MaxLimit: Int,
   override val linkHeaderScheme: Option[String] = None
@@ -67,15 +66,15 @@ class MspTokensRoute private[ocpi](
 
   private val TokenUidSegment = Segment.map(TokenUid(_))
 
+  import HktMarshallableSyntax._
+
   def apply(
     apiUser: GlobalPartyId
-  )(
-    implicit ec: ExecutionContext
   ): Route =
     pathEndOrSingleSlash {
       get {
         paged { (pager: Pager, dateFrom: Option[ZonedDateTime], dateTo: Option[ZonedDateTime]) =>
-          onSuccess(service.tokens(apiUser, pager, dateFrom, dateTo)) { pagTokens =>
+          onSuccess(Effect[F].toIO(service.tokens(apiUser, pager, dateFrom, dateTo)).unsafeToFuture()) { pagTokens =>
             respondWithPaginationHeaders(pager, pagTokens) {
               complete(SuccessResp(GenericSuccess, data = pagTokens.result))
             }
@@ -87,9 +86,9 @@ class MspTokensRoute private[ocpi](
       path("authorize") {
         (post & optionalEntity(as[LocationReferences])) { lr =>
           complete {
-            service.authorize(apiUser, tokenUid, lr).mapRight { authInfo =>
+            service.authorize(apiUser, tokenUid, lr).mapRight( authInfo =>
               SuccessResp(GenericSuccess, data = authInfo)
-            }
+            )
           }
         }
       }

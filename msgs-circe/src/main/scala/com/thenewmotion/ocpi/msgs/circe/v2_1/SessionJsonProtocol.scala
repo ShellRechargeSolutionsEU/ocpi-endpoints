@@ -13,11 +13,11 @@ trait SessionJsonProtocol {
   implicit val sessionIdE: Encoder[SessionId] = stringEncoder(_.value)
   implicit val sessionIdD: Decoder[SessionId] = tryStringDecoder(SessionId.apply)
 
-  implicit val sessionE: Encoder[Session] = deriveEncoder
-  implicit val sessionD: Decoder[Session] = deriveDecoder
+  implicit val sessionE: Encoder[Session] = deriveConfiguredEncoder
+  implicit val sessionD: Decoder[Session] = deriveConfiguredDecoder
 
-  implicit val sessionPatchE: Encoder[SessionPatch] = deriveEncoder
-  implicit val sessionPatchD: Decoder[SessionPatch] = deriveDecoder
+  implicit val sessionPatchE: Encoder[SessionPatch] = deriveConfiguredEncoder
+  implicit val sessionPatchD: Decoder[SessionPatch] = deriveConfiguredDecoder
 }
 
 object SessionJsonProtocol extends SessionJsonProtocol

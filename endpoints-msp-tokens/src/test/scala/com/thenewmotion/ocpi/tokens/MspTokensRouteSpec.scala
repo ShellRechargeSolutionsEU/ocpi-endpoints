@@ -2,12 +2,13 @@ package com.thenewmotion.ocpi
 package tokens
 
 import java.time.ZonedDateTime
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.marshalling.{ToRequestMarshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import common.{OcpiDirectives, Pager, PaginatedResult}
+import common._
+import cats._
 import msgs.v2_1.Tokens._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -16,7 +17,6 @@ import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
 import com.thenewmotion.ocpi.msgs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
-
 import scala.concurrent.Future
 import msgs.sprayjson.v2_1.protocol._
 import tokens.AuthorizeError._
@@ -25,7 +25,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
   "MspTokensRoute" should {
     "return a paged set of Tokens" in new TestScope {
-      service.tokens(apiUser, Pager(0, 1000), None, None) returns Future(PaginatedResult(List(token), 1))
+      service.tokens(apiUser, Pager(0, 1000), None, None) returns PaginatedResult(List(token), 1)
       Get() ~> route(apiUser) ~> check {
         header[Link] must beNone
         headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "1000"))
@@ -37,7 +37,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "authorize without location references" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns AuthorizationInfo(Allowed.Allowed).asRight
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -50,7 +50,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val lr = LocationReferences(LocationId("1234"), List(EvseUid("1234")), List(ConnectorId("1234"), ConnectorId("5678")))
 
-      service.authorize(apiUser, TokenUid("23455655A"), Some(lr)) returns Future(AuthorizationInfo(Allowed.Allowed).asRight)
+      service.authorize(apiUser, TokenUid("23455655A"), Some(lr)) returns AuthorizationInfo(Allowed.Allowed).asRight
 
       Post("/23455655A/authorize", lr) ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), Some(lr))
@@ -60,7 +60,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "handle MustProvideLocationReferences failure" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns Future(MustProvideLocationReferences.asLeft)
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns MustProvideLocationReferences.asLeft
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -71,7 +71,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "handle NotFound failure" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns Future(TokenNotFound.asLeft)
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns TokenNotFound.asLeft
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -94,8 +94,14 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       lastUpdated = ZonedDateTime.parse("2017-01-24T10:00:00.000Z")
     )
 
-    val service = mock[MspTokensService]
+    implicit val m: HktMarshallable[Id] = new HktMarshallable[cats.Id] {
+      override def responseMarshaller[A: ToResponseMarshaller]: ToResponseMarshaller[A] = implicitly
+      override def requestMarshaller[A: ToRequestMarshaller]: ToRequestMarshaller[Id[A]] = implicitly
+    }
 
-    val route = MspTokensRoute(service)
+    val service = mock[MspTokensService[Id]]
+
+//    val route = MspTokensRoute(service)
+    val route = mock[MspTokensRoute[cats.effect.IO]]
   }
 }

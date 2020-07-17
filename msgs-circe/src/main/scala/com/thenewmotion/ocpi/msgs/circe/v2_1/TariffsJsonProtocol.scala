@@ -12,17 +12,17 @@ trait TariffsJsonProtocol {
   implicit val tariffIdE: Encoder[TariffId] = stringEncoder(_.value)
   implicit val tariffIdD: Decoder[TariffId] = tryStringDecoder(TariffId.apply)
 
-  implicit val priceComponentE: Encoder[PriceComponent] = deriveEncoder
-  implicit val priceComponentD: Decoder[PriceComponent] = deriveDecoder
+  implicit val priceComponentE: Encoder[PriceComponent] = deriveConfiguredEncoder
+  implicit val priceComponentD: Decoder[PriceComponent] = deriveConfiguredDecoder
 
-  implicit val tariffRestrictionsE: Encoder[TariffRestrictions] = deriveEncoder
-  implicit val tariffRestrictionsD: Decoder[TariffRestrictions] = deriveDecoder
+  implicit val tariffRestrictionsE: Encoder[TariffRestrictions] = deriveConfiguredEncoder
+  implicit val tariffRestrictionsD: Decoder[TariffRestrictions] = deriveConfiguredDecoder
 
-  implicit val tariffElementE: Encoder[TariffElement] = deriveEncoder
-  implicit val tariffElementD: Decoder[TariffElement] = deriveDecoder
+  implicit val tariffElementE: Encoder[TariffElement] = deriveConfiguredEncoder
+  implicit val tariffElementD: Decoder[TariffElement] = deriveConfiguredDecoder
 
-  implicit val tariffE: Encoder[Tariff] = deriveEncoder
-  implicit val tariffD: Decoder[Tariff] = deriveDecoder
+  implicit val tariffE: Encoder[Tariff] = deriveConfiguredEncoder
+  implicit val tariffD: Decoder[Tariff] = deriveConfiguredDecoder
 }
 
 object TariffsJsonProtocol extends TariffsJsonProtocol

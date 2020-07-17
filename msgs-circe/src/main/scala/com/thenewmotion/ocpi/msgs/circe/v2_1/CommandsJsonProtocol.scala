@@ -11,20 +11,20 @@ import LocationsJsonProtocol._
 import SessionJsonProtocol._
 
 trait CommandsJsonProtocol {
-  implicit val commandResponseE: Encoder[CommandResponse] = deriveEncoder
-  implicit val commandResponseD: Decoder[CommandResponse] = deriveDecoder
+  implicit val commandResponseE: Encoder[CommandResponse] = deriveConfiguredEncoder
+  implicit val commandResponseD: Decoder[CommandResponse] = deriveConfiguredDecoder
 
-  implicit val reserveNowE: Encoder[Command.ReserveNow] = deriveEncoder
-  implicit val reserveNowD: Decoder[Command.ReserveNow] = deriveDecoder
+  implicit val reserveNowE: Encoder[Command.ReserveNow] = deriveConfiguredEncoder
+  implicit val reserveNowD: Decoder[Command.ReserveNow] = deriveConfiguredDecoder
 
-  implicit val startSessionE: Encoder[Command.StartSession] = deriveEncoder
-  implicit val startSessionD: Decoder[Command.StartSession] = deriveDecoder
+  implicit val startSessionE: Encoder[Command.StartSession] = deriveConfiguredEncoder
+  implicit val startSessionD: Decoder[Command.StartSession] = deriveConfiguredDecoder
 
-  implicit val stopSessionE: Encoder[Command.StopSession] = deriveEncoder
-  implicit val stopSessionD: Decoder[Command.StopSession] = deriveDecoder
+  implicit val stopSessionE: Encoder[Command.StopSession] = deriveConfiguredEncoder
+  implicit val stopSessionD: Decoder[Command.StopSession] = deriveConfiguredDecoder
 
-  implicit val unlockConnectorE: Encoder[UnlockConnector] = deriveEncoder
-  implicit val unlockConnectorD: Decoder[UnlockConnector] = deriveDecoder
+  implicit val unlockConnectorE: Encoder[UnlockConnector] = deriveConfiguredEncoder
+  implicit val unlockConnectorD: Decoder[UnlockConnector] = deriveConfiguredDecoder
 }
 
 object CommandsJsonProtocol extends CommandsJsonProtocol

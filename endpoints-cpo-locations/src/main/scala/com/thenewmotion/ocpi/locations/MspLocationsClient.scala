@@ -1,10 +1,11 @@
 package com.thenewmotion.ocpi.locations
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext}
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.stream.Materializer
+import cats.effect.{ContextShift, IO}
 import com.thenewmotion.ocpi.common.{ClientObjectUri, ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
@@ -31,9 +32,10 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer,
     successU: SuccessRespUnMar[T]
-  ): Future[ErrorRespOr[T]] =
+  ): IO[ErrorRespOr[T]] =
     singleRequest[T](Get(uri.value), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not retrieve data from ${uri.value}. Reason: $err")
@@ -47,8 +49,9 @@ class MspLocationsClient(
     data: T
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     singleRequest[Unit](Put(uri.value, data), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not upload data to ${uri.value}. Reason: $err")
@@ -62,8 +65,9 @@ class MspLocationsClient(
     patch: T
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     singleRequest[Unit](Patch(uri.value, patch), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not update data at ${uri.value}. Reason: $err")
@@ -76,8 +80,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Location]] =
+  ): IO[ErrorRespOr[Location]] =
     get(uri, authToken)
 
   def getEvse(
@@ -85,8 +90,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Evse]] =
+  ): IO[ErrorRespOr[Evse]] =
     get(uri, authToken)
 
   def getConnector(
@@ -94,8 +100,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Connector]] =
+  ): IO[ErrorRespOr[Connector]] =
     get(uri, authToken)
 
   def uploadLocation(
@@ -104,8 +111,9 @@ class MspLocationsClient(
     location: Location
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     upload(uri, authToken, location)
 
   def uploadEvse(
@@ -114,8 +122,9 @@ class MspLocationsClient(
     evse: Evse
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     upload(uri, authToken, evse)
 
   def uploadConnector(
@@ -124,8 +133,9 @@ class MspLocationsClient(
     connector: Connector
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     upload(uri, authToken, connector)
 
   def updateLocation(
@@ -134,8 +144,9 @@ class MspLocationsClient(
     location: LocationPatch
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     update(uri, authToken, location)
 
   def updateEvse(
@@ -144,8 +155,9 @@ class MspLocationsClient(
     evse: EvsePatch
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     update(uri, authToken, evse)
 
   def updateConnector(
@@ -154,7 +166,8 @@ class MspLocationsClient(
     connector: ConnectorPatch
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Unit]] =
+  ): IO[ErrorRespOr[Unit]] =
     update(uri, authToken, connector)
 }
