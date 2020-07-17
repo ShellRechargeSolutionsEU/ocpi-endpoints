@@ -1,12 +1,13 @@
 package com.thenewmotion.ocpi
 package registration
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.client.RequestBuilding._
 import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
+import cats.effect.{ContextShift, IO}
 import common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import msgs.Ownership.{Ours, Theirs}
 import msgs.Versions._
@@ -29,8 +30,9 @@ class RegistrationClient(
     token: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[Either[RegistrationError, List[Version]]] = {
+  ): IO[Either[RegistrationError, List[Version]]] = {
     def errorMsg = s"Could not retrieve the versions information from $uri with token $token."
     val regError = VersionsRetrievalFailed
 
@@ -38,7 +40,7 @@ class RegistrationClient(
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
+    } handleErrorWith { t => logger.error(errorMsg, t); IO.pure(regError.asLeft) }
   }
 
   def getTheirVersionDetails(
@@ -46,8 +48,9 @@ class RegistrationClient(
     token: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[Either[RegistrationError, VersionDetails]] = {
+  ): IO[Either[RegistrationError, VersionDetails]] = {
     def errorMsg = s"Could not retrieve the version details from $uri with token $token."
     val regError = VersionDetailsRetrievalFailed
 
@@ -55,7 +58,7 @@ class RegistrationClient(
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
+    } handleErrorWith { t => logger.error(errorMsg, t); IO.pure(regError.asLeft) }
   }
 
   def sendCredentials(
@@ -64,8 +67,9 @@ class RegistrationClient(
     credToConnectToUs: Creds[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[Either[RegistrationError, Creds[Theirs]]] = {
+  ): IO[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token " +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = SendingCredentialsFailed
@@ -76,7 +80,7 @@ class RegistrationClient(
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
+    } handleErrorWith { t => logger.error(errorMsg, t); IO.pure(regError.asLeft) }
   }
 
   def updateCredentials(
@@ -85,8 +89,9 @@ class RegistrationClient(
     credToConnectToUs: Creds[Ours]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[Either[RegistrationError, Creds[Theirs]]] = {
+  ): IO[Either[RegistrationError, Creds[Theirs]]] = {
     def errorMsg = s"Could not retrieve their credentials from $theirCredUrl with token" +
       s"$tokenToConnectToThem when sending our credentials $credToConnectToUs."
     val regError = UpdatingCredentialsFailed
@@ -97,6 +102,6 @@ class RegistrationClient(
       _.bimap(err => {
         logger.error(errorMsg + s" Reason: $err"); regError
       }, _.data)
-    } recover { case t => logger.error(errorMsg, t); regError.asLeft }
+    } handleErrorWith { t => logger.error(errorMsg, t); IO.pure(regError.asLeft) }
   }
 }

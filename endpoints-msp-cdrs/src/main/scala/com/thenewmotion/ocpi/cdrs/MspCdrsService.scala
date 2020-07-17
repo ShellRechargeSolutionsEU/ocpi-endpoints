@@ -3,12 +3,12 @@ package cdrs
 
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{Cdr, CdrId}
 import msgs.GlobalPartyId
-import scala.concurrent.Future
+
 
 /**
   * All methods are to be implemented in an idempotent fashion.
   */
-trait MspCdrsService {
+trait MspCdrsService[F[_]] {
 
   /**
     * @return Either#Right if the cdr has been created
@@ -16,7 +16,7 @@ trait MspCdrsService {
   def createCdr(
     globalPartyId: GlobalPartyId,
     cdr: Cdr
-  ): Future[Either[CdrsError, Unit]]
+  ): F[Either[CdrsError, Unit]]
 
   /**
     * @return existing Cdr or Error if Cdr couldn't be found
@@ -24,5 +24,5 @@ trait MspCdrsService {
   def cdr(
     globalPartyId: GlobalPartyId,
     cdrId: CdrId
-  ): Future[Either[CdrsError, Cdr]]
+  ): F[Either[CdrsError, Cdr]]
 }

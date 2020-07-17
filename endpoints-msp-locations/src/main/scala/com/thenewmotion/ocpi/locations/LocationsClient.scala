@@ -2,18 +2,17 @@ package com.thenewmotion.ocpi
 package locations
 
 import java.time.ZonedDateTime
-
 import _root_.akka.NotUsed
 import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.model.Uri
-import common.{ErrRespUnMar, OcpiClient, PaginatedSource, PagedRespUnMar}
-import msgs.v2_1.Locations.Location
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
-
-import scala.concurrent.{ExecutionContext, Future}
+import cats.effect.{ContextShift, IO}
+import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, PagedRespUnMar, PaginatedSource}
+import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
-import msgs.AuthToken
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
+import scala.concurrent.ExecutionContext
 
 class LocationsClient(
   implicit http: HttpExt,
@@ -29,8 +28,9 @@ class LocationsClient(
     pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Iterable[Location]]] =
+  ): IO[ErrorRespOr[Iterable[Location]]] =
     traversePaginatedResource[Location](uri, auth, dateFrom, dateTo, pageLimit)
 
   def locationsSource(

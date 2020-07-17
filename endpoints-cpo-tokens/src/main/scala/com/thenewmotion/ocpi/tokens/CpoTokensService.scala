@@ -1,6 +1,7 @@
 package com.thenewmotion.ocpi
 package tokens
 
+import cats.Applicative
 import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import msgs.GlobalPartyId
 import msgs.v2_1.Tokens._
@@ -8,27 +9,28 @@ import cats.syntax.either._
 import cats.syntax.option._
 import com.thenewmotion.ocpi.tokens.TokenError.IncorrectTokenId
 
-import scala.concurrent.Future
 
 /**
-  * All methods are to be implemented in an idempotent fashion.
+  * All methods are to be implemented with idempotency semantics.
   */
-trait CpoTokensService {
+trait CpoTokensService[F[_]] {
 
   /**
     * @return retrieve the token if it exists, otherwise returns TokenNotFound Error
     */
-  def token(globalPartyId: GlobalPartyId, tokenUid: TokenUid): Future[Either[TokenError, Token]]
+  def token(globalPartyId: GlobalPartyId, tokenUid: TokenUid): F[Either[TokenError, Token]]
 
   protected[tokens] def createOrUpdateToken(
     apiUser: GlobalPartyId,
     tokenUid: TokenUid,
     token: Token
-  ): Future[Either[TokenError, CreateOrUpdateResult]] = {
+  )(
+    implicit A: Applicative[F]
+  ): F[Either[TokenError, CreateOrUpdateResult]] = {
     if (token.uid == tokenUid) {
       createOrUpdateToken(apiUser, token)
     } else
-      Future.successful(
+      Applicative[F].pure(
         IncorrectTokenId(s"Token id from Url is $tokenUid, but id in JSON body is ${token.uid}".some).asLeft
       )
   }
@@ -39,7 +41,7 @@ trait CpoTokensService {
   def createOrUpdateToken(
     globalPartyId: GlobalPartyId,
     token: Token
-  ): Future[Either[TokenError, CreateOrUpdateResult]]
+  ): F[Either[TokenError, CreateOrUpdateResult]]
 
   /**
     * returns TokenUpdateFailed if an error occurred.
@@ -48,5 +50,5 @@ trait CpoTokensService {
     globalPartyId: GlobalPartyId,
     tokenUid: TokenUid,
     tokenPatch: TokenPatch
-  ): Future[Either[TokenError, Unit]]
+  ): F[Either[TokenError, Unit]]
 }

@@ -25,6 +25,7 @@ test-output/
 .classpath_nb
 
 #sbt
+.bsp
 .history
 .bsp
 

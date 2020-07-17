@@ -1,18 +1,17 @@
 package com.thenewmotion.ocpi.sessions
 
 import java.time.ZonedDateTime
-
 import akka.NotUsed
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
 import akka.stream.scaladsl.Source
+import cats.effect.{ContextShift, IO}
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, PagedRespUnMar, PaginatedSource}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Sessions.Session
-
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class SessionsClient(
   implicit http: HttpExt,
@@ -28,8 +27,9 @@ class SessionsClient(
     pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[Iterable[Session]]] =
+  ): IO[ErrorRespOr[Iterable[Session]]] =
     traversePaginatedResource[Session](uri, auth, Some(dateFrom), dateTo, pageLimit)
 
   def sessionsSource(

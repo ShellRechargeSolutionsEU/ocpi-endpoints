@@ -3,36 +3,40 @@ package registration
 
 import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
-
-import scala.concurrent.{ExecutionContext, Future}
-import msgs.Versions.EndpointIdentifier.Credentials
-import msgs.Versions.{Version, VersionDetails, VersionNumber}
-import msgs.v2_1.CommonTypes._
-import msgs.v2_1.Credentials.Creds
-import msgs.Ownership.{Ours, Theirs}
-import msgs._
-import RegistrationError._
 import cats.data.EitherT
+import cats.effect.{ContextShift, IO}
 import cats.syntax.either._
-import cats.instances.future._
+import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
+import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Credentials
+import com.thenewmotion.ocpi.msgs.Versions.{Version, VersionDetails, VersionNumber}
+import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
+import com.thenewmotion.ocpi.msgs.v2_1.Credentials.Creds
+import com.thenewmotion.ocpi.registration.RegistrationError._
+import scala.concurrent.ExecutionContext
 
+/**
+  * Requires IO to call the other side during registration.
+  */
 class RegistrationService(
   client: RegistrationClient,
-  repo: RegistrationRepo,
+  repo: RegistrationRepo[IO],
   ourGlobalPartyId: GlobalPartyId,
   ourPartyName: String,
   ourVersions: Set[VersionNumber],
   ourVersionsUrl: Url,
   ourWebsite: Option[Url] = None,
   ourLogo: Option[Image] = None
-) extends FutureEitherUtils {
+)(
+  implicit cs: ContextShift[IO]
+) extends IOEitherUtils {
 
   private val logger = Logger(getClass)
   private def redact(s: String) = s.take(3) + "**REDACTED**"
 
   private def errIfRegistered(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Result[RegistrationError, Unit] =
+  ): Result[RegistrationError, Unit] =
     result {
       repo.isPartyRegistered(globalPartyId).map {
         case true =>
@@ -45,7 +49,7 @@ class RegistrationService(
   private def errIfNotRegistered(
     globalPartyId: GlobalPartyId,
     error: GlobalPartyId => RegistrationError = WaitingForRegistrationRequest
-  )(implicit ec: ExecutionContext): Result[RegistrationError, Unit] =
+  ): Result[RegistrationError, Unit] =
     result {
       repo.isPartyRegistered(globalPartyId).map {
         case true => ().asRight
@@ -70,7 +74,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Registration initiated by {}, for {}", globalPartyId: Any, version: Any)
 
     (for {
@@ -98,7 +102,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Update credentials request sent by {}, for {}", creds.globalPartyId: Any, version: Any)
 
     def errIfGlobalPartyIdChangedAndTaken: Result[RegistrationError, Unit] =
@@ -145,7 +149,7 @@ class RegistrationService(
 
   def reactToDeleteCredsRequest(
     globalPartyId: GlobalPartyId
-  )(implicit ec: ExecutionContext): Future[Either[RegistrationError, Unit]] = {
+  ): IO[Either[RegistrationError, Unit]] = {
     logger.info("delete credentials request sent by {}", globalPartyId)
 
     (for {
@@ -162,7 +166,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: Materializer) = {
+  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
     // see https://github.com/typesafehub/scalalogging/issues/16
     logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.sendCredentials, errIfRegistered)
@@ -172,7 +176,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: Materializer)= {
+  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
     logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.updateCredentials, errIfNotRegistered(_, WaitingForRegistrationRequest))
   }
@@ -181,11 +185,11 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri,
-    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => Future[Either[RegistrationError, Creds[Theirs]]],
+    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => IO[Either[RegistrationError, Creds[Theirs]]],
     registrationCheck: GlobalPartyId => Result[RegistrationError, Unit]
-  )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Theirs]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
 
-    def getCredsEndpoint(verDet: VersionDetails) = Future.successful(
+    def getCredsEndpoint(verDet: VersionDetails) = IO.pure(
       verDet.endpoints.find(_.identifier == Credentials) toRight {
         logger.debug("Credentials endpoint not found in retrieved endpoints for version {}", verDet.version)
         SendingCredentialsFailed: RegistrationError
@@ -240,7 +244,7 @@ class RegistrationService(
     } yield theirVerDetails
   }
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId)(implicit ec: ExecutionContext): Future[Either[RegistrationError, Creds[Ours]]] =
+  def credsToConnectToUs(globalPartyId: GlobalPartyId): IO[Either[RegistrationError, Creds[Ours]]] =
     (for {
       theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight UnknownParty(globalPartyId)))
     } yield generateCreds(theirToken)).value
@@ -252,9 +256,9 @@ class RegistrationService(
   }
 }
 
-trait FutureEitherUtils {
-  type Result[E, T] = EitherT[Future, E, T]
+trait IOEitherUtils {
+  type Result[E, T] = EitherT[IO, E, T]
 
-  protected def result[L, T](future: Future[Either[L, T]]): Result[L, T] = EitherT(future)
-  protected def result[L, T](value: Either[L, T]): Result[L, T] = EitherT(Future.successful(value))
+  protected def result[L, T](effect: IO[Either[L, T]]): Result[L, T] = EitherT(effect)
+  protected def result[L, T](value: Either[L, T]): Result[L, T] = EitherT(IO.pure(value))
 }

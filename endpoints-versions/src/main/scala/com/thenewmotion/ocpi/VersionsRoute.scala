@@ -1,36 +1,34 @@
 package com.thenewmotion.ocpi
 
 import java.time.ZonedDateTime
-
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.http.scaladsl.server.{PathMatcher1, Route}
-import VersionRejections._
-import VersionsRoute.OcpiVersionConfig
+import cats.effect.Effect
 import com.thenewmotion.ocpi
-import common.{ErrRespMar, OcpiDirectives, OcpiExceptionHandler, SuccessRespMar}
-import msgs.{GlobalPartyId, SuccessResp, Url, Versions}
-import msgs.OcpiStatusCode._
-import msgs.Versions._
-
-import scala.concurrent.Future
+import com.thenewmotion.ocpi.VersionRejections._
+import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.Versions._
+import com.thenewmotion.ocpi.msgs.{GlobalPartyId, SuccessResp, Url, Versions}
 
 object VersionsRoute {
 
-  def apply(
-    versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
+  def apply[F[_]: Effect: HktMarshallable](
+    versions: => F[Map[VersionNumber, OcpiVersionConfig]]
   )(
     implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
     successVerDetM: SuccessRespMar[VersionDetails],
     errorM: ErrRespMar
-  ): VersionsRoute = new VersionsRoute(versions)
+  ): VersionsRoute[F] = new VersionsRoute(versions)
 
   case class OcpiVersionConfig(
     endPoints: Map[EndpointIdentifier, Either[Url, GuardedRoute]]
   )
 }
 
-class VersionsRoute private[ocpi](
-  versions: => Future[Map[VersionNumber, OcpiVersionConfig]]
+class VersionsRoute[F[_]: Effect: HktMarshallable] private[ocpi](
+  versions: => F[Map[VersionNumber, OcpiVersionConfig]]
 )(
   implicit successRespListVerM: SuccessRespMar[List[Versions.Version]],
   successVerDetM: SuccessRespMar[VersionDetails],
@@ -48,7 +46,7 @@ class VersionsRoute private[ocpi](
 
   def versionsRoute(
     uri: Uri
-  ): Route = onSuccess(versions) {
+  ): Route = onSuccess(Effect[F].toIO(versions).unsafeToFuture()) {
     case v if v.nonEmpty =>
       complete(
         SuccessResp(
@@ -104,7 +102,7 @@ class VersionsRoute private[ocpi](
           versionsRoute(uri)
         } ~
         pathPrefix(VersionMatcher) { version =>
-          onSuccess(versions) { vers =>
+          onSuccess(Effect[F].toIO(versions).unsafeToFuture()) { vers =>
             val route = for {
               supportedVersion <- vers.get(version)
             } yield versionDetailsRoute(version, supportedVersion, uri, apiUser)

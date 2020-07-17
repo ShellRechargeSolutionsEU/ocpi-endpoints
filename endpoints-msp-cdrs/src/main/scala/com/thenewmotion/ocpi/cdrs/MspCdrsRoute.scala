@@ -6,28 +6,26 @@ import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes._
 import _root_.akka.http.scaladsl.server.Route
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import msgs.ErrorResp
-import common._
-import cdrs.CdrsError._
+import cats.Functor
+import com.thenewmotion.ocpi.cdrs.CdrsError._
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.{ErrorResp, _}
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.{Cdr, CdrId}
-import msgs._
-import msgs.OcpiStatusCode._
-
-import scala.concurrent.ExecutionContext
 
 object MspCdrsRoute {
-  def apply(
-    service: MspCdrsService
+  def apply[F[_]: Functor: HktMarshallable](
+    service: MspCdrsService[F]
   )(
     implicit errorM: ErrRespMar,
     successUnit: SuccessRespMar[Unit],
     successCdr: SuccessRespMar[Cdr],
     cdrU: FromEntityUnmarshaller[Cdr]
-  ): MspCdrsRoute = new MspCdrsRoute(service)
+  ): MspCdrsRoute[F] = new MspCdrsRoute(service)
 }
 
-class MspCdrsRoute private[ocpi](
-  service: MspCdrsService
+class MspCdrsRoute[F[_]: Functor: HktMarshallable] private[ocpi](
+  service: MspCdrsService[F]
 )(
   implicit errorM: ErrRespMar,
   successUnit: SuccessRespMar[Unit],
@@ -51,17 +49,15 @@ class MspCdrsRoute private[ocpi](
 
   def apply(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
   private val CdrIdSegment = Segment.map(CdrId(_))
 
+  import HktMarshallableSyntax._
+
   private[cdrs] def routeWithoutRh(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ) = {
     authPathPrefixGlobalPartyIdEquality(apiUser) {
       (post & pathEndOrSingleSlash) {

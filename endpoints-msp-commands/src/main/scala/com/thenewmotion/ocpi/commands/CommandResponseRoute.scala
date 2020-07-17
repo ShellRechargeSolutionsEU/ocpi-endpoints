@@ -4,14 +4,14 @@ package commands
 import java.util.UUID
 import _root_.akka.http.scaladsl.server.Route
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
-import common._
-import msgs._
-import scala.concurrent.Future
+import cats.Functor
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
 
 object CommandResponseRoute {
-  def apply(
-    callback: (GlobalPartyId, UUID, CommandResponseType) => Future[Option[SuccessResp[Unit]]]
+  def apply[F[_]: Functor: HktMarshallable](
+    callback: (GlobalPartyId, UUID, CommandResponseType) => F[Option[SuccessResp[Unit]]]
   )(
     implicit errorM: ErrRespMar,
     succM: SuccessRespMar[Unit],
@@ -19,8 +19,8 @@ object CommandResponseRoute {
   ) = new CommandResponseRoute(callback)
 }
 
-class CommandResponseRoute private[ocpi](
-  callback: (GlobalPartyId, UUID, CommandResponseType) => Future[Option[SuccessResp[Unit]]]
+class CommandResponseRoute[F[_]: Functor: HktMarshallable] private[ocpi](
+  callback: (GlobalPartyId, UUID, CommandResponseType) => F[Option[SuccessResp[Unit]]]
 )(
   implicit errorM: ErrRespMar,
   succM: SuccessRespMar[Unit],
@@ -32,6 +32,8 @@ class CommandResponseRoute private[ocpi](
     apiUser: GlobalPartyId
   ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
+
+  import HktMarshallableSyntax._
 
   private[commands] def routeWithoutRh(
     apiUser: GlobalPartyId

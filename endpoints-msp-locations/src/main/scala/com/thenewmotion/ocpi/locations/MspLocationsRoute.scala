@@ -6,18 +6,16 @@ import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes._
 import _root_.akka.http.scaladsl.server.Route
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import msgs.ErrorResp
-import common._
-import locations.LocationsError._
-import msgs.v2_1.Locations._
-import msgs._
-import msgs.OcpiStatusCode._
-
-import scala.concurrent.ExecutionContext
+import cats.Applicative
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.locations.LocationsError._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs.{ErrorResp, _}
+import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 
 object MspLocationsRoute {
-  def apply(
-    service: MspLocationsService
+  def apply[F[_]: Applicative: HktMarshallable](
+    service: MspLocationsService[F]
   )(
     implicit locationU: FromEntityUnmarshaller[Location],
     locationPU: FromEntityUnmarshaller[LocationPatch],
@@ -30,11 +28,11 @@ object MspLocationsRoute {
     successLocM: SuccessRespMar[Location],
     successEvseM: SuccessRespMar[Evse],
     successConnectorM: SuccessRespMar[Connector]
-  ): MspLocationsRoute = new MspLocationsRoute(service)
+  ): MspLocationsRoute[F] = new MspLocationsRoute(service)
 }
 
-class MspLocationsRoute private[ocpi](
-  service: MspLocationsService
+class MspLocationsRoute[F[_]: Applicative: HktMarshallable] private[ocpi](
+  service: MspLocationsService[F]
 )(
   implicit locationU: FromEntityUnmarshaller[Location],
   locationPU: FromEntityUnmarshaller[LocationPatch],
@@ -55,9 +53,9 @@ class MspLocationsRoute private[ocpi](
   ): ToResponseMarshaller[LocationsError] = {
     em.compose[LocationsError] { locationsError =>
       val statusCode = locationsError match {
-        case (_: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound)                   => NotFound
-        case (_: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed) => OK
-        case _                                                                                => InternalServerError
+        case _: LocationNotFound | _: EvseNotFound | _: ConnectorNotFound                   => NotFound
+        case _: LocationCreationFailed | _: EvseCreationFailed | _: ConnectorCreationFailed => OK
+        case _                                                                              => InternalServerError
       }
       statusCode -> ErrorResp(GenericClientFailure, locationsError.reason)
     }
@@ -65,8 +63,6 @@ class MspLocationsRoute private[ocpi](
 
   def apply(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ): Route =
     handleRejections(OcpiRejectionHandler.Default)(routeWithoutRh(apiUser))
 
@@ -74,10 +70,10 @@ class MspLocationsRoute private[ocpi](
   private val EvseUidSegment = Segment.map(EvseUid(_))
   private val ConnectorIdSegment = Segment.map(ConnectorId(_))
 
+  import HktMarshallableSyntax._
+
   private[locations] def routeWithoutRh(
     apiUser: GlobalPartyId
-  )(
-    implicit executionContext: ExecutionContext
   ) = {
     (authPathPrefixGlobalPartyIdEquality(apiUser) & pathPrefix(LocationIdSegment)) { locId =>
       pathEndOrSingleSlash {

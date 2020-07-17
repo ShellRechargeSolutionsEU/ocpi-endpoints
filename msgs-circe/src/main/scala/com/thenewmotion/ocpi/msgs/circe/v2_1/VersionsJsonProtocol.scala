@@ -11,14 +11,14 @@ trait VersionsJsonProtocol {
   implicit val versionNumberE: Encoder[VersionNumber] = stringEncoder(_.toString)
   implicit val versionNumberD: Decoder[VersionNumber] = tryStringDecoder(VersionNumber.apply)
 
-  implicit val versionE: Encoder[Version] = deriveEncoder
-  implicit val versionD: Decoder[Version] = deriveDecoder
+  implicit val versionE: Encoder[Version] = deriveConfiguredEncoder
+  implicit val versionD: Decoder[Version] = deriveConfiguredDecoder
 
-  implicit val endpointE: Encoder[Endpoint] = deriveEncoder
-  implicit val endpointD: Decoder[Endpoint] = deriveDecoder
+  implicit val endpointE: Encoder[Endpoint] = deriveConfiguredEncoder
+  implicit val endpointD: Decoder[Endpoint] = deriveConfiguredDecoder
 
-  implicit val versionDetailsE: Encoder[VersionDetails] = deriveEncoder
-  implicit val versionDetailsD: Decoder[VersionDetails] = deriveDecoder
+  implicit val versionDetailsE: Encoder[VersionDetails] = deriveConfiguredEncoder
+  implicit val versionDetailsD: Decoder[VersionDetails] = deriveConfiguredDecoder
 }
 
 object VersionsJsonProtocol extends VersionsJsonProtocol

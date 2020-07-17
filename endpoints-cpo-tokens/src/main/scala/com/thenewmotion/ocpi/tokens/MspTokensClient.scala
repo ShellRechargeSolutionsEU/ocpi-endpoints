@@ -5,13 +5,13 @@ import _root_.akka.http.scaladsl._
 import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
+import cats.effect.{ContextShift, IO}
 import client.RequestBuilding._
 import com.thenewmotion.ocpi.msgs.AuthToken
 import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import cats.syntax.either._
-
 import scala.concurrent._
 
 class MspTokensClient(
@@ -28,8 +28,9 @@ class MspTokensClient(
     locationReferences: Option[LocationReferences]
   )(
     implicit ec: ExecutionContext,
+    cs: ContextShift[IO],
     mat: Materializer
-  ): Future[ErrorRespOr[AuthorizationInfo]] = {
+  ): IO[ErrorRespOr[AuthorizationInfo]] = {
     val oldPath = endpointUri.path
     val authorizeUri = endpointUri.withPath {
       (if (oldPath.endsWithSlash) oldPath + tokenUid.value else  oldPath / tokenUid.value) / "authorize"
