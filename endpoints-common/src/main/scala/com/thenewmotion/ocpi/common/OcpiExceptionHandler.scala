@@ -16,7 +16,7 @@ object OcpiExceptionHandler extends BasicDirectives {
     implicit m: ErrRespMar
   ) = ExceptionHandler {
     case exception => extractRequest { request =>
-      logger.error(s"An error occurred processing: $request", exception)
+      logger.error(s"An error occurred processing: ${HttpLogging.redactHttpRequest(request)}", exception)
       complete {
         ( OK,
           ErrorResp(
