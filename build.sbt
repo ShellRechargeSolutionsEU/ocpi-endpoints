@@ -10,7 +10,7 @@ val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
 val `circe` = {
   val version = "0.12.3"
-
+  
   Seq(
     "io.circe" %% "circe-core" % version,
     "io.circe" %% "circe-generic-extras" % "0.12.2",
