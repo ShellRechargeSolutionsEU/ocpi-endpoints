@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.headers.{Authorization, RawHeader}
 object HttpLogging {
 
   private val redactedHeaders: Map[String, String => String] = Map(
-    Authorization.name -> (s => s.take("Token: 123".length))
+    Authorization.name -> (s => s.take("Token 123".length) + "**REDACTED**")
   )
 
   def redactHttpRequest(httpReq: HttpRequest): String =
