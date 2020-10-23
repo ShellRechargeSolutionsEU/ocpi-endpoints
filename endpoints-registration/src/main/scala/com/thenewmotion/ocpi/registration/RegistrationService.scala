@@ -28,6 +28,7 @@ class RegistrationService(
 ) extends FutureEitherUtils {
 
   private val logger = Logger(getClass)
+  private def redact(s: String) = s.take(3) + "**REDACTED**"
 
   private def errIfRegistered(
     globalPartyId: GlobalPartyId
@@ -70,7 +71,7 @@ class RegistrationService(
     version: VersionNumber,
     creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
-    logger.info("Registration initiated by {}, for {} creds: {}", globalPartyId, version, creds)
+    logger.info("Registration initiated by {}, for {}", globalPartyId: Any, version: Any)
 
     (for {
       _ <- errIfNotSupported(version)
@@ -98,7 +99,7 @@ class RegistrationService(
     version: VersionNumber,
     creds: Creds[Theirs]
   )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[RegistrationError, Creds[Ours]]] = {
-    logger.info("Update credentials request sent by {}, for {}, creds {}", creds.globalPartyId, version, creds)
+    logger.info("Update credentials request sent by {}, for {}", creds.globalPartyId: Any, version: Any)
 
     def errIfGlobalPartyIdChangedAndTaken: Result[RegistrationError, Unit] =
       // If they try and change the global party id, make sure it's not already taken
@@ -163,7 +164,7 @@ class RegistrationService(
     theirVersionsUrl: Uri
   )(implicit ec: ExecutionContext, mat: Materializer) = {
     // see https://github.com/typesafehub/scalalogging/issues/16
-    logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
+    logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.sendCredentials, errIfRegistered)
   }
 
@@ -172,7 +173,7 @@ class RegistrationService(
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
   )(implicit ec: ExecutionContext, mat: Materializer)= {
-    logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, ourToken: Any)
+    logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.updateCredentials, errIfNotRegistered(_, WaitingForRegistrationRequest))
   }
 
@@ -195,12 +196,12 @@ class RegistrationService(
       details <- getLatestCommonVersionDetails(ourToken, theirVersionsUrl)
       credEp <- result(getCredsEndpoint(details))
       theirCreds <- result {
-        logger.debug(s"issuing new token for party with initial authorization token: '$theirNewToken'")
+        logger.debug(s"issuing new token for party with initial authorization token: '${redact(theirNewToken.value)}'")
         credentialExchange(credEp.url, ourToken, generateCreds(theirNewToken))
       }
       _ <- registrationCheck(theirCreds.globalPartyId)
       _ <- result{
-        logger.debug(s"registration successful; agreed version: ${details.version}; theirCreds: $theirCreds")
+        logger.debug(s"registration successful; agreed version: ${details.version}; theirCreds: **REDACTED**")
         repo.persistInfoAfterConnectToThem(
           details.version,
           theirNewToken,
