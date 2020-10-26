@@ -109,6 +109,22 @@ trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extend
         hours.exceptionalOpenings mustEqual Nil
         hours.exceptionalClosings mustEqual Nil
       }
+
+      "deserialize missing twentyfourseven" in {
+        val hours =
+          parseAs[Hours]("""
+                           | {
+                           |   "regular_hours": [{
+                           |     "weekday": 1, "period_begin": "08:00", "period_end": "20:00"
+                           |   }]
+                           | }
+                         """.stripMargin)
+
+        hours.twentyfourseven mustEqual false
+        hours.regularHours.toList mustEqual List(RegularHours(1, "08:00", "20:00"))
+        hours.exceptionalOpenings mustEqual Nil
+        hours.exceptionalClosings mustEqual Nil
+      }
     }
 
     "GeoLocation" should {
