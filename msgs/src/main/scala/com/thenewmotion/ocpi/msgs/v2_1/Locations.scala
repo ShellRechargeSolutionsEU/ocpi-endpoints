@@ -209,7 +209,7 @@ object Locations {
   )
 
   case class Hours(
-    twentyfourseven: Boolean,
+    twentyfourseven: Boolean = false,
     regularHours: Iterable[RegularHours] = Nil,
     exceptionalOpenings: Iterable[ExceptionalPeriod] = Nil,
     exceptionalClosings: Iterable[ExceptionalPeriod] = Nil
