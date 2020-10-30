@@ -55,6 +55,10 @@ trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] exte
 
     "Time" should {
       testPair(LocalTime.of(13, 25), jsonStringToJson("13:25"))
+
+      "parse time without leading zero" in {
+        jsonToObj[LocalTime](jsonStringToJson("5:8")) === LocalTime.of(5, 8)
+      }
     }
 
     "Date" should {

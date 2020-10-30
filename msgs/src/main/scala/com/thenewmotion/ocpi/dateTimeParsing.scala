@@ -33,10 +33,10 @@ object ZonedDateTimeParser {
 object LocalTimeParser {
   private val formatter: DateTimeFormatter =
     new DateTimeFormatterBuilder()
+      .parseLenient()
       .appendValue(HOUR_OF_DAY, 2)
       .appendLiteral(':')
       .appendValue(MINUTE_OF_HOUR, 2)
-      .parseLenient()
       .toFormatter
 
   def format(dt: LocalTime): String = formatter.format(dt)
