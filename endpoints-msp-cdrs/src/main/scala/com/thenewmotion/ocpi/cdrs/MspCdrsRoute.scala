@@ -2,8 +2,10 @@ package com.thenewmotion.ocpi
 package cdrs
 
 import _root_.akka.http.scaladsl.marshalling.ToResponseMarshaller
-import _root_.akka.http.scaladsl.model.StatusCode
 import _root_.akka.http.scaladsl.model.StatusCodes._
+import _root_.akka.http.scaladsl.model.Uri.{Authority, Host}
+import _root_.akka.http.scaladsl.model.headers.Location
+import _root_.akka.http.scaladsl.model.{StatusCode, Uri}
 import _root_.akka.http.scaladsl.server.Route
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import msgs.ErrorResp
@@ -62,12 +64,24 @@ class MspCdrsRoute private[ocpi](
     apiUser: GlobalPartyId
   )(
     implicit executionContext: ExecutionContext
-  ) = {
+  ): Route = {
     (post & pathEndOrSingleSlash) {
-      entity(as[Cdr]) { cdr =>
-        complete {
-          service.createCdr(apiUser, cdr).mapRight { _ =>
-            (Created, SuccessResp(GenericSuccess))
+      (extractMatchedPath & extractHost ) { (path, host) =>
+        entity(as[Cdr]) { cdr =>
+          onSuccess(service.createCdr(apiUser, cdr)) { result =>
+            val locationHeader = if (result.isRight) {
+              val newCdrPath = path ?/ cdr.id.value
+              val authority = Authority.apply(Host(host))
+              respondWithHeader(Location(Uri(scheme = "https", authority = authority, path = newCdrPath)))
+            } else pass
+
+            locationHeader {
+              complete {
+                result.map { _ =>
+                  (Created, SuccessResp(GenericSuccess))
+                }
+              }
+            }
           }
         }
       }

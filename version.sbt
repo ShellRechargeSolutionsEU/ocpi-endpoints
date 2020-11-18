@@ -1,1 +1,1 @@
-version in ThisBuild := "1.1.0-LENIENT-TARIFF-PROTOCOL"
+version in ThisBuild := "1.1.1-LENIENT-TARIFF-PROTOCOL"

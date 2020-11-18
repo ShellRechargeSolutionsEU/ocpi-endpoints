@@ -16,6 +16,7 @@ import org.specs2.specification.Scope
 import cats.syntax.either._
 import com.thenewmotion.ocpi.common.OcpiDirectives
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+import akka.http.scaladsl.model.headers.{Location => LocationHeader}
 
 import scala.concurrent.Future
 
@@ -47,6 +48,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
       Post("/", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
         status mustEqual StatusCodes.Created
+        header[LocationHeader] must beSome(LocationHeader("https://example.com/12345"))
       }
     }
 
