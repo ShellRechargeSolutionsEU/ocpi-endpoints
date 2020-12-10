@@ -38,7 +38,7 @@ object CountryCode {
   private case class Impl(value: String) extends AnyVal with CountryCode
 
   def apply(value: String): CountryCode = {
-    require(value.length == 3, "Must be a 3-letter, ISO 3166-1 country code")
+    require(value.length == 3, s"Must be a 3-letter, ISO 3166-1 country code; got $value")
     Impl(value.toUpperCase)
   }
 
@@ -50,7 +50,7 @@ object Language {
   private case class Impl(value: String) extends AnyVal with Language
 
   def apply(value: String): Language = {
-    require(value.length == 2, "Must be a 2-letter, ISO 639-1 language code")
+    require(value.length == 2, s"Must be a 2-letter, ISO 639-1 language code; got $value")
     Impl(value.toUpperCase)
   }
 
@@ -68,7 +68,7 @@ object CurrencyCode {
   private case class Impl(value: String) extends AnyVal with CurrencyCode
 
   def apply(value: String): CurrencyCode = {
-    require(value.length == 3, "Must be a 3-letter, ISO 4217 Code")
+    require(value.length == 3, s"Must be a 3-letter, ISO 4217 Code; got $value")
     Impl(value.toUpperCase)
   }
 
