@@ -23,6 +23,8 @@ case class PaginationException(uri: Uri, cause: Throwable)
 
 object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
+  val DefaultPageLimit = 100
+
   private def singleRequestWithNextLink[T](
     http: HttpExt,
     req: HttpRequest,
@@ -46,7 +48,7 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
     dateTo: Option[ZonedDateTime] = None,
-    limit: Int = 100
+    limit: Int = DefaultPageLimit
   )(implicit ec: ExecutionContext, mat: Materializer,
     successU: PagedRespUnMar[T], errorU: ErrRespUnMar): Source[T, NotUsed] = {
     val query = Query(Map(
