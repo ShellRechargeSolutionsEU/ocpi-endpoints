@@ -32,9 +32,13 @@ trait EitherUnmarshalling {
       }
 
       for {
-        e <- value.httpEntity.toStrict(10.seconds)
+        e <- value.httpEntity.toStrict(EitherUnmarshalling.Timeout)
         res <- right(e).recoverWith(fallbackLeft(e))
       } yield res
     }
 
+}
+
+object EitherUnmarshalling {
+  val Timeout: FiniteDuration = 20.seconds
 }
