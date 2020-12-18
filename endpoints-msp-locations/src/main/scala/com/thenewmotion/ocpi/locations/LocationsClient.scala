@@ -25,22 +25,24 @@ class LocationsClient(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Future[ErrorRespOr[Iterable[Location]]] =
-    traversePaginatedResource[Location](uri, auth, dateFrom, dateTo)
+    traversePaginatedResource[Location](uri, auth, dateFrom, dateTo, pageLimit)
 
   def locationsSource(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Source[Location, NotUsed] =
-    PaginatedSource[Location](http, uri, auth, dateFrom, dateTo)
+    PaginatedSource[Location](http, uri, auth, dateFrom, dateTo, pageLimit)
 
 }

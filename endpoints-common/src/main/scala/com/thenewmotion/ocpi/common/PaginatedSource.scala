@@ -23,6 +23,8 @@ case class PaginationException(uri: Uri, cause: Throwable)
 
 object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
+  val DefaultPageLimit = 100
+
   private def singleRequestWithNextLink[T](
     http: HttpExt,
     req: HttpRequest,
@@ -46,12 +48,12 @@ object PaginatedSource extends AuthorizedRequests with EitherUnmarshalling with 
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
     dateTo: Option[ZonedDateTime] = None,
-    limit: Int = 100
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(implicit ec: ExecutionContext, mat: Materializer,
     successU: PagedRespUnMar[T], errorU: ErrRespUnMar): Source[T, NotUsed] = {
     val query = Query(Map(
       "offset" -> "0",
-      "limit" -> limit.toString) ++
+      "limit" -> pageLimit.toString) ++
       dateFrom.map("date_from" -> format(_)) ++
       dateTo.map("date_to" -> format(_))
     )

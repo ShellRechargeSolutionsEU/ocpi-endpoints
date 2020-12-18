@@ -60,7 +60,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
 
       val probe = TestProbe()
 
-      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), limit = 2)
+      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), pageLimit = 2)
         .runWith(TestSink.probe[TestData])
         .request(5)
         .expectNext(TestData("DATA1"), TestData("DATA2"), TestData("DATA3"), TestData("DATA4"))
@@ -92,7 +92,7 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
 
       val probe = TestProbe()
 
-      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), limit = 2)
+      PaginatedSource[TestData](http, dataUrl, AuthToken[Ours]("auth"), pageLimit = 2)
         .runWith(TestSink.probe[TestData])
         .request(5)
         .expectNext(TestData("DATA1"), TestData("DATA2"))
