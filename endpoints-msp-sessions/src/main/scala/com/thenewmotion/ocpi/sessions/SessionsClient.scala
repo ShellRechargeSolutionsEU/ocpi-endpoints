@@ -24,22 +24,24 @@ class SessionsClient(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: ZonedDateTime,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Future[ErrorRespOr[Iterable[Session]]] =
-    traversePaginatedResource[Session](uri, auth, Some(dateFrom), dateTo)
+    traversePaginatedResource[Session](uri, auth, Some(dateFrom), dateTo, pageLimit)
 
   def sessionsSource(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: ZonedDateTime,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Source[Session, NotUsed] =
-    PaginatedSource[Session](http, uri, auth, Some(dateFrom), dateTo)
+    PaginatedSource[Session](http, uri, auth, Some(dateFrom), dateTo, pageLimit)
 
 }

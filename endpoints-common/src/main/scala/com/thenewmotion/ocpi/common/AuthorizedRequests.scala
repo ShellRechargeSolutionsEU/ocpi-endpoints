@@ -2,8 +2,8 @@ package com.thenewmotion.ocpi.common
 
 import scala.concurrent.{ExecutionContext, Future}
 import akka.http.scaladsl.HttpExt
-import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, Location, RawHeader}
-import akka.http.scaladsl.model.{HttpHeader, HttpMessage, HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Location}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.stream.Materializer
 import com.thenewmotion.ocpi.Logger
 import com.thenewmotion.ocpi.msgs.AuthToken

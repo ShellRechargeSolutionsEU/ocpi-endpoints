@@ -25,22 +25,24 @@ class CdrsClient(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Future[ErrorRespOr[Iterable[Cdr]]] =
-    traversePaginatedResource[Cdr](uri, auth, dateFrom, dateTo)
+    traversePaginatedResource[Cdr](uri, auth, dateFrom, dateTo, pageLimit)
 
   def cdrsSource(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
     mat: Materializer
   ): Source[Cdr, NotUsed] =
-    PaginatedSource[Cdr](http, uri, auth, dateFrom, dateTo)
+    PaginatedSource[Cdr](http, uri, auth, dateFrom, dateTo, pageLimit)
 
 }

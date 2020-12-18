@@ -45,7 +45,7 @@ private[common] case class OcpiClientException(errorResp: ErrorResp)
 case class FailedRequestException(request: HttpRequest, response: HttpResponse, cause: Throwable)
   extends Exception("Failed to get response to OCPI request", cause)
 
-abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
+abstract class OcpiClient(implicit http: HttpExt)
   extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
   protected def singleRequestRawT[T : ClassTag](
@@ -78,7 +78,7 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
     dateTo: Option[ZonedDateTime] = None,
-    limit: Int = MaxNumItems
+    limit: Int
   )(
     implicit ec: ExecutionContext, mat: Materializer, successU: PagedRespUnMar[T], errorU: ErrRespUnMar
   ): Future[ErrorRespOr[Iterable[T]]] =
@@ -87,4 +87,8 @@ abstract class OcpiClient(MaxNumItems: Int = 100)(implicit http: HttpExt)
     }.recover {
       case OcpiClientException(errorResp) => errorResp.asLeft
     }
+}
+
+object OcpiClient {
+  val DefaultPageLimit: Int = PaginatedSource.DefaultPageLimit
 }

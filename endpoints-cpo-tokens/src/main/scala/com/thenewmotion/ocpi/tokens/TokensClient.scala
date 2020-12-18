@@ -22,7 +22,8 @@ class TokensClient(
     uri: Uri,
     auth: AuthToken[Ours],
     dateFrom: Option[ZonedDateTime] = None,
-    dateTo: Option[ZonedDateTime] = None
+    dateTo: Option[ZonedDateTime] = None,
+    pageLimit: Int = OcpiClient.DefaultPageLimit
   )(implicit ec: ExecutionContext, mat: Materializer): Future[Either[ErrorResp, Iterable[Token]]] =
-    traversePaginatedResource[Token](uri, auth, dateFrom, dateTo)
+    traversePaginatedResource[Token](uri, auth, dateFrom, dateTo, pageLimit)
 }
