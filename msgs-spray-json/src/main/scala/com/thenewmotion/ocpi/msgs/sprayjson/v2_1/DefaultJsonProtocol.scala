@@ -2,12 +2,13 @@ package com.thenewmotion.ocpi.msgs
 package sprayjson.v2_1
 
 import java.time.{Duration, LocalDate, LocalTime, ZonedDateTime}
-
 import OcpiStatusCode.SuccessCode
 import sprayjson.SimpleStringEnumSerializer._
 import v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
-import spray.json.{JsNumber, JsString, JsValue, JsonFormat, deserializationError}
+import spray.json.{JsNumber, JsString, JsValue, JsonFormat, JsonReader, RootJsonFormat, RootJsonReader, deserializationError}
+
+import scala.util.Try
 
 trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
 
@@ -127,7 +128,16 @@ trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
     }
   }
 
-  implicit val displayTextFormat = jsonFormat2(DisplayText)
+  implicit val displayTextFormat: RootJsonFormat[DisplayText] = jsonFormat2(DisplayText)
+
+  def successRespReader[D: JsonReader]: RootJsonReader[SuccessResp[D]] = ???
+
+  def successPagedRes[T: JsonFormat]: RootJsonReader[SuccessResp[Iterable[T]]] =
+    js => {
+      val withData = successRespFormat[Iterable[T]].read _
+      val withoutData = successRespUnitFormat.read(_: JsValue).copy(data = Iterable.empty[T])
+      Try(withData(js)).recover { case _ => withoutData(js) }.get
+    }
 }
 
 object DefaultJsonProtocol extends DefaultJsonProtocol

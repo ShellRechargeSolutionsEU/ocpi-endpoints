@@ -8,6 +8,6 @@ class CommonTypesSpec extends GenericCommonTypesSpec[JsValue, JsonReader, JsonWr
   import DefaultJsonProtocol._
 
   "Spray DefaultJsonProtocol" should {
-    runTests()
+    runTests(successPagedRes)
   }
 }
