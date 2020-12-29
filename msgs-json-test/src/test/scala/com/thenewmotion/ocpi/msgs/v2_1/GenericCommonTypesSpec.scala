@@ -11,7 +11,9 @@ import scala.language.higherKinds
 trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {
 
-  def runTests()(
+  type PagedResp[T] = SuccessResp[Iterable[T]]
+
+  def runTests(successPagedRespD: GenericJsonReader[PagedResp[Int]])(
     implicit zonedDateTimeE: GenericJsonWriter[ZonedDateTime],
     zonedDateTimeD: GenericJsonReader[ZonedDateTime],
     errorRespE: GenericJsonWriter[ErrorResp],
@@ -46,6 +48,16 @@ trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] exte
 
       "handle response with data" in {
         testPair(successResp2, parse(successRespJson2))
+      }
+
+      "handle both cases with a single Reader" in {
+        val resp = jsonToObj(parse(successRespJson1))(successPagedRespD)
+        resp must haveClass[PagedResp[Int]]
+        resp === successResp1.copy(data = Iterable.empty)
+
+        val resp2 = jsonToObj(parse(successRespJson3))(successPagedRespD)
+        resp2 must haveClass[PagedResp[Int]]
+        resp2.copy(data = resp2.data.toList) === successResp3.copy(data = successResp3.data.toList)
       }
     }
 
@@ -93,11 +105,27 @@ trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] exte
        |}
  """.stripMargin
 
+  val successRespJson3: String =
+    s"""
+       |{
+       |  "status_code" : 1000,
+       |  "status_message" : "It worked!",
+       |  "timestamp": "2010-01-01T00:00:00Z",
+       |  "data": [42, 43]
+       |}
+ """.stripMargin
+
   val successResp2 =
     SuccessResp(
       GenericSuccess,
       Some("It worked!"),
       date1, 42)
+
+  val successResp3 =
+    SuccessResp(
+      GenericSuccess,
+      Some("It worked!"),
+      date1, Iterable(42,43))
 
   val genericErrorRespJson1: String =
     s"""

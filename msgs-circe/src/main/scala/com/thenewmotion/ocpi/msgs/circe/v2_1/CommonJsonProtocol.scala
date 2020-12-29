@@ -76,11 +76,20 @@ trait CommonJsonProtocol {
         SuccessResp(statusCode, statusMsg, timestamp)
     }
 
+  def successPagedRespWithoutDataD[T]: Decoder[SuccessResp[Iterable[T]]] =
+    implicitly[Decoder[SuccessResp[Unit]]].map(_.copy(data = Iterable.empty[T]))
+
+  def successPagedRespWithData[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] = successRespD[Iterable[T]]
+
+  def successPagedResp[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] =
+    successPagedRespWithData[T].handleErrorWith(_ => successPagedRespWithoutDataD[T])
+
   implicit val errorRespE: Encoder[ErrorResp] = deriveEncoder
   implicit val errorRespD: Decoder[ErrorResp] = deriveDecoder
 
   implicit def successRespE[D : Encoder]: Encoder[SuccessResp[D]] = deriveEncoder
   implicit def successRespD[D : Decoder]: Decoder[SuccessResp[D]] = deriveDecoder
+
 
   implicit val displayTextE: Encoder[DisplayText] = deriveEncoder
   implicit val displayTextD: Decoder[DisplayText] = deriveDecoder
