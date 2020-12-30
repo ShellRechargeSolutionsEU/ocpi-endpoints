@@ -6,8 +6,10 @@ import cats.syntax.either._
 import OcpiStatusCode.SuccessCode
 import v2_1.CommonTypes._
 import com.thenewmotion.ocpi._
+import io.circe.CursorOp.DownField
 import io.circe.generic.extras.semiauto._
 import io.circe.{Decoder, Encoder}
+
 import scala.reflect.{ClassTag, classTag}
 import shapeless._
 
@@ -82,7 +84,9 @@ trait CommonJsonProtocol {
   def successPagedRespWithData[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] = successRespD[Iterable[T]]
 
   def successPagedResp[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] =
-    successPagedRespWithData[T].handleErrorWith(_ => successPagedRespWithoutDataD[T])
+    successPagedRespWithData[T].handleErrorWith {
+      case e if e.history == List(DownField("data")) => successPagedRespWithoutDataD[T]
+    }
 
   implicit val errorRespE: Encoder[ErrorResp] = deriveEncoder
   implicit val errorRespD: Decoder[ErrorResp] = deriveDecoder

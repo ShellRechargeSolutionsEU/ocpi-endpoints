@@ -58,6 +58,8 @@ trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] exte
         val resp2 = jsonToObj(parse(successRespJson3))(successPagedRespD)
         resp2 must haveClass[PagedResp[Int]]
         resp2.copy(data = resp2.data.toList) === successResp3.copy(data = successResp3.data.toList)
+
+        jsonToObj(parse(successRespJson4))(successPagedRespD) must throwA
       }
     }
 
@@ -112,6 +114,16 @@ trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] exte
        |  "status_message" : "It worked!",
        |  "timestamp": "2010-01-01T00:00:00Z",
        |  "data": [42, 43]
+       |}
+ """.stripMargin
+
+  val successRespJson4: String =
+    s"""
+       |{
+       |  "status_code" : 1000,
+       |  "status_message" : "It worked!",
+       |  "timestamp": "2010-01-01T00:00:00Z",
+       |  "data": [42, "Kaboom !!!"]
        |}
  """.stripMargin
 
