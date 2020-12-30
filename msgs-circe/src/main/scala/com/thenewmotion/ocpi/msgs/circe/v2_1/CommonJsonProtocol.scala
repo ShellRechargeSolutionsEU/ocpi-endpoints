@@ -78,10 +78,10 @@ trait CommonJsonProtocol {
         SuccessResp(statusCode, statusMsg, timestamp)
     }
 
-  def successPagedRespWithoutDataD[T]: Decoder[SuccessResp[Iterable[T]]] =
+  private def successPagedRespWithoutDataD[T]: Decoder[SuccessResp[Iterable[T]]] =
     implicitly[Decoder[SuccessResp[Unit]]].map(_.copy(data = Iterable.empty[T]))
 
-  def successPagedRespWithData[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] = successRespD[Iterable[T]]
+  private def successPagedRespWithData[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] = successRespD[Iterable[T]]
 
   def successPagedResp[T: Decoder]: Decoder[SuccessResp[Iterable[T]]] =
     successPagedRespWithData[T].handleErrorWith {
