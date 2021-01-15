@@ -49,7 +49,7 @@ val jsonLenses = Seq("net.virtual-void" %% "json-lenses" %  "0.6.2")
 val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
-  crossScalaVersions := List(tnm.ScalaVersion.prev),
+  crossScalaVersions := List(tnm.ScalaVersion.prev, tnm.ScalaVersion.curr),
   scalaVersion := tnm.ScalaVersion.prev
 )
 
