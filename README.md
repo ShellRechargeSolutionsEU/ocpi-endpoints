@@ -49,7 +49,43 @@ Then in the route or client you want to use
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 ```
 
+## cats-effect support
+To be able to pass IO as the effect type, import marshaller instances for it:
+
+`import com.thenewmotion.ocpi.common.HktMarshallableInstances._`
+
+
+
 # Changelog
+
+## 2.0.0-M1
+Migrate effect type to cats-effect IO.
+At the core, we still use akka-http for routes and clients so we need the typical akka implicits. 
+Stream sources are also still using akka-stream.
+But at the interface to the backend services implemented by the calling application code, IO (or ZIO) can be
+used to model effect types.
+
+In the following phases, we should migrate further to http4s, sttp (?) and fs2. 
+
+
+## 1.3.0
+- allow passing of page limit from client code
+- increase unmarshalling timeout to handle higher page sizes
+- handle omitted `.data` field (when a list is expected but its empty)
+
+## 1.2.3
+- fix parsing of time without leading zeros; 2nd try
+
+## 1.2.2
+- Don't log credentials during registration
+- fix parsing of time without leading zeros
+- handle missing `twentyfourseven` field in `hours` object 
+
+## 1.2.1
+Redact auth header before logging request
+
+## 1.2.0
+Update to Circe 0.12.3
 
 ## 1.0.0
 
