@@ -2,7 +2,6 @@ package com.thenewmotion.ocpi.msgs
 
 import com.thenewmotion.ocpi.msgs.v2_1.Id
 
-import scala.language.higherKinds
 
 sealed trait ResourceType {
   type F[_]

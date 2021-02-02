@@ -3,7 +3,6 @@ package com.thenewmotion.ocpi.msgs.shapeless
 import com.thenewmotion.ocpi.msgs.{Resource, ResourceType}
 import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
 import scala.annotation.implicitNotFound
-import scala.language.higherKinds
 import shapeless._
 import shapeless.ops.hlist.{IsHCons, Mapper, Zip}
 

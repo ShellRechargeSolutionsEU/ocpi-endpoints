@@ -5,7 +5,6 @@ import _root_.akka.http.scaladsl.model.headers.{Link, LinkParams}
 import _root_.akka.http.scaladsl.model.{HttpResponse, Uri}
 import _root_.akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromResponseUnmarshaller, Unmarshaller}
 import msgs.{ErrorResp, SuccessResp}
-import cats.syntax.either._  // For Scala 2.11
 
 case class UnexpectedResponseException(response: HttpResponse)
   extends Exception(s"Unexpected HTTP status code ${response.status}")
