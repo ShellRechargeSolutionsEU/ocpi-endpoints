@@ -3,29 +3,27 @@ package tokens
 
 import java.time.ZonedDateTime
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.marshalling.{ToRequestMarshaller, ToResponseMarshaller}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Link, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import common._
-import cats._
-import msgs.v2_1.Tokens._
+import cats.effect.IO
+import cats.syntax.either._
+import com.thenewmotion.ocpi.common._
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
+import com.thenewmotion.ocpi.msgs._
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
+import com.thenewmotion.ocpi.tokens.AuthorizeError._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import cats.syntax.either._
-import com.thenewmotion.ocpi.msgs.OcpiStatusCode._
-import com.thenewmotion.ocpi.msgs._
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
-import scala.concurrent.Future
-import msgs.sprayjson.v2_1.protocol._
-import tokens.AuthorizeError._
 
 class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "MspTokensRoute" should {
     "return a paged set of Tokens" in new TestScope {
-      service.tokens(apiUser, Pager(0, 1000), None, None) returns PaginatedResult(List(token), 1)
+      service.tokens(apiUser, Pager(0, 1000), None, None) returns IO.pure(PaginatedResult(List(token), 1))
       Get() ~> route(apiUser) ~> check {
         header[Link] must beNone
         headers.find(_.name == "X-Limit") mustEqual Some(RawHeader("X-Limit", "1000"))
@@ -37,7 +35,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "authorize without location references" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns AuthorizationInfo(Allowed.Allowed).asRight
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns IO.pure(AuthorizationInfo(Allowed.Allowed).asRight)
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -50,7 +48,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
 
       val lr = LocationReferences(LocationId("1234"), List(EvseUid("1234")), List(ConnectorId("1234"), ConnectorId("5678")))
 
-      service.authorize(apiUser, TokenUid("23455655A"), Some(lr)) returns AuthorizationInfo(Allowed.Allowed).asRight
+      service.authorize(apiUser, TokenUid("23455655A"), Some(lr)) returns IO.pure(AuthorizationInfo(Allowed.Allowed).asRight)
 
       Post("/23455655A/authorize", lr) ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), Some(lr))
@@ -60,7 +58,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "handle MustProvideLocationReferences failure" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns MustProvideLocationReferences.asLeft
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns IO.pure(MustProvideLocationReferences.asLeft)
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -71,7 +69,7 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
     }
 
     "handle NotFound failure" in new TestScope {
-      service.authorize(apiUser, TokenUid("23455655A"), None) returns TokenNotFound.asLeft
+      service.authorize(apiUser, TokenUid("23455655A"), None) returns IO.pure(TokenNotFound.asLeft)
 
       Post("/23455655A/authorize") ~> route(apiUser) ~> check {
         there was one(service).authorize(apiUser, TokenUid("23455655A"), None)
@@ -94,14 +92,9 @@ class MspTokensRouteSpec extends Specification with Specs2RouteTest with Mockito
       lastUpdated = ZonedDateTime.parse("2017-01-24T10:00:00.000Z")
     )
 
-    implicit val m: HktMarshallable[Id] = new HktMarshallable[cats.Id] {
-      override def responseMarshaller[A: ToResponseMarshaller]: ToResponseMarshaller[A] = implicitly
-      override def requestMarshaller[A: ToRequestMarshaller]: ToRequestMarshaller[Id[A]] = implicitly
-    }
+    import HktMarshallableFromECInstances._
 
-    val service = mock[MspTokensService[Id]]
-
-//    val route = MspTokensRoute(service)
-    val route = mock[MspTokensRoute[cats.effect.IO]]
+    val service = mock[MspTokensService[IO]]
+    val route = MspTokensRoute(service)
   }
 }

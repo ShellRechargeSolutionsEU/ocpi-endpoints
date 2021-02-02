@@ -1,15 +1,13 @@
 package com.thenewmotion.ocpi.commands
 
+import java.util.UUID
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import cats.effect.IO
+import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericSuccess
+import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
 import com.thenewmotion.ocpi.msgs.{GlobalPartyId, SuccessResp}
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import java.util.UUID
-
-import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericSuccess
-import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandResponse, CommandResponseType}
-
-import scala.concurrent.Future
 
 class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
 
@@ -34,8 +32,9 @@ class CommandResponseRouteSpec extends Specification with Specs2RouteTest {
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
-    val route = new CommandResponseRoute( (gpi, uuid, crt) =>
-        Future.successful(Some(SuccessResp(GenericSuccess)))
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances._
+    val route = new CommandResponseRoute[IO]( (gpi, uuid, crt) =>
+        IO.pure(Some(SuccessResp(GenericSuccess)))
     )
   }
 }

@@ -6,7 +6,7 @@ import OcpiStatusCode.SuccessCode
 import sprayjson.SimpleStringEnumSerializer._
 import v2_1.CommonTypes._
 import com.thenewmotion.ocpi.{LocalDateParser, LocalTimeParser, ZonedDateTimeParser}
-import spray.json.{DeserializationException, JsNumber, JsString, JsValue, JsonFormat, JsonReader, RootJsonFormat, RootJsonReader, deserializationError}
+import spray.json.{DeserializationException, JsNumber, JsString, JsValue, JsonFormat, RootJsonFormat, RootJsonReader, deserializationError}
 
 import scala.util.Try
 

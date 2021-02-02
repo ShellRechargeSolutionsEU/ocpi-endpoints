@@ -9,6 +9,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
+import cats.effect.IO
+import com.thenewmotion.ocpi.common.IOMatchersExt
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 import com.thenewmotion.ocpi.msgs.v2_1.Commands
@@ -16,14 +18,12 @@ import com.thenewmotion.ocpi.msgs.v2_1.Commands.{CommandName, CommandResponseTyp
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens._
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, Url}
-import org.specs2.concurrent.ExecutionEnv
-import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 
-class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
+class CommandClientSpec(implicit ec: ExecutionContext) extends Specification with IOMatchersExt {
 
   "MSP Command client" should {
 
@@ -45,27 +45,27 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
     )
 
     "Start a session using deprecated 2.1.1" in new TestScope {
-      client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
+      client.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must returnValueLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
-      }.await
+      }
     }
 
     "Start a session using new 2.1.1-d2 interpretation" in new TestScope {
-      clientD2.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
+      clientD2.sendCommand(commandUrl, AuthToken[Ours]("auth"), cmd) must returnValueLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
-      }.await
+      }
     }
 
     "handle trailing slashes in command module URLs" in new TestScope {
 
       private val pathWithTrailingSlash = commandUrl.path ++ Uri.Path.SingleSlash
 
-      client.sendCommand(commandUrl.withPath(pathWithTrailingSlash), AuthToken[Ours]("auth"), cmd) must beLike[Either[ErrorResp, CommandResponseType]] {
+      client.sendCommand(commandUrl.withPath(pathWithTrailingSlash), AuthToken[Ours]("auth"), cmd) must returnValueLike[Either[ErrorResp, CommandResponseType]] {
         case Right(r) =>
           r === CommandResponseType.Accepted
-      }.await
+      }
     }
   }
 
@@ -108,13 +108,13 @@ class CommandClientSpec(implicit ee: ExecutionEnv) extends Specification with Fu
     val startCommandUrl = s"$commandUrl/${CommandName.StartSession}"
 
     def requestWithAuth(uri: String) = uri match {
-      case `startCommandUrl` => Future.successful(successResp)
-      case x                 => Future.failed(new UnknownHostException(x.toString))
+      case `startCommandUrl` => IO.pure(successResp)
+      case x                 => IO.raiseError(new UnknownHostException(x.toString))
     }
 
     def requestWithAuthD2(uri: String) = uri match {
-      case `startCommandUrl` => Future.successful(successRespD2)
-      case x                 => Future.failed(new UnknownHostException(x.toString))
+      case `startCommandUrl` => IO.pure(successRespD2)
+      case x                 => IO.raiseError(new UnknownHostException(x.toString))
     }
 
     lazy val client = new TestMspCommandsClient(requestWithAuth)
@@ -129,11 +129,11 @@ object GenericRespTypes {
 }
 
 
-class TestMspCommandsClient(reqWithAuthFunc: String => Future[HttpResponse])
+class TestMspCommandsClient(reqWithAuthFunc: String => IO[HttpResponse])
   (implicit httpExt: HttpExt) extends CommandClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
-    req.uri.toString match { case x => reqWithAuthFunc(x) }
+    req.uri.toString match { case x => reqWithAuthFunc(x).unsafeToFuture() }
 
 }

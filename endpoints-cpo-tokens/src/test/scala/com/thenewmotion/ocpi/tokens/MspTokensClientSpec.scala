@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi.tokens
 
 import java.net.UnknownHostException
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
@@ -14,35 +13,35 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Allowed, AuthorizationInfo, LocationReferences, TokenUid}
 import org.specs2.concurrent.ExecutionEnv
-import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import cats.effect.IO
+import com.thenewmotion.ocpi.common.IOMatchersExt
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
-class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
+class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMatchersExt {
   "MSpTokensClient" should {
 
     "request authorization for a token and get it" in new TestScope {
 
       client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId,
-        locationReferences = None) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        locationReferences = None) must returnValueLike[Either[ErrorResp, AuthorizationInfo]] {
         case Right(r) =>
           r.allowed === Allowed.Allowed
-      }.await
+      }
     }
 
     "request authorization for a token on a specific location" in new TestScope {
       val testLocRefs = LocationReferences(locationId = LocationId("ABCDEF"),
         evseUids = List("evse-123456", "evse-1234567").map(EvseUid(_)))
       client.authorize(theirTokensEndpointUri, AuthToken[Ours]("auth"), tokenId,
-        locationReferences = Some(testLocRefs)) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        locationReferences = Some(testLocRefs)) must returnValueLike[Either[ErrorResp, AuthorizationInfo]] {
         case Right(r) =>
           r.allowed === Allowed.Allowed
-      }.await
+      }
     }
 
 
@@ -50,10 +49,10 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
       val urlWithTrailingSlash = Uri(theirTokensEndpoint + "/")
 
       client.authorize(urlWithTrailingSlash, AuthToken[Ours]("auth"), tokenId,
-        locationReferences = None) must beLike[Either[ErrorResp, AuthorizationInfo]] {
+        locationReferences = None) must returnValueLike[Either[ErrorResp, AuthorizationInfo]] {
         case Right(r) =>
           r.allowed === Allowed.Allowed
-      }.await
+      }
     }
   }
 
@@ -91,8 +90,8 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
     val tokenAuthorizeUri = s"$theirTokensEndpoint/$tokenId/authorize"
 
     def requestWithAuth(uri: String) = uri match {
-      case `tokenAuthorizeUri` => Future.successful(authorizedResp)
-      case x =>                   Future.failed(new UnknownHostException(x.toString))
+      case `tokenAuthorizeUri` => IO.pure(authorizedResp)
+      case x =>                   IO.raiseError(new UnknownHostException(x.toString))
     }
 
     lazy val client = new TestMspTokensClient(requestWithAuth)
@@ -101,12 +100,12 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 }
 
 // generalize to testhttpclient?
-class TestMspTokensClient(reqWithAuthFunc: String => Future[HttpResponse])
+class TestMspTokensClient(reqWithAuthFunc: String => IO[HttpResponse])
   (implicit httpExt: HttpExt) extends MspTokensClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
     req.uri.toString match {
-      case x => reqWithAuthFunc(x)
+      case x => reqWithAuthFunc(x).unsafeToFuture()
     }
 }

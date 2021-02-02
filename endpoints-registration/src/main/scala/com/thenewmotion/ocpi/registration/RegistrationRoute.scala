@@ -37,9 +37,9 @@ class RegistrationRoute[F[_]: Effect: HktMarshallable] private[ocpi](
   cs: ContextShift[IO]
 ) extends OcpiDirectives {
 
-  import ErrorMarshalling._
-  import HktMarshallableInstances._
   import HktMarshallableSyntax._
+  import HktMarshallableInstances._
+  import ErrorMarshalling._
 
   def apply(
     accessedVersion: VersionNumber,

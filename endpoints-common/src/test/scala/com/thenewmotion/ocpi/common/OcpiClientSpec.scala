@@ -1,7 +1,6 @@
 package com.thenewmotion.ocpi.common
 
 import java.net.UnknownHostException
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.model.ContentTypes._
@@ -10,17 +9,17 @@ import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
+import cats.effect.IO
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessResp}
 import org.specs2.concurrent.ExecutionEnv
-import org.specs2.matcher.FutureMatchers
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 
-class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with FutureMatchers {
+class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMatchersExt {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
@@ -31,25 +30,28 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
   "single request" should {
     "unmarshal success response with data" in new TestScope {
       client.singleRequest[TestData](
-        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[TestData]]] {
-        case Right(r) => r.data.id mustEqual "monkey"
-      }.await
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must
+          returnValueLike[Either[ErrorResp, SuccessResp[TestData]]] {
+            case Right(r) => r.data.id mustEqual "monkey"
+          }
     }
 
     "unmarshal success response without data" in new TestScope {
       client.singleRequest[Unit](
-        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[Unit]]] {
-        case Right(r) => r.data.mustEqual(())
-      }.await
+        Get(singleRequestOKUrl), AuthToken[Ours]("auth"))  must
+          returnValueLike[Either[ErrorResp, SuccessResp[Unit]]] {
+            case Right(r) => r.data.mustEqual(())
+          }
     }
 
     "unmarshal error response" in new TestScope {
       client.singleRequest[TestData](
-        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must beLike[Either[ErrorResp, SuccessResp[TestData]]] {
-        case Left(err) =>
-          err.statusCode mustEqual GenericClientFailure
-          err.statusMessage must beSome("something went horribly wrong...")
-      }.await
+        Get(singleRequestErrUrl), AuthToken[Ours]("auth"))  must
+          returnValueLike[Either[ErrorResp, SuccessResp[TestData]]] {
+            case Left(err) =>
+              err.statusCode mustEqual GenericClientFailure
+              err.statusMessage must beSome("something went horribly wrong...")
+          }
     }
   }
 
@@ -98,22 +100,22 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with Futur
     val urlWithExtraParams = s"$dataUrl?offset=0&limit=1&date_from=2016-11-23T08:04:01Z"
 
     def requestWithAuth(uri: String) = uri match {
-      case urlPattern(offset) => println(s"got offset $offset. "); Future.failed(throw new RuntimeException())
-      case `singleRequestOKUrl` => Future.successful(successResponse)
-      case `singleRequestErrUrl` => Future.successful(ocpiErrorResp)
+      case urlPattern(offset) => println(s"got offset $offset. "); IO.raiseError(throw new RuntimeException())
+      case `singleRequestOKUrl` => IO.pure(successResponse)
+      case `singleRequestErrUrl` => IO.pure(ocpiErrorResp)
       case x =>
         println(s"got request url |$x|. ")
-        Future.failed(new UnknownHostException("www.ooopsie.com"))
+        IO.raiseError(new UnknownHostException("www.ooopsie.com"))
     }
 
     lazy val client = new TestOcpiClient(requestWithAuth)
   }
 }
 
-class TestOcpiClient(reqWithAuthFunc: String => Future[HttpResponse])
+class TestOcpiClient(reqWithAuthFunc: String => IO[HttpResponse])
   (implicit http: HttpExt) extends OcpiClient {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =
-    req.uri.toString match { case x => reqWithAuthFunc(x) }
+    req.uri.toString match { case x => reqWithAuthFunc(x).unsafeToFuture() }
 }
