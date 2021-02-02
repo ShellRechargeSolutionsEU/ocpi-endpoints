@@ -1,18 +1,17 @@
 package com.thenewmotion.ocpi.locations
 
-import akka.http.scaladsl.model.HttpEntity
-import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
-import org.specs2.specification.Scope
-
-import scala.concurrent.Future
 import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.server.{AuthorizationFailedRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import cats.Id
 import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import com.thenewmotion.ocpi.locations.LocationsError.LocationNotFound
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{ConnectorId, EvseUid, LocationId}
+import org.specs2.mock.Mockito
+import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 
 class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -30,7 +29,7 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val body = HttpEntity(contentType = `application/json`, string = loc2String)
 
       Put("/NL/TNM/LOC2", body) ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
-        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any())
+        there was one(mspLocService).createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any())(any())
       }
     }
 
@@ -139,18 +138,19 @@ class MspLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
   }
 
   trait LocationsTestScope extends Scope {
-    val mspLocService = mock[MspLocationsService]
+    val mspLocService = mock[MspLocationsService[Id]]
 
-    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any()) returns Future(Right(CreateOrUpdateResult.Created))
-    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), any()) returns Future(Right(()))
-    mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1"))) returns Future(Left(LocationNotFound()))
-    mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000"))) returns Future(Left(LocationNotFound()))
-    mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), ===(ConnectorId("1"))) returns Future(Left(LocationNotFound()))
-    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), any()) returns Future(Right(()))
-    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), ===(ConnectorId("1")), any()) returns Future(Right(()))
+    mspLocService.createOrUpdateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC2")), any())(any()) returns Right(CreateOrUpdateResult.Created)
+    mspLocService.updateLocation(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), any()) returns Right(())
+    mspLocService.location(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1"))) returns Left(LocationNotFound())
+    mspLocService.evse(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000"))) returns Left(LocationNotFound())
+    mspLocService.connector(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), ===(ConnectorId("1"))) returns Left(LocationNotFound())
+    mspLocService.updateEvse(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), any()) returns Right(())
+    mspLocService.updateConnector(===(GlobalPartyId("NL", "TNM")), ===(LocationId("LOC1")), ===(EvseUid("NL-TNM-02000000")), ===(ConnectorId("1")), any()) returns Right(())
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances.idMarshaller
     val locationsRoute = new MspLocationsRoute(mspLocService)
 
     val loc1String = s"""

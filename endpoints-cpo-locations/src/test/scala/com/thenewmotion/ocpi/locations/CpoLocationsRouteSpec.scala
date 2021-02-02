@@ -1,19 +1,17 @@
 package com.thenewmotion.ocpi.locations
 
 import java.time.ZonedDateTime
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.headers.{Link, LinkParams, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import cats.effect.IO
 import com.thenewmotion.ocpi.common.{OcpiDirectives, Pager, PaginatedResult}
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
+import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, ConnectorId, Evse, EvseUid, Location, LocationId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import com.thenewmotion.ocpi.msgs.v2_1.Locations.{Connector, ConnectorId, Evse, EvseUid, Location, LocationId}
-
-import scala.concurrent.Future
 import spray.json._
 
 class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mockito {
@@ -34,7 +32,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
       val ThirdPageOffset = SecondPageOffset + ResultingPageLimit
 
       cpoLocService.locations(Pager(InitialClientOffset, ResultingPageLimit), None, None) returns
-        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
+        IO.pure(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
       Get(s"/?offset=$InitialClientOffset&limit=$ClientPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual
@@ -46,7 +44,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
 
       cpoLocService.locations(Pager(SecondPageOffset, ResultingPageLimit), None, None) returns
-        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
+        IO.pure(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), ServerTotal)))
 
       Get(s"/?offset=$SecondPageOffset&limit=$ResultingPageLimit") ~> locationsRoute.routeWithoutRh(apiUser) ~> check {
         response.header[Link].head mustEqual Link(Uri(s"http://example.com/?offset=$ThirdPageOffset&limit=$ResultingPageLimit"), LinkParams.next)
@@ -59,7 +57,7 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     "accept date_from and date_to" in new LocationsTestScope {
 
       cpoLocService.locations(any(), any(), any()) returns
-        Future(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
+        IO.pure(Right(PaginatedResult(List(loc1String.parseJson.convertTo[Location]), 1000)))
 
       val dateFrom = "2015-06-29T20:39:09Z"
       val dateTo = "2016-06-29T20:39:09Z"
@@ -94,11 +92,12 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
 
     val ZonedDateTime1 = ZonedDateTime.parse("2010-01-01T00:00:00Z")
 
-    val cpoLocService = mock[CpoLocationsService]
+    val cpoLocService = mock[CpoLocationsService[IO]]
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
     val ServerPageLimit = 50
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances._
     val locationsRoute = new CpoLocationsRoute(cpoLocService, ServerPageLimit, ServerPageLimit, currentTime = ZonedDateTime1)
 
     val evse1conn1String =
@@ -210,12 +209,12 @@ class CpoLocationsRouteSpec extends Specification with Specs2RouteTest with Mock
     val loc2String = loc1String.replace("LOC1","LOC2")
 
     cpoLocService.location(LocationId("LOC1")) returns
-      Future(Right(loc1String.parseJson.convertTo[Location]))
+      IO.pure(Right(loc1String.parseJson.convertTo[Location]))
 
     cpoLocService.evse(LocationId("LOC1"), EvseUid("3256")) returns
-      Future(Right(evse1String.parseJson.convertTo[Evse]))
+      IO.pure(Right(evse1String.parseJson.convertTo[Evse]))
 
     cpoLocService.connector(LocationId("LOC1"), EvseUid("3256"), ConnectorId("1")) returns
-      Future(Right(evse1conn1String.parseJson.convertTo[Connector]))
+      IO.pure(Right(evse1conn1String.parseJson.convertTo[Connector]))
   }
 }

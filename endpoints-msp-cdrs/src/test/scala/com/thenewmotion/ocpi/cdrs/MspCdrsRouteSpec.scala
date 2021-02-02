@@ -1,11 +1,11 @@
 package com.thenewmotion.ocpi.cdrs
 
 import java.time.ZonedDateTime
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.Link
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import cats.effect.IO
 import com.thenewmotion.ocpi.cdrs.CdrsError._
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
@@ -17,13 +17,11 @@ import cats.syntax.either._
 import com.thenewmotion.ocpi.common.OcpiDirectives
 import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
-import scala.concurrent.Future
-
 class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
   "MspCdrsRoute" should {
     "return an existing Cdr" in new TestScope {
-      service.cdr(apiUser, cdr.id) returns Future(cdr.asRight)
+      service.cdr(apiUser, cdr.id) returns IO.pure(cdr.asRight)
       Get("/NL/TNM/12345") ~> route(apiUser) ~> check {
         header[Link] must beNone
         there was one(service).cdr(apiUser, cdr.id)
@@ -33,7 +31,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     }
 
     "handle NotFound failure" in new TestScope {
-      service.cdr(apiUser, CdrId("does-not-exist")) returns Future(CdrNotFound().asLeft)
+      service.cdr(apiUser, CdrId("does-not-exist")) returns IO.pure(CdrNotFound().asLeft)
 
       Get("/NL/TNM/does-not-exist") ~> route(apiUser) ~> check {
         there was one(service).cdr(apiUser, CdrId("does-not-exist"))
@@ -42,7 +40,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     }
 
     "allow posting new cdr" in new TestScope {
-      service.createCdr(apiUser, cdr) returns Future(().asRight)
+      service.createCdr(apiUser, cdr) returns IO.pure(().asRight)
 
       Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
@@ -51,7 +49,7 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
     }
 
     "not allow updating cdr" in new TestScope {
-      service.createCdr(apiUser, cdr) returns Future(CdrCreationFailed().asLeft)
+      service.createCdr(apiUser, cdr) returns IO.pure(CdrCreationFailed().asLeft)
 
       Post("/NL/TNM", cdr) ~> route(apiUser) ~> check {
         there was one(service).createCdr(apiUser, cdr)
@@ -110,8 +108,9 @@ class MspCdrsRouteSpec extends Specification with Specs2RouteTest with Mockito {
       lastUpdated = ZonedDateTime.parse("2015-06-29T22:01:13Z")
     )
 
-    val service = mock[MspCdrsService]
+    val service = mock[MspCdrsService[IO]]
 
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances._
     val route = MspCdrsRoute(service)
   }
 }

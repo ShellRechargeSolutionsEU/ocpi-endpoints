@@ -1,21 +1,20 @@
 package com.thenewmotion.ocpi
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, GenericHttpCredentials, RawHeader}
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import VersionsRoute.OcpiVersionConfig
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import common.{OcpiDirectives, OcpiRejectionHandler, TokenAuthenticator}
-import msgs.Ownership.Theirs
-import msgs.{AuthToken, GlobalPartyId}
-import msgs.Versions.{EndpointIdentifier, VersionNumber}
+import cats.effect.IO
+import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
+import com.thenewmotion.ocpi.common.{OcpiDirectives, OcpiRejectionHandler, TokenAuthenticator}
+import com.thenewmotion.ocpi.msgs.Ownership.Theirs
+import com.thenewmotion.ocpi.msgs.Versions.{EndpointIdentifier, VersionNumber}
+import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import spray.json._
-import lenses.JsonLenses._
-
-import scala.concurrent.Future
+import spray.json.lenses.JsonLenses._
 
 class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -123,12 +122,13 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
 
     // TODO Testing of TokenAuthenticator should be somewhere else
     val auth = new TokenAuthenticator(theirToken =>
-      Future.successful {
+      IO.pure {
         if (theirToken == AuthToken[Theirs]("12345")) Some(GlobalPartyId("BE", "BEC")) else None
       }
     )
 
-    val versionsRoute = VersionsRoute(Future.successful(versions))
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances._
+    val versionsRoute = VersionsRoute(IO.pure(versions))
 
     val testRoute =
       (pathPrefix("cpo") & pathPrefix("versions")) {

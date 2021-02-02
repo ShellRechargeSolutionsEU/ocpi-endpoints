@@ -22,6 +22,6 @@ trait CirceJsonSpec extends GenericJsonSpec[Json, Decoder, Encoder] {
   override def objToJson[T : Encoder](t: T): Json = {
     // we can only remove the null keys when printing, so we print then re-parse, bit hacky but works
     val printer = Printer.noSpaces.copy(dropNullValues = true)
-    parse(printer.pretty(t.asJson))
+    parse(printer.print(t.asJson))
   }
 }

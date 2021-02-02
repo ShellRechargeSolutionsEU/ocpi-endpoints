@@ -17,9 +17,7 @@ trait HktMarshallable[F[_]] {
 
 object HktMarshallableInstances {
 
-  import HktMarshallableSyntax._
-
-  implicit def futureMarshaller: HktMarshallable[Future] = new HktMarshallable[scala.concurrent.Future] {
+  implicit def futureMarshaller: HktMarshallable[Future] = new HktMarshallable[Future] {
     def responseMarshaller[A: ToResponseMarshaller]: ToResponseMarshaller[Future[A]] = implicitly
     def requestMarshaller[A : ToRequestMarshaller]: ToRequestMarshaller[Future[A]] = implicitly
   }

@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import RegistrationError._
+import cats.effect.{ContextShift, IO}
 import msgs.v2_1.CommonTypes.ImageCategory.Operator
 import msgs.v2_1.CommonTypes.{Image, BusinessDetails => OcpiBusinessDetails}
 import msgs.v2_1.Credentials.Creds
@@ -16,10 +17,10 @@ import msgs.Versions.VersionNumber._
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.Future
 import cats.syntax.either._
+import org.specs2.concurrent.ExecutionEnv
 
-class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mockito {
+class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification with Specs2RouteTest with Mockito {
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
@@ -56,7 +57,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     }
 
     "return the credentials we have set for them to connect to us" in new CredentialsTestScope {
-      registrationService.credsToConnectToUs(any())(any()) returns Future.successful(credsToConnectToUs.asRight)
+      registrationService.credsToConnectToUs(any()) returns IO.pure(credsToConnectToUs.asRight)
 
       Get("/credentials") ~> credentialsRoute(selectedVersion, theirGlobalId) ~> check {
         status.isSuccess === true
@@ -74,9 +75,9 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     }
 
     "accept the update of the credentials they sent us to connect to them" in new CredentialsTestScope {
-      registrationService.credsToConnectToUs(any())(any()) returns Future.successful(credsToConnectToUs.asRight)
+      registrationService.credsToConnectToUs(any()) returns IO.pure(credsToConnectToUs.asRight)
       registrationService.reactToUpdateCredsRequest(any(), any(), any())(any(), any()) returns
-        Future.successful(newCredsToConnectToUs.asRight)
+        IO.pure(newCredsToConnectToUs.asRight)
 
       val theirLog = credsToConnectToThem.businessDetails.logo.get
       val theirNewCredsData =
@@ -108,7 +109,7 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
     }
     "reject indicating the reason if trying to update credentials for a token we are still waiting for its registration request" in new CredentialsTestScope {
       registrationService.reactToUpdateCredsRequest(any(), any(), any())(any(), any()) returns
-        Future.successful(WaitingForRegistrationRequest(theirGlobalId).asLeft)
+        IO.pure(WaitingForRegistrationRequest(theirGlobalId).asLeft)
 
 
       val theirLog = credsToConnectToThem.businessDetails.logo.get
@@ -174,11 +175,13 @@ class RegistrationRouteSpec extends Specification with Specs2RouteTest with Mock
 
     //default mocks
     registrationService.reactToNewCredsRequest(any(), any(), any())(any(), any()) returns
-      Future.successful(credsToConnectToUs.asRight)
+      IO.pure(credsToConnectToUs.asRight)
     registrationService.initiateRegistrationProcess(credsToConnectToThem.token, tokenToConnectToUs,
-      credsToConnectToThem.url) returns Future.successful(credsToConnectToThem.asRight)
-    registrationService.credsToConnectToUs(any())(any()) returns Future.successful(UnknownParty(theirGlobalId).asLeft)
+      credsToConnectToThem.url) returns IO.pure(credsToConnectToThem.asRight)
+    registrationService.credsToConnectToUs(any()) returns IO.pure(UnknownParty(theirGlobalId).asLeft)
 
-    val credentialsRoute = RegistrationRoute(registrationService)
+    implicit val cs: ContextShift[IO] = IO.contextShift(ee.executionContext)
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances.ioCsFromEcMarshaller
+    val credentialsRoute = RegistrationRoute[IO](registrationService)
   }
 }

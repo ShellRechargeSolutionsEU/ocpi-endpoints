@@ -1,19 +1,19 @@
 package com.thenewmotion.ocpi.sessions
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpEntity
 import akka.http.scaladsl.server.AuthorizationFailedRejection
 import akka.http.scaladsl.testkit.Specs2RouteTest
+import cats.Id
+import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 import com.thenewmotion.ocpi.msgs.GlobalPartyId
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 import com.thenewmotion.ocpi.msgs.v2_1.Sessions.{SessionId, SessionPatch}
 import com.thenewmotion.ocpi.sessions.SessionError.SessionNotFound
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.Future
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
-import com.thenewmotion.ocpi.common.CreateOrUpdateResult
 
 class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito {
 
@@ -24,7 +24,7 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
 
       Put("/NL/TNM/SESS1", body) ~> sessionsRoute.routeWithoutRh(apiUser) ~> check {
         handled must beTrue
-        there.was(one(sessionService).createOrUpdateSession(===(apiUser), ===(SessionId("SESS1")), any()))
+        there.was(one(sessionService).createOrUpdateSession(===(apiUser), ===(SessionId("SESS1")), any())(any()))
       }
     }
 
@@ -62,20 +62,21 @@ class SessionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
   }
 
   trait SessionsTestScope extends Scope {
-    val sessionService = mock[SessionsService]
+    val sessionService = mock[SessionsService[Id]]
 
     sessionService
-      .createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())
-      .returns(Future(Right(CreateOrUpdateResult.Created)))
+      .createOrUpdateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())(any())
+      .returns(Right(CreateOrUpdateResult.Created))
     sessionService
       .updateSession(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")), any())
-      .returns(Future(Right(())))
+      .returns(Right(()))
     sessionService
       .session(===(GlobalPartyId("NL", "TNM")), ===(SessionId("SESS1")))
-      .returns(Future(Left(SessionNotFound())))
+      .returns(Left(SessionNotFound()))
 
     val apiUser = GlobalPartyId("NL", "TNM")
 
+    import com.thenewmotion.ocpi.common.HktMarshallableFromECInstances._
     val sessionsRoute = new SessionsRoute(sessionService)
 
     val sessionJson1 =
