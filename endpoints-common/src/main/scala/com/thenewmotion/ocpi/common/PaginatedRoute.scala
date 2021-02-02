@@ -23,9 +23,9 @@ trait PaginatedRoute extends Directives with DateDeserializers {
   def DefaultLimit: Int
   def MaxLimit: Int
 
-  private val offset = parameter('offset.as[Int] ? DefaultOffset)
+  private val offset = parameter(Symbol("offset").as[Int] ? DefaultOffset)
 
-  private val limit = parameter('limit.as[Int] ? DefaultLimit).tmap {
+  private val limit = parameter(Symbol("limit").as[Int] ? DefaultLimit).tmap {
     case Tuple1(l) => Math.min(l, MaxLimit)
   }
 

@@ -56,7 +56,7 @@ val commonSettings = Seq(
   organization := "com.thenewmotion.ocpi",
   licenses += ("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")),
   crossScalaVersions := List(tnm.ScalaVersion.prev, tnm.ScalaVersion.curr),
-  scalaVersion := tnm.ScalaVersion.prev,
+  scalaVersion := tnm.ScalaVersion.curr,
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",   // source files are in UTF-8
     "-deprecation",         // warn about use of deprecated APIs

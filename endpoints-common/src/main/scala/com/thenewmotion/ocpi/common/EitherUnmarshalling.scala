@@ -15,12 +15,12 @@ trait EitherUnmarshalling {
     implicit ua: FromEntityUnmarshaller[L], rightTag: ClassTag[R],
              ub: FromEntityUnmarshaller[R], leftTag: ClassTag[L]): FromEntityUnmarshaller[Either[L, R]] =
 
-    Unmarshaller.withMaterializer[HttpEntity, Either[L, R]] { implicit ex ⇒ implicit mat ⇒ value ⇒
+    Unmarshaller.withMaterializer[HttpEntity, Either[L, R]] { implicit ex => implicit mat => value =>
       import akka.http.scaladsl.util.FastFuture._
 
       @inline def right(e: HttpEntity) = ub(e).fast.map(Right(_))
 
-      @inline def fallbackLeft(e: HttpEntity): PartialFunction[Throwable, Future[Either[L, R]]] = { case rightFirstEx ⇒
+      @inline def fallbackLeft(e: HttpEntity): PartialFunction[Throwable, Future[Either[L, R]]] = { case rightFirstEx =>
         val left = ua(e).fast.map(Left(_))
 
         left.transform(
