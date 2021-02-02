@@ -64,7 +64,6 @@ val commonSettings = Seq(
     "-feature",             // warn about misused language features
     "-language:higherKinds",// allow higher kinded types without `import scala.language.higherKinds`
     "-Xlint",               // enable handy linter warnings
-    "-Ypartial-unification",
     "-language:postfixOps"
   )
 )
