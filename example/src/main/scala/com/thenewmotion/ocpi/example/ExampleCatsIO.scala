@@ -34,7 +34,6 @@ object ExampleCatsIO extends IOApp {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
   implicit val materializer = ActorMaterializer()
-  implicit val http = Http()
 
   val service = IOBasedTokensService
 
