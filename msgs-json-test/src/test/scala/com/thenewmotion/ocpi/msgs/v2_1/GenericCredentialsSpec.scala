@@ -5,7 +5,6 @@ import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Credentials._
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericCredentialsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {

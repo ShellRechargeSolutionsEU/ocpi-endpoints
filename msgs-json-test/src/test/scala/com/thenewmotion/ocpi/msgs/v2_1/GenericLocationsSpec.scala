@@ -6,7 +6,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.msgs.CountryCode
 import org.specs2.specification.core.Fragment
-import scala.language.higherKinds
 
 trait GenericLocationsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {

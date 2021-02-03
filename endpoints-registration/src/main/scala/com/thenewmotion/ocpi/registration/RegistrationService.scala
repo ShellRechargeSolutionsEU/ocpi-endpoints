@@ -194,7 +194,7 @@ class RegistrationService[F[_]: Async](
     def getCredsEndpoint(verDet: VersionDetails) = Applicative[F].pure(
       verDet.endpoints.find(_.identifier == Credentials) toRight {
         logger.debug("Credentials endpoint not found in retrieved endpoints for version {}", verDet.version)
-        SendingCredentialsFailed: RegistrationError
+        SendingCredentialsFailed
       }
     )
 
@@ -248,7 +248,7 @@ class RegistrationService[F[_]: Async](
 
   def credsToConnectToUs(globalPartyId: GlobalPartyId): F[Either[RegistrationError, Creds[Ours]]] = {
     (for {
-      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight (UnknownParty(globalPartyId): RegistrationError)))
+      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight[RegistrationError] UnknownParty(globalPartyId)))
     } yield generateCreds(theirToken)).value
   }
 

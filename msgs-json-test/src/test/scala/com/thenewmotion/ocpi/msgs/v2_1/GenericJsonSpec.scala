@@ -3,7 +3,6 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import org.specs2.mutable.SpecificationWithJUnit
 import org.specs2.specification.core.Fragments
 
-import scala.language.higherKinds
 
 trait GenericJsonSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends SpecificationWithJUnit {
   def parse(s: String): J

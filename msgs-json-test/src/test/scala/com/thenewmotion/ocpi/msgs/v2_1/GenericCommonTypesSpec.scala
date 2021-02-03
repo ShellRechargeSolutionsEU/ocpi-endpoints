@@ -6,7 +6,6 @@ import com.thenewmotion.ocpi.msgs.{CurrencyCode, ErrorResp, SuccessResp}
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.{GenericClientFailure, GenericSuccess}
 import com.thenewmotion.ocpi.ZonedDateTimeParser
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericCommonTypesSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {

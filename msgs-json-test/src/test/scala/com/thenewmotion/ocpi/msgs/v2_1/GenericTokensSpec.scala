@@ -3,7 +3,6 @@ package com.thenewmotion.ocpi.msgs.v2_1
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.LocationReferences
 import org.specs2.specification.Scope
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericTokensSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {

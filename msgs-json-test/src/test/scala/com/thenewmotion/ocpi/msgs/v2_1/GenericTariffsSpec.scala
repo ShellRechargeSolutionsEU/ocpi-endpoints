@@ -7,7 +7,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.Tariffs.TariffDimensionType.{Flat, Parkin
 import com.thenewmotion.ocpi.msgs.v2_1.Tariffs._
 import com.thenewmotion.ocpi.msgs.{CurrencyCode, Url}
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericTariffsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {
