@@ -73,7 +73,7 @@ object ExampleApp extends App {
     )))
   )
 
-  val auth = new TokenAuthenticator(_ => IO.pure(Some(GlobalPartyId("NL", "TNM"))))
+  val auth = new TokenAuthenticator[IO](_ => IO.pure(Some(GlobalPartyId("NL", "TNM"))))
 
   val topLevelRoute = {
     pathPrefix("example") {

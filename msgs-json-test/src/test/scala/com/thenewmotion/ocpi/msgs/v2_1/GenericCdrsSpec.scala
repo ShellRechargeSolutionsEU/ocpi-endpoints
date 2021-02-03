@@ -6,7 +6,6 @@ import com.thenewmotion.ocpi.msgs.v2_1.Locations._
 import com.thenewmotion.ocpi.msgs.v2_1.Tariffs._
 import com.thenewmotion.ocpi.msgs.{CountryCode, CurrencyCode}
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericCdrsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {

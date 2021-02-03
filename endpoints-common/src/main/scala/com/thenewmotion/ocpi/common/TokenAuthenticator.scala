@@ -8,7 +8,7 @@ import com.thenewmotion.ocpi.msgs.Ownership.Theirs
 import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
 import scala.concurrent.{ExecutionContext, Future}
 
-class TokenAuthenticator[F[+_]: Effect](
+class TokenAuthenticator[F[_]: Effect](
   toApiUser: AuthToken[Theirs] => F[Option[GlobalPartyId]]
 )(
   implicit executionContext: ExecutionContext

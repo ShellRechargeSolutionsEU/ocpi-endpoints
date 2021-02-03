@@ -119,7 +119,7 @@ trait DefaultJsonProtocol extends spray.json.DefaultJsonProtocol {
 
   implicit def successRespFormat[D : JsonFormat] = jsonFormat4(SuccessResp[D])
 
-  implicit val currencyCodeFormat = new JsonFormat[CurrencyCode] {
+  implicit val currencyCodeFormat: JsonFormat[CurrencyCode] = new JsonFormat[CurrencyCode] {
     override def write(obj: CurrencyCode) = JsString(obj.value)
 
     override def read(json: JsValue) = json match {

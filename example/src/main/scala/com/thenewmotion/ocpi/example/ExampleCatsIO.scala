@@ -44,7 +44,7 @@ object ExampleCatsIO extends IOApp {
   import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport._
   val tokensRoute = MspTokensRoute(service)
 
-  val auth = new TokenAuthenticator(_ => IO.pure(Some(GlobalPartyId("NL", "TNM"))))
+  val auth = new TokenAuthenticator[IO](_ => IO.pure(Some(GlobalPartyId("NL", "TNM"))))
 
   val topLevelRoute = {
     pathPrefix("example") {

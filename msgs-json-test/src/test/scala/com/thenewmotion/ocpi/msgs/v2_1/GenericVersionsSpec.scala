@@ -5,7 +5,6 @@ import com.thenewmotion.ocpi.msgs.Url
 import com.thenewmotion.ocpi.msgs.Versions.VersionNumber._
 import com.thenewmotion.ocpi.msgs.Versions._
 import org.specs2.specification.core.Fragments
-import scala.language.higherKinds
 
 trait GenericVersionsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
   GenericJsonSpec[J, GenericJsonReader, GenericJsonWriter] {
