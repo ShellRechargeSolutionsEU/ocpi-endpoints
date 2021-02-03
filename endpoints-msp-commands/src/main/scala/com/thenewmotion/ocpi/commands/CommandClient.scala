@@ -7,19 +7,20 @@ import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
 import akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import cats.syntax.either._
+import cats.syntax.functor._
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient}
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Commands.{Command, CommandResponse, CommandResponseType}
 import com.thenewmotion.ocpi.msgs.{AuthToken, SuccessResp}
 import scala.concurrent.ExecutionContext
 
-class CommandClient(
+class CommandClient[F[_]: Async](
   implicit http: HttpExt,
   errorU: ErrRespUnMar,
   sucU: FromEntityUnmarshaller[Either[SuccessResp[CommandResponseType], SuccessResp[CommandResponse]]]
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   def sendCommand[C <: Command : ToEntityMarshaller](
     commandsUri: Uri,
@@ -27,9 +28,9 @@ class CommandClient(
     command: C
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[CommandResponseType]] = {
+  ): F[ErrorRespOr[CommandResponseType]] = {
 
     val commandUri = commandsUri.copy(path = commandsUri.path ?/ command.name.name)
 

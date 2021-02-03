@@ -51,7 +51,7 @@ object ExampleApp extends App {
 
   val repo = new ExampleRegistrationRepo()
 
-  val client = new RegistrationClient()
+  val client = new RegistrationClient[IO]()
 
   val service = new RegistrationService(
     client,

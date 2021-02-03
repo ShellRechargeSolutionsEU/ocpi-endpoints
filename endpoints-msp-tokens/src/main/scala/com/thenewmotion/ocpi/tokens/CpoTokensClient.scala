@@ -6,35 +6,36 @@ import _root_.akka.http.scaladsl.client.RequestBuilding._
 import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model.{HttpRequest, Uri}
 import _root_.akka.stream.Materializer
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
+import cats.syntax.either._
+import cats.syntax.functor._
 import com.thenewmotion.ocpi.common.{ClientObjectUri, ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Token, TokenPatch, TokenUid}
 import scala.concurrent.ExecutionContext
-import cats.syntax.either._
 
 /**
   * Client that can be used by the MSP side
   * for pushing tokens to the CPO
   */
-class CpoTokensClient(
+class CpoTokensClient[F[_]: Async](
   implicit http: HttpExt,
   errorU: ErrRespUnMar,
   successTokenU: SuccessRespUnMar[Token],
   successUnitU: SuccessRespUnMar[Unit],
   tokenM: ToEntityMarshaller[Token],
   tokenPM: ToEntityMarshaller[TokenPatch]
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   def getToken(
     tokenUri: ClientObjectUri,
     authToken: AuthToken[Ours],
     tokenUid: TokenUid
   )(implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Token]] =
+  ): F[ErrorRespOr[Token]] =
     singleRequest[Token](Get(tokenUri.value), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not retrieve token from ${tokenUri.value}. Reason: $err")
@@ -47,9 +48,9 @@ class CpoTokensClient(
     authToken: AuthToken[Ours],
     rb: Uri => HttpRequest
   )(implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     singleRequest[Unit](rb(tokenUri.value), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not upload token to ${tokenUri.value}. Reason: $err")
@@ -62,9 +63,9 @@ class CpoTokensClient(
     authToken: AuthToken[Ours],
     token: Token
   )(implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     push(tokenUri, authToken, uri => Put(uri, token))
 
   def updateToken(
@@ -73,9 +74,9 @@ class CpoTokensClient(
     patch: TokenPatch
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     push(tokenUri, authToken, uri => Patch(uri, patch))
 
 }

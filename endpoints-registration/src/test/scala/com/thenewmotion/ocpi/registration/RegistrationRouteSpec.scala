@@ -171,7 +171,7 @@ class RegistrationRouteSpec(implicit ee: ExecutionEnv) extends Specification wit
     val newCredsToConnectToUs = credsToConnectToUs.copy[Ours](token = AuthToken[Theirs]("abc"))
 
     // mock
-    val registrationService = mock[RegistrationService]
+    val registrationService = mock[RegistrationService[IO]]
 
     //default mocks
     registrationService.reactToNewCredsRequest(any(), any(), any())(any(), any()) returns

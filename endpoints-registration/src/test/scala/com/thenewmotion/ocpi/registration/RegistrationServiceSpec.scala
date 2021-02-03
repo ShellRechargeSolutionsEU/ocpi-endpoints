@@ -297,7 +297,7 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
       theirGlobalId
     )
 
-    var _client = mock[RegistrationClient]
+    var _client = mock[RegistrationClient[IO]]
 
     // React to credentials request
     _client.getTheirVersions(credsToConnectToThem.url, tokenToConnectToThem) returns IO.pure(

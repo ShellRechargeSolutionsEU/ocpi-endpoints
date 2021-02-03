@@ -5,21 +5,22 @@ import _root_.akka.http.scaladsl._
 import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
-import cats.effect.{ContextShift, IO}
-import client.RequestBuilding._
-import com.thenewmotion.ocpi.msgs.AuthToken
-import msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}
-import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
-import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import akka.http.scaladsl.client.RequestBuilding._
+import cats.effect.{Async, ContextShift}
 import cats.syntax.either._
+import cats.syntax.functor._
+import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, SuccessRespUnMar}
+import com.thenewmotion.ocpi.msgs.AuthToken
+import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{AuthorizationInfo, LocationReferences, TokenUid}
 import scala.concurrent._
 
-class MspTokensClient(
+class MspTokensClient[F[_]: Async](
   implicit http: HttpExt,
   successU: SuccessRespUnMar[AuthorizationInfo],
   errorU: ErrRespUnMar,
   locRefM: ToEntityMarshaller[LocationReferences]
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   def authorize(
     endpointUri: Uri,
@@ -28,9 +29,9 @@ class MspTokensClient(
     locationReferences: Option[LocationReferences]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[AuthorizationInfo]] = {
+  ): F[ErrorRespOr[AuthorizationInfo]] = {
     val oldPath = endpointUri.path
     val authorizeUri = endpointUri.withPath {
       (if (oldPath.endsWithSlash) oldPath + tokenUid.value else  oldPath / tokenUid.value) / "authorize"

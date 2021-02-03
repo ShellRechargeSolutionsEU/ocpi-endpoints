@@ -7,18 +7,18 @@ import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, PagedRespUnMar, PaginatedSource}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Cdrs.Cdr
 import scala.concurrent.ExecutionContext
 
-class CdrsClient(
+class CdrsClient[F[_]: Async](
   implicit http: HttpExt,
   successU: PagedRespUnMar[Cdr],
   errorU: ErrRespUnMar
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   def getCdrs(
     uri: Uri,
@@ -28,9 +28,9 @@ class CdrsClient(
     pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Iterable[Cdr]]] =
+  ): F[ErrorRespOr[Iterable[Cdr]]] =
     traversePaginatedResource[Cdr](uri, auth, dateFrom, dateTo, pageLimit)
 
   def cdrsSource(
