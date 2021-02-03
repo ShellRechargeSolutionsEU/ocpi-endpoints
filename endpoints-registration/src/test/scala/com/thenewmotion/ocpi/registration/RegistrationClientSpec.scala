@@ -4,6 +4,7 @@ package registration
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
 import akka.stream.ActorMaterializer
+import cats.effect.IO
 import com.thenewmotion.ocpi.common.IOMatchersExt
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
@@ -67,6 +68,7 @@ class RegistrationClientSpec(environment: Env)
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 
-    val client = new RegistrationClient()
+    val client = new RegistrationClient[IO]()
   }
 }
+

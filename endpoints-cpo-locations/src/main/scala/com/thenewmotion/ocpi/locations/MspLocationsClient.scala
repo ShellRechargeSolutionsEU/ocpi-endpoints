@@ -1,18 +1,19 @@
 package com.thenewmotion.ocpi.locations
 
-import scala.concurrent.{ExecutionContext}
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshalling.ToEntityMarshaller
 import akka.stream.Materializer
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
+import cats.syntax.either._
+import cats.syntax.functor._
 import com.thenewmotion.ocpi.common.{ClientObjectUri, ErrRespUnMar, OcpiClient, SuccessRespUnMar}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Locations._
-import cats.syntax.either._
+import scala.concurrent.ExecutionContext
 
-class MspLocationsClient(
+class MspLocationsClient[F[_]: Async](
   implicit http: HttpExt,
   successUnitU: SuccessRespUnMar[Unit],
   errorU: ErrRespUnMar,
@@ -25,17 +26,17 @@ class MspLocationsClient(
   locationPM: ToEntityMarshaller[LocationPatch],
   evsePM: ToEntityMarshaller[EvsePatch],
   connectorPM: ToEntityMarshaller[ConnectorPatch]
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   private def get[T](
     uri: ClientObjectUri,
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer,
     successU: SuccessRespUnMar[T]
-  ): IO[ErrorRespOr[T]] =
+  ): F[ErrorRespOr[T]] =
     singleRequest[T](Get(uri.value), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not retrieve data from ${uri.value}. Reason: $err")
@@ -49,9 +50,9 @@ class MspLocationsClient(
     data: T
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     singleRequest[Unit](Put(uri.value, data), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not upload data to ${uri.value}. Reason: $err")
@@ -65,9 +66,9 @@ class MspLocationsClient(
     patch: T
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     singleRequest[Unit](Patch(uri.value, patch), authToken).map {
       _.bimap(err => {
         logger.error(s"Could not update data at ${uri.value}. Reason: $err")
@@ -80,9 +81,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Location]] =
+  ): F[ErrorRespOr[Location]] =
     get(uri, authToken)
 
   def getEvse(
@@ -90,9 +91,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Evse]] =
+  ): F[ErrorRespOr[Evse]] =
     get(uri, authToken)
 
   def getConnector(
@@ -100,9 +101,9 @@ class MspLocationsClient(
     authToken: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Connector]] =
+  ): F[ErrorRespOr[Connector]] =
     get(uri, authToken)
 
   def uploadLocation(
@@ -111,9 +112,9 @@ class MspLocationsClient(
     location: Location
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     upload(uri, authToken, location)
 
   def uploadEvse(
@@ -122,9 +123,9 @@ class MspLocationsClient(
     evse: Evse
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     upload(uri, authToken, evse)
 
   def uploadConnector(
@@ -133,9 +134,9 @@ class MspLocationsClient(
     connector: Connector
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     upload(uri, authToken, connector)
 
   def updateLocation(
@@ -144,9 +145,9 @@ class MspLocationsClient(
     location: LocationPatch
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     update(uri, authToken, location)
 
   def updateEvse(
@@ -155,9 +156,9 @@ class MspLocationsClient(
     evse: EvsePatch
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     update(uri, authToken, evse)
 
   def updateConnector(
@@ -166,8 +167,8 @@ class MspLocationsClient(
     connector: ConnectorPatch
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Unit]] =
+  ): F[ErrorRespOr[Unit]] =
     update(uri, authToken, connector)
 }

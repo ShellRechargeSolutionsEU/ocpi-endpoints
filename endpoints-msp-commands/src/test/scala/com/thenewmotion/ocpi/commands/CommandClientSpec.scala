@@ -130,7 +130,7 @@ object GenericRespTypes {
 
 
 class TestMspCommandsClient(reqWithAuthFunc: String => IO[HttpResponse])
-  (implicit httpExt: HttpExt) extends CommandClient {
+  (implicit httpExt: HttpExt) extends CommandClient[IO] {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =

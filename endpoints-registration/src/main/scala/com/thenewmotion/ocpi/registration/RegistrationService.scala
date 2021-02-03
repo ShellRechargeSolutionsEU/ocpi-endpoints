@@ -3,9 +3,11 @@ package registration
 
 import akka.http.scaladsl.model.Uri
 import akka.stream.Materializer
+import cats.Applicative
 import cats.data.EitherT
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import cats.syntax.either._
+import cats.syntax.functor._
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
 import com.thenewmotion.ocpi.msgs.Versions.EndpointIdentifier.Credentials
 import com.thenewmotion.ocpi.msgs.Versions.{Version, VersionDetails, VersionNumber}
@@ -16,11 +18,11 @@ import com.thenewmotion.ocpi.registration.RegistrationError._
 import scala.concurrent.ExecutionContext
 
 /**
-  * Requires IO to call the other side during registration.
+  * Requires F to call the other side during registration.
   */
-class RegistrationService(
-  client: RegistrationClient,
-  repo: RegistrationRepo[IO],
+class RegistrationService[F[_]: Async](
+  client: RegistrationClient[F],
+  repo: RegistrationRepo[F],
   ourGlobalPartyId: GlobalPartyId,
   ourPartyName: String,
   ourVersions: Set[VersionNumber],
@@ -28,8 +30,8 @@ class RegistrationService(
   ourWebsite: Option[Url] = None,
   ourLogo: Option[Image] = None
 )(
-  implicit cs: ContextShift[IO]
-) extends IOEitherUtils {
+  implicit cs: ContextShift[F]
+) {
 
   private val logger = Logger(getClass)
   private def redact(s: String) = s.take(3) + "**REDACTED**"
@@ -41,7 +43,7 @@ class RegistrationService(
       repo.isPartyRegistered(globalPartyId).map {
         case true =>
           logger.debug("{} is already registered", globalPartyId)
-          AlreadyExistingParty(globalPartyId).asLeft
+          (AlreadyExistingParty(globalPartyId): RegistrationError).asLeft
         case false => ().asRight
       }
     }
@@ -74,7 +76,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): F[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Registration initiated by {}, for {}", globalPartyId: Any, version: Any)
 
     (for {
@@ -102,7 +104,7 @@ class RegistrationService(
     globalPartyId: GlobalPartyId,
     version: VersionNumber,
     creds: Creds[Theirs]
-  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Ours]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): F[Either[RegistrationError, Creds[Ours]]] = {
     logger.info("Update credentials request sent by {}, for {}", creds.globalPartyId: Any, version: Any)
 
     def errIfGlobalPartyIdChangedAndTaken: Result[RegistrationError, Unit] =
@@ -149,7 +151,7 @@ class RegistrationService(
 
   def reactToDeleteCredsRequest(
     globalPartyId: GlobalPartyId
-  ): IO[Either[RegistrationError, Unit]] = {
+  ): F[Either[RegistrationError, Unit]] = {
     logger.info("delete credentials request sent by {}", globalPartyId)
 
     (for {
@@ -166,7 +168,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): F[Either[RegistrationError, Creds[Theirs]]] = {
     // see https://github.com/typesafehub/scalalogging/issues/16
     logger.info("initiate registration process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.sendCredentials, errIfRegistered)
@@ -176,7 +178,7 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri
-  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): F[Either[RegistrationError, Creds[Theirs]]] = {
     logger.info("update credentials process with {}, {}", theirVersionsUrl: Any, redact(ourToken.value))
     handshake(ourToken, theirNewToken, theirVersionsUrl, client.updateCredentials, errIfNotRegistered(_, WaitingForRegistrationRequest))
   }
@@ -185,11 +187,11 @@ class RegistrationService(
     ourToken: AuthToken[Ours],
     theirNewToken: AuthToken[Theirs],
     theirVersionsUrl: Uri,
-    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => IO[Either[RegistrationError, Creds[Theirs]]],
+    credentialExchange: (Url, AuthToken[Ours], Creds[Ours]) => F[Either[RegistrationError, Creds[Theirs]]],
     registrationCheck: GlobalPartyId => Result[RegistrationError, Unit]
-  )(implicit ec: ExecutionContext, mat: Materializer): IO[Either[RegistrationError, Creds[Theirs]]] = {
+  )(implicit ec: ExecutionContext, mat: Materializer): F[Either[RegistrationError, Creds[Theirs]]] = {
 
-    def getCredsEndpoint(verDet: VersionDetails) = IO.pure(
+    def getCredsEndpoint(verDet: VersionDetails) = Applicative[F].pure(
       verDet.endpoints.find(_.identifier == Credentials) toRight {
         logger.debug("Credentials endpoint not found in retrieved endpoints for version {}", verDet.version)
         SendingCredentialsFailed: RegistrationError
@@ -244,21 +246,22 @@ class RegistrationService(
     } yield theirVerDetails
   }
 
-  def credsToConnectToUs(globalPartyId: GlobalPartyId): IO[Either[RegistrationError, Creds[Ours]]] =
+  def credsToConnectToUs(globalPartyId: GlobalPartyId): F[Either[RegistrationError, Creds[Ours]]] = {
     (for {
-      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight UnknownParty(globalPartyId)))
+      theirToken <- result(repo.findTheirAuthToken(globalPartyId).map(_ toRight (UnknownParty(globalPartyId): RegistrationError)))
     } yield generateCreds(theirToken)).value
+  }
 
   private def generateCreds(token: AuthToken[Theirs]): Creds[Ours] = {
     import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes.BusinessDetails
     Creds[Ours](token, ourVersionsUrl,
       BusinessDetails(ourPartyName, ourLogo, ourWebsite), ourGlobalPartyId)
   }
+
+  type Result[E, T] = EitherT[F, E, T]
+
+  protected def result[L, T](effect: F[Either[L, T]]): Result[L, T] = EitherT(effect)
+  protected def result[L, T](value: Either[L, T]): Result[L, T] = EitherT(Applicative[F].pure(value))
 }
 
-trait IOEitherUtils {
-  type Result[E, T] = EitherT[IO, E, T]
 
-  protected def result[L, T](effect: IO[Either[L, T]]): Result[L, T] = EitherT(effect)
-  protected def result[L, T](value: Either[L, T]): Result[L, T] = EitherT(IO.pure(value))
-}

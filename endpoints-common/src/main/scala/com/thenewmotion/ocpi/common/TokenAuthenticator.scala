@@ -1,18 +1,15 @@
 package com.thenewmotion.ocpi
 package common
 
-import _root_.akka.http.scaladsl.model.headers.GenericHttpCredentials
-import _root_.akka.http.scaladsl.model.headers.HttpChallenge
-import _root_.akka.http.scaladsl.model.headers.HttpCredentials
+import _root_.akka.http.scaladsl.model.headers.{GenericHttpCredentials, HttpChallenge, HttpCredentials}
 import _root_.akka.http.scaladsl.server.directives.SecurityDirectives.AuthenticationResult
-import cats.effect.IO
-import msgs.Ownership.Theirs
-import msgs.{AuthToken, GlobalPartyId}
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import cats.effect.Effect
+import com.thenewmotion.ocpi.msgs.Ownership.Theirs
+import com.thenewmotion.ocpi.msgs.{AuthToken, GlobalPartyId}
+import scala.concurrent.{ExecutionContext, Future}
 
-class TokenAuthenticator(
-  toApiUser: AuthToken[Theirs] => IO[Option[GlobalPartyId]]
+class TokenAuthenticator[F[+_]: Effect](
+  toApiUser: AuthToken[Theirs] => F[Option[GlobalPartyId]]
 )(
   implicit executionContext: ExecutionContext
 ) extends (Option[HttpCredentials] => Future[AuthenticationResult[GlobalPartyId]]) {
@@ -28,7 +25,7 @@ class TokenAuthenticator(
           None
       } match {
         case None => Future.successful(Left(challenge))
-        case Some(x) => toApiUser(AuthToken[Theirs](x)).unsafeToFuture().map {
+        case Some(x) => Effect[F].toIO(toApiUser(AuthToken[Theirs](x))).unsafeToFuture().map {
           case Some(x2) => Right(x2)
           case None => Left(challenge)
         }

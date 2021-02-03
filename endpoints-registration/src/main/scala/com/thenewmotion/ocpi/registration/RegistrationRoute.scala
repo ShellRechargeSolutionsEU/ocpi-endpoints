@@ -4,7 +4,7 @@ package registration
 import _root_.akka.http.scaladsl.server.Route
 import _root_.akka.http.scaladsl.unmarshalling.FromEntityUnmarshaller
 import _root_.akka.stream.Materializer
-import cats.effect.{ContextShift, Effect, IO}
+import cats.effect.Effect
 import com.thenewmotion.ocpi.common._
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericSuccess
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
@@ -15,31 +15,28 @@ import scala.concurrent.ExecutionContext
 
 object RegistrationRoute {
   def apply[F[_]: Effect: HktMarshallable](
-    service: RegistrationService
+    service: RegistrationService[F]
   )(
     implicit mat: Materializer,
     errorM: ErrRespMar,
     succOurCredsM: SuccessRespMar[Creds[Ours]],
     succUnitM: SuccessRespMar[Unit],
-    theirCredsU: FromEntityUnmarshaller[Creds[Theirs]],
-    cs: ContextShift[IO]
+    theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
   ): RegistrationRoute[F] = new RegistrationRoute(service)
 }
 
 class RegistrationRoute[F[_]: Effect: HktMarshallable] private[ocpi](
-  service: RegistrationService
+  service: RegistrationService[F]
 )(
   implicit mat: Materializer,
   errorM: ErrRespMar,
   succOurCredsM: SuccessRespMar[Creds[Ours]],
   succUnitM: SuccessRespMar[Unit],
-  theirCredsU: FromEntityUnmarshaller[Creds[Theirs]],
-  cs: ContextShift[IO]
+  theirCredsU: FromEntityUnmarshaller[Creds[Theirs]]
 ) extends OcpiDirectives {
 
-  import HktMarshallableSyntax._
-  import HktMarshallableInstances._
   import ErrorMarshalling._
+  import HktMarshallableSyntax._
 
   def apply(
     accessedVersion: VersionNumber,

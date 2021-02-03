@@ -7,7 +7,7 @@ import _root_.akka.http.scaladsl.model.{DateTime => _, _}
 import _root_.akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshal}
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Sink
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import cats.syntax.either._
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessResp}
@@ -46,7 +46,7 @@ private[common] case class OcpiClientException(errorResp: ErrorResp)
 case class FailedRequestException(request: HttpRequest, response: HttpResponse, cause: Throwable)
   extends Exception("Failed to get response to OCPI request", cause)
 
-abstract class OcpiClient(implicit http: HttpExt)
+abstract class OcpiClient[F[_]: Async](implicit http: HttpExt)
   extends AuthorizedRequests with EitherUnmarshalling with OcpiResponseUnmarshalling {
 
   protected def singleRequestRawT[T : ClassTag](
@@ -54,27 +54,28 @@ abstract class OcpiClient(implicit http: HttpExt)
     auth: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer,
     errorU: ErrRespUnMar,
     sucU: FromEntityUnmarshaller[T]
-  ): IO[ErrorRespOr[T]] =
-    IO.fromFuture(IO(requestWithAuth(http, req, auth).flatMap { response =>
+  ): F[ErrorRespOr[T]] = {
+    Async.fromFuture(Async[F].delay(requestWithAuth(http, req, auth).flatMap { response =>
       Unmarshal(response).to[ErrorRespOr[T]].recover {
         case NonFatal(cause) => throw FailedRequestException(req, response, cause)
       }
     }))
+  }
 
   def singleRequest[T](
     req: HttpRequest,
     auth: AuthToken[Ours]
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer,
     errorU: ErrRespUnMar,
     sucU: SuccessRespUnMar[T]
-  ): IO[ErrorRespOr[SuccessResp[T]]] = singleRequestRawT[SuccessResp[T]](req, auth)
+  ): F[ErrorRespOr[SuccessResp[T]]] = singleRequestRawT[SuccessResp[T]](req, auth)
 
   def traversePaginatedResource[T](
     uri: Uri,
@@ -84,12 +85,12 @@ abstract class OcpiClient(implicit http: HttpExt)
     limit: Int
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer,
     successU: PagedRespUnMar[T],
     errorU: ErrRespUnMar
-  ): IO[ErrorRespOr[Iterable[T]]] =
-    IO.fromFuture(IO(PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
+  ): F[ErrorRespOr[Iterable[T]]] =
+    Async.fromFuture(Async[F].delay(PaginatedSource[T](http, uri, auth, dateFrom, dateTo, limit).runWith(Sink.seq[T]).map {
       _.asRight
     }.recover {
       case OcpiClientException(errorResp) => errorResp.asLeft

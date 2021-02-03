@@ -101,7 +101,7 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
 
 // generalize to testhttpclient?
 class TestMspTokensClient(reqWithAuthFunc: String => IO[HttpResponse])
-  (implicit httpExt: HttpExt) extends MspTokensClient {
+  (implicit httpExt: HttpExt) extends MspTokensClient[IO] {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =

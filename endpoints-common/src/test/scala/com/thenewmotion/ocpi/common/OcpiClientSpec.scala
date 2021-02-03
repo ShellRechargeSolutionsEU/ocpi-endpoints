@@ -113,7 +113,7 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMat
 }
 
 class TestOcpiClient(reqWithAuthFunc: String => IO[HttpResponse])
-  (implicit http: HttpExt) extends OcpiClient {
+  (implicit http: HttpExt) extends OcpiClient[IO] {
 
   override def requestWithAuth(http: HttpExt, req: HttpRequest, token: AuthToken[Ours])
     (implicit ec: ExecutionContext, mat: Materializer): Future[HttpResponse] =

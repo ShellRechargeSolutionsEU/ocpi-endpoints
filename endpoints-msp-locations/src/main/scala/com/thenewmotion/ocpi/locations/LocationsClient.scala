@@ -7,18 +7,18 @@ import _root_.akka.http.scaladsl.HttpExt
 import _root_.akka.http.scaladsl.model.Uri
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl.Source
-import cats.effect.{ContextShift, IO}
+import cats.effect.{Async, ContextShift}
 import com.thenewmotion.ocpi.common.{ErrRespUnMar, OcpiClient, PagedRespUnMar, PaginatedSource}
 import com.thenewmotion.ocpi.msgs.AuthToken
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.Location
 import scala.concurrent.ExecutionContext
 
-class LocationsClient(
+class LocationsClient[F[_]: Async](
   implicit http: HttpExt,
   successU: PagedRespUnMar[Location],
   errorU: ErrRespUnMar
-) extends OcpiClient {
+) extends OcpiClient[F] {
 
   def getLocations(
     uri: Uri,
@@ -28,9 +28,9 @@ class LocationsClient(
     pageLimit: Int = OcpiClient.DefaultPageLimit
   )(
     implicit ec: ExecutionContext,
-    cs: ContextShift[IO],
+    cs: ContextShift[F],
     mat: Materializer
-  ): IO[ErrorRespOr[Iterable[Location]]] =
+  ): F[ErrorRespOr[Iterable[Location]]] =
     traversePaginatedResource[Location](uri, auth, dateFrom, dateTo, pageLimit)
 
   def locationsSource(
