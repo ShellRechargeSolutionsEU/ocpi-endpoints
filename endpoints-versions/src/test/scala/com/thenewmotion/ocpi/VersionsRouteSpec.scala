@@ -34,7 +34,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
         handled must beTrue
 
         val json = responseAs[String].parseJson
-        json.extract[Int]('status_code) mustEqual 2011
+        json.extract[Int](Symbol("status_code")) mustEqual 2011
       }
     }
 
@@ -46,7 +46,7 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
         handled must beTrue
 
         val json = responseAs[String].parseJson
-        json.extract[Int]('status_code) mustEqual 2010
+        json.extract[Int](Symbol("status_code")) mustEqual 2010
       }
     }
 
@@ -58,9 +58,9 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
         handled must beTrue
 
         val json = responseAs[String].parseJson
-        json.extract[Int]('status_code) mustEqual 1000
-        json.extract[String]('data / * / 'version) mustEqual List("2.1")
-        json.extract[String]('data / * / 'url) mustEqual List("http://example.com/cpo/versions/2.1")
+        json.extract[Int](Symbol("status_code")) mustEqual 1000
+        json.extract[String](Symbol("data") / * / Symbol("version")) mustEqual List("2.1")
+        json.extract[String](Symbol("data") / * / Symbol("url")) mustEqual List("http://example.com/cpo/versions/2.1")
       }
     }
 
@@ -70,10 +70,10 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
         handled must beTrue
 
         val json = responseAs[String].parseJson
-        json.extract[Int]('status_code) mustEqual 1000
-        json.extract[String]('data / 'version) mustEqual "2.1"
-        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations", "tokens")
-        json.extract[String]('data / 'endpoints / * / 'url) mustEqual
+        json.extract[Int](Symbol("status_code")) mustEqual 1000
+        json.extract[String](Symbol("data") / Symbol("version")) mustEqual "2.1"
+        json.extract[String](Symbol("data") / Symbol("endpoints") / * / Symbol("identifier")) mustEqual List("credentials", "locations", "tokens")
+        json.extract[String](Symbol("data") / Symbol("endpoints") / * / Symbol("url")) mustEqual
           List(
             "http://example.com/cpo/versions/2.1/credentials",
             "http://example.com/cpo/versions/2.1/locations",
@@ -88,10 +88,10 @@ class VersionsRouteSpec extends Specification with Specs2RouteTest with Mockito 
         handled must beTrue
 
         val json = responseAs[String].parseJson
-        json.extract[Int]('status_code) mustEqual 1000
-        json.extract[String]('data / 'version) mustEqual "2.1"
-        json.extract[String]('data / 'endpoints / * / 'identifier) mustEqual List("credentials", "locations", "tokens")
-        json.extract[String]('data / 'endpoints / * / 'url) mustEqual
+        json.extract[Int](Symbol("status_code")) mustEqual 1000
+        json.extract[String](Symbol("data") / Symbol("version")) mustEqual "2.1"
+        json.extract[String](Symbol("data") / Symbol("endpoints") / * / Symbol("identifier")) mustEqual List("credentials", "locations", "tokens")
+        json.extract[String](Symbol("data") / Symbol("endpoints") / * / Symbol("url")) mustEqual
           List(
             "http://example.com/cpo/versions/2.1/credentials",
             "http://example.com/cpo/versions/2.1/locations",
