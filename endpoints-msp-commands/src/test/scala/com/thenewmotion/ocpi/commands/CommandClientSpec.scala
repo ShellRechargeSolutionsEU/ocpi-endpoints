@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.{Http, HttpExt}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.Materializer
 import akka.util.Timeout
 import cats.effect.IO
 import com.thenewmotion.ocpi.common.IOMatchersExt
@@ -72,8 +72,6 @@ class CommandClientSpec(implicit ec: ExecutionContext) extends Specification wit
   trait TestScope extends Scope {
 
     implicit val system = ActorSystem()
-
-    implicit val materializer = ActorMaterializer()
 
     implicit val http = Http()
 

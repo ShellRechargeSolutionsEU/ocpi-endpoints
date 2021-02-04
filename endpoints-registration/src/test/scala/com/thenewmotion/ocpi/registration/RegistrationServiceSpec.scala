@@ -4,7 +4,7 @@ package registration
 import java.time.ZonedDateTime
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.Materializer
 import akka.testkit.TestKit
 import cats.effect.{ContextShift, IO}
 import com.thenewmotion.ocpi.common.IOMatchersExt
@@ -264,8 +264,6 @@ class RegistrationServiceSpec(implicit ee: ExecutionEnv) extends Specification w
   class RegistrationTestScope(_system: ActorSystem) extends TestKit(_system) with Scope {
 
     def this() = this(ActorSystem("ocpi-allstarts"))
-
-    implicit val materializer = ActorMaterializer()
 
     implicit val http = Http()
 

@@ -9,7 +9,7 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.http.scaladsl.{Http, HttpExt}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.Materializer
 import akka.util.{Timeout => AkkaTimeout}
 import cats.effect.IO
 import com.thenewmotion.ocpi.ZonedDateTimeParser._
@@ -60,8 +60,6 @@ class CpoTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
   trait TestScope extends Scope {
 
     implicit val system = ActorSystem()
-
-    implicit val materializer = ActorMaterializer()
 
     implicit val http = Http()
 

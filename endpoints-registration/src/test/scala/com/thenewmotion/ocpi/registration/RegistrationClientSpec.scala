@@ -1,9 +1,9 @@
 package com.thenewmotion.ocpi
 package registration
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.HttpExt
 import akka.http.scaladsl.model.Uri
-import akka.stream.ActorMaterializer
 import cats.effect.IO
 import com.thenewmotion.ocpi.common.IOMatchersExt
 import com.thenewmotion.ocpi.msgs.Ownership.{Ours, Theirs}
@@ -27,7 +27,7 @@ class RegistrationClientSpec(environment: Env)
 
   implicit val ee: ExecutionEnv = environment.executionEnv
   implicit val ec: ExecutionContext = environment.executionContext
-  implicit val mat: ActorMaterializer = null
+  implicit val sys: ActorSystem = ActorSystem()
 
   val uri = Uri("http://localhost/nothingHere")
   val ourToken = AuthToken[Ours]("token")

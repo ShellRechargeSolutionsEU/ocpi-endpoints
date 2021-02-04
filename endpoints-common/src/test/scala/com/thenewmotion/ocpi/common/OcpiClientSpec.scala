@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.http.scaladsl.{Http, HttpExt}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.Materializer
 import akka.util.Timeout
 import cats.effect.IO
 import com.thenewmotion.ocpi.msgs.OcpiStatusCode.GenericClientFailure
@@ -16,8 +16,8 @@ import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp, SuccessResp}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMatchersExt {
 
@@ -58,8 +58,6 @@ class OcpiClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMat
   trait TestScope extends Scope {
 
     implicit val system = ActorSystem()
-
-    implicit val materializer = ActorMaterializer()
 
     implicit val http = Http()
 
