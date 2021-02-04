@@ -2,25 +2,25 @@ package com.thenewmotion.ocpi.tokens
 
 import java.net.UnknownHostException
 import akka.actor.ActorSystem
-import akka.http.scaladsl.{Http, HttpExt}
-import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.StatusCodes.{ClientError => _, _}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.http.scaladsl.{Http, HttpExt}
+import akka.stream.Materializer
 import akka.util.Timeout
+import cats.effect.IO
+import com.thenewmotion.ocpi.common.IOMatchersExt
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
+import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
 import com.thenewmotion.ocpi.msgs.v2_1.Locations.{EvseUid, LocationId}
-import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import com.thenewmotion.ocpi.msgs.v2_1.Tokens.{Allowed, AuthorizationInfo, LocationReferences, TokenUid}
+import com.thenewmotion.ocpi.msgs.{AuthToken, ErrorResp}
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
-import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import cats.effect.IO
-import com.thenewmotion.ocpi.common.IOMatchersExt
-import com.thenewmotion.ocpi.msgs.sprayjson.v2_1.protocol._
+import scala.concurrent.{ExecutionContext, Future}
 
 class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with IOMatchersExt {
   "MSpTokensClient" should {
@@ -59,8 +59,6 @@ class MspTokensClientSpec(implicit ee: ExecutionEnv) extends Specification with 
   trait TestScope extends Scope {
 
     implicit val system: ActorSystem = ActorSystem()
-
-    implicit val materializer: ActorMaterializer = ActorMaterializer()
 
     implicit val http: HttpExt = Http()
 

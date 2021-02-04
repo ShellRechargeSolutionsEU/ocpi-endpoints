@@ -5,7 +5,6 @@ import _root_.akka.actor.ActorSystem
 import _root_.akka.http.scaladsl.Http
 import _root_.akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import _root_.akka.http.scaladsl.server.Directives._
-import _root_.akka.stream.ActorMaterializer
 import cats.effect.{ContextShift, IO}
 import com.thenewmotion.ocpi.VersionsRoute.OcpiVersionConfig
 import com.thenewmotion.ocpi.common.TokenAuthenticator
@@ -45,7 +44,6 @@ class ExampleRegistrationRepo extends RegistrationRepo[IO] {
 object ExampleApp extends App {
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
-  implicit val materializer = ActorMaterializer()
   implicit val http = Http()
   implicit private val ctxShift: ContextShift[IO] = IO.contextShift(executor)
 
@@ -85,6 +83,6 @@ object ExampleApp extends App {
     }
   }
 
-  Http().bindAndHandle(topLevelRoute, "localhost", 8080)
+  Http().newServerAt("localhost", 8080).bindFlow(topLevelRoute)
 
 }

@@ -8,7 +8,6 @@ import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{GenericHttpCredentials, Link, LinkParams, RawHeader}
-import akka.stream.ActorMaterializer
 import akka.stream.testkit.scaladsl.TestSink
 import akka.testkit.TestProbe
 import com.thenewmotion.ocpi.msgs.Ownership.Ours
@@ -102,7 +101,6 @@ class PaginatedSourceSpec(implicit ee: ExecutionEnv) extends Specification with 
 
   trait TestScope extends Scope {
     implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
 
     val dataUrl = "http://localhost:8095/cpo/versions/2.0/somemodule"
 

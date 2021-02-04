@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 import _root_.akka.actor.ActorSystem
 import _root_.akka.http.scaladsl.Http
 import _root_.akka.http.scaladsl.server.Directives._
-import _root_.akka.stream.ActorMaterializer
 import cats.effect.{ExitCode, IO, IOApp}
 import com.thenewmotion.ocpi.common.{Pager, PaginatedResult, TokenAuthenticator}
 import com.thenewmotion.ocpi.msgs._
@@ -33,7 +32,6 @@ object ExampleCatsIO extends IOApp {
 
   implicit val system = ActorSystem()
   implicit val executor = system.dispatcher
-  implicit val materializer = ActorMaterializer()
 
   val service = IOBasedTokensService
 
@@ -58,6 +56,6 @@ object ExampleCatsIO extends IOApp {
 
 
   override def run(args: List[String]): IO[ExitCode] =
-    IO.fromFuture(IO(Http().bindAndHandle(topLevelRoute, "localhost", 8080))).map(_ => ExitCode.Success)
+    IO.fromFuture(IO(Http().newServerAt("localhost", 8080).bindFlow(topLevelRoute))).map(_ => ExitCode.Success)
 
 }
