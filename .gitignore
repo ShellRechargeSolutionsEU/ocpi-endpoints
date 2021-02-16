@@ -26,6 +26,7 @@ test-output/
 
 #sbt
 .history
+.bsp
 
 #logs
 import.log
