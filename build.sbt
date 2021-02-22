@@ -2,7 +2,7 @@ import sbt.Keys.libraryDependencies
 
 val logging = Seq(
   "ch.qos.logback"               % "logback-classic"          %   "1.2.3",
-  "org.slf4j"                    % "slf4j-api"                %   "1.7.26")
+  "org.slf4j"                    % "slf4j-api"                %   "1.7.25")
 
 val `spray-json` = Seq("io.spray" %% "spray-json"             %   "1.3.5")
 
@@ -19,7 +19,7 @@ val circe = {
 }
 
 val `akka-http-circe` = {
-  Seq("de.heikoseeberger" %% "akka-http-circe" % "1.35.3")
+  Seq("de.heikoseeberger" %% "akka-http-circe" % "1.34.0")
 }
 
 def akkaModule(name: String) = {
