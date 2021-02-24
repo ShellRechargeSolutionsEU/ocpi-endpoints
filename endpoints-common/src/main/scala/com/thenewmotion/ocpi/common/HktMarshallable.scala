@@ -1,7 +1,7 @@
 package com.thenewmotion.ocpi.common
 
 import akka.http.scaladsl.marshalling.{GenericMarshallers, ToRequestMarshaller, ToResponseMarshaller}
-import cats.effect.{ContextShift, IO}
+import cats.effect.{ContextShift, Effect}
 import scala.concurrent.Future
 
 /**
@@ -22,12 +22,12 @@ object HktMarshallableInstances {
     def requestMarshaller[A : ToRequestMarshaller]: ToRequestMarshaller[Future[A]] = implicitly
   }
 
-  implicit def ioMarshaller(implicit s: ContextShift[IO]): HktMarshallable[IO] = new HktMarshallable[IO] {
-    def responseMarshaller[A](implicit m: ToResponseMarshaller[A]): ToResponseMarshaller[IO[A]] =
-      GenericMarshallers.futureMarshaller(m).compose(io => (s.shift *> io).unsafeToFuture())
+  implicit def effectMarshaller[F[_]: Effect](implicit s: ContextShift[F], eff: Effect[F]): HktMarshallable[F] = new HktMarshallable[F] {
+    def responseMarshaller[A](implicit m: ToResponseMarshaller[A]): ToResponseMarshaller[F[A]] =
+      GenericMarshallers.futureMarshaller(m).compose(io => eff.toIO(eff.flatMap(s.shift)(_ => io)).unsafeToFuture())
 
-    def requestMarshaller[A](implicit m: ToRequestMarshaller[A]): ToRequestMarshaller[IO[A]] =
-      GenericMarshallers.futureMarshaller(m).compose(io => (s.shift *> io).unsafeToFuture())
+    def requestMarshaller[A](implicit m: ToRequestMarshaller[A]): ToRequestMarshaller[F[A]] =
+      GenericMarshallers.futureMarshaller(m).compose(io => eff.toIO(eff.flatMap(s.shift)(_ => io)).unsafeToFuture())
   }
 }
 
