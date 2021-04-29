@@ -272,14 +272,14 @@ object Locations {
     case object Reservable extends Capability("RESERVABLE")
     case object RfidReader extends Capability("RFID_READER")
     case object RemoteStartStopCapable extends Capability("REMOTE_START_STOP_CAPABLE")
-    case object UnlockCapabale extends Capability("UNLOCK_CAPABLE")
+    case object UnlockCapable extends Capability("UNLOCK_CAPABLE")
     val values = Iterable(
       ChargingProfileCapable,
       CreditCardPayable,
       Reservable,
       RfidReader,
       RemoteStartStopCapable,
-      UnlockCapabale
+      UnlockCapable
     )
   }
 
