@@ -37,8 +37,8 @@ trait GenericCdrsSpec[J, GenericJsonReader[_], GenericJsonWriter[_]] extends
       |		"country": "BEL",
       |   "directions": [],
       |		"coordinates": {
-      |			"latitude": "3.72994",
-      |			"longitude": "51.04759"
+      |			"latitude": "3.729940",
+      |			"longitude": "51.047590"
       |		},
       |		"evses": [{
       |			"uid": "3256",
