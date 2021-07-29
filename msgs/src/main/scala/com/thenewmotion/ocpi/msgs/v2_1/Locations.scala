@@ -5,6 +5,7 @@ package v2_1
 import java.time.{LocalTime, ZonedDateTime}
 import com.thenewmotion.ocpi.msgs.v2_1.CommonTypes._
 import com.thenewmotion.ocpi.msgs.ResourceType.{Full, Patch}
+import scala.math.BigDecimal.RoundingMode
 import scala.util.{Failure, Success, Try}
 
 object Locations {
@@ -345,9 +346,9 @@ object Locations {
     images: Option[Iterable[Image]] = None
   ) extends BaseEvse[Patch]
 
-  trait Coordinate extends Any {
+  sealed trait Coordinate extends Any {
     def value: Double
-    override def toString: String = value.toString
+    override def toString: String = BigDecimal(value).setScale(6, RoundingMode.HALF_UP).toString
   }
 
   trait CoordinateCompanion[T <: Coordinate] {
@@ -387,7 +388,7 @@ object Locations {
     def unapply(value: T): Option[Double] = Some(value.value)
   }
 
-  trait Latitude extends Any with Coordinate
+  sealed trait Latitude extends Any with Coordinate
 
   object Latitude extends CoordinateCompanion[Latitude] {
     private case class LatitudeImpl(value: Double) extends AnyVal with Latitude
@@ -396,7 +397,7 @@ object Locations {
     override protected val upperLimit: Double = 90
   }
 
-  trait Longitude extends Any with Coordinate
+  sealed trait Longitude extends Any with Coordinate
 
   object Longitude extends CoordinateCompanion[Longitude] {
     private case class LongitudeImpl(value: Double) extends AnyVal with Longitude
